@@ -1,46 +1,29 @@
-# Expo HAS CHANGED
+# Alarm App — AI 知识索引
 
-Read the exact versioned docs at https://docs.expo.dev/versions/v56.0.0/ before writing any code.
+本文件是 AI 辅助开发的入口索引。根据任务类型，按需读取对应文档。
 
-# Git 提交规范
+## 项目上下文（Context）— 理解项目是什么
 
-每次 Git 提交必须遵循 Angular Commit 规范，commit message 使用**中文**。
+当需要了解项目背景、技术选型、架构设计时，读取以下文档：
 
-## 格式
+- [项目总览](.ai/context/overview.md): 项目定位、技术栈、关键决策
+- [架构设计](.ai/context/architecture.md): 目录结构、数据存储方案、核心依赖
 
-```
-<type>(<scope>): <subject>
-```
+## 编码规范（Rules）— 代码怎么写
 
-## type 取值
+写代码前**必须**读取以下规范：
 
-- feat: 新功能
-- fix: Bug 修复
-- docs: 文档变更
-- style: 代码格式（不影响逻辑）
-- refactor: 重构（非新功能、非修复）
-- perf: 性能优化
-- test: 测试相关
-- chore: 构建、依赖、配置等杂项
-- ci: CI/CD 相关
+- [编码规范](.ai/rules/coding.md): TypeScript / React Native / Expo 编码约定
+- [Git 规范](.ai/rules/git.md): Angular 提交规范（中文 message）、分支策略
 
-## 规则
+## 需求规格（Specs）— 要做什么功能
 
-1. scope 可选，用中文描述模块，如 `提醒`、`通知`、`首页`
-2. subject 用中文，简洁描述本次变更的实质内容
-3. 提交前必须梳理所有当次变更的文件，整理出有意义的 message，不允许使用 "update" / "fix bug" 等笼统描述
-4. 如果一次提交包含多个不相关改动，应拆分为多个 commit
+每个功能需求一个子目录，包含需求描述、技术设计、任务拆分：
 
-## 示例
+- [Specs 使用说明](.ai/specs/README.md)
 
-- `feat(提醒): 添加周期性提醒的创建和编辑功能`
-- `fix(通知): 修复 iOS 后台通知未触发的问题`
-- `chore(依赖): 升级 expo-notifications 并锁定 npm 源为官方源`
-- `docs(设计文档): 补充数据模型和存储方案设计`
+## 铁律
 
-# 分支策略
-
-- `main`: 稳定分支，保持可发布状态
-- `feat/*`: 功能分支，从 main 拉出，PR 合并回 main
-- `fix/*`: Bug 修复分支
-- `chore/*`: 构建、配置等杂项分支
+1. Expo SDK 56 — 查阅 https://docs.expo.dev/versions/v56.0.0/ 的文档，不要用废弃 API
+2. Git 提交 — Angular 规范 + 中文 message，梳理变更文件后写有意义的描述
+3. TypeScript strict — 不允许 any 类型逃逸
