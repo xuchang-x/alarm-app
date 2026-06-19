@@ -39,6 +39,8 @@
 ## 分支策略
 
 - `main`: 稳定分支，保持可发布状态
-- `feat/*`: 功能分支，从 main 拉出，PR 合并回 main
-- `fix/*`: Bug 修复分支
+- `feat/{NNN}-{name}`: 功能分支，编号与 `.ai/specs/` 下的目录一一对应
+- `fix/{NNN}-{name}`: Bug 修复分支
 - `chore/*`: 构建、配置等杂项分支
+
+分支命名中的编号必须与 spec 目录编号一致，如 spec 目录为 `001-periodic-reminder`，分支即为 `feat/001-periodic-reminder`。
