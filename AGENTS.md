@@ -28,6 +28,7 @@
 当用户触发特定任务时，读取对应指令文档按流程执行：
 
 - [需求调研](.ai/commands/requirement-research.md): 从模糊想法到结构化需求文档的完整流程
+- [原型设计](.ai/commands/prototype-design.md): 从需求文档到可交互 HTML 原型的设计流程
 
 ## 铁律
 
