@@ -24,6 +24,7 @@
 - [001-alarm-mvp](.ai/specs/001-alarm-mvp/requirements.md): 闹钟 MVP（含周期闹钟核心功能）
   - [技术设计](.ai/specs/001-alarm-mvp/design.md): 技术选型、数据模型、关键流程
   - [通知调度方案](.ai/specs/001-alarm-mvp/notification-scheduling.md): 周期闹钟批量预调度策略
+  - [任务拆分](.ai/specs/001-alarm-mvp/tasks.md): 开发任务清单与依赖关系
 
 ## 指令（Commands）— 可复用的工作流
 
@@ -32,6 +33,7 @@
 - [需求调研](.ai/commands/requirement-research.md): 从模糊想法到结构化需求文档的完整流程
 - [原型设计](.ai/commands/prototype-design.md): 从需求文档到可交互 HTML 原型的设计流程
 - [技术设计](.ai/commands/technical-design.md): 从需求+原型到 design.md 技术方案的讨论流程
+- [任务拆分](.ai/commands/task-breakdown.md): 从技术设计到可执行任务清单的拆分流程
 
 ## 铁律
 
