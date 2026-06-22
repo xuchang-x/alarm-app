@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>闹钟 App 原型</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        dark: { 900: '#0f0f1a', 800: '#16162a', 700: '#1e1e32', 600: '#2a2a3e', 500: '#3a3a52', 400: '#4a4a6a', 300: '#6c6c8a', 200: '#8a8aab', 100: '#a0a0b8' },
+        primary: { DEFAULT: '#6c5ce7', light: '#a29bfe', dark: '#5a4bd1', bg: 'rgba(108,92,231,0.15)', border: 'rgba(108,92,231,0.2)' },
+        accent: { green: '#00b894', greenLight: '#55efc4', orange: '#e17055', red: '#d63031', yellow: '#ffeaa7', blue: '#74b9ff' }
+      }
+    }
+  }
+}
+</script>
+<style>
+  [x-cloak] { display: none !important; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  /* Wheel picker gradients */
+  .wheel-mask-top { background: linear-gradient(to bottom, #0f0f1a 10%, transparent 100%); }
+  .wheel-mask-bottom { background: linear-gradient(to top, #0f0f1a 10%, transparent 100%); }
+</style>
+</head>
+<body class="bg-dark-900 min-h-screen flex items-center justify-center">
+
+<div x-data="alarmApp()" x-cloak class="w-[390px] h-[844px] bg-dark-900 rounded-[40px] overflow-hidden relative border-[3px] border-dark-600 shadow-2xl flex flex-col">
+
+  <!-- Status Bar -->
+  <div class="h-[54px] flex justify-between items-end px-7 pb-2 text-sm font-semibold text-white shrink-0">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5">
+      <svg class="w-4 h-4 fill-white" viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+      <svg class="w-4 h-4 fill-white" viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+    </div>
+  </div>
+
+  <!-- ==================== PAGE 1: Alarm List ==================== -->
+  <div x-show="currentPage === 'list'" class="flex-1 flex flex-col min-h-0">
+    <!-- Header -->
+    <div class="flex justify-between items-center px-6 pt-4 pb-3 shrink-0">
+      <h1 class="text-[28px] font-bold text-white">闹钟</h1>
+      <button @click="currentPage = 'create'; resetForm()" class="w-12 h-12 bg-primary rounded-[14px] text-white text-[28px] flex items-center justify-center active:scale-95 transition-transform">+</button>
+    </div>
+
+    <!-- Alarm List -->
+    <div class="flex-1 overflow-y-auto no-scrollbar px-5 pb-24">
+      <template x-for="(alarm, index) in alarms" :key="index">
+        <div class="relative mb-3 rounded-2xl overflow-hidden">
+          <!-- Swipe actions (behind) — always present, content depends on type -->
+          <div class="absolute right-0 top-0 h-full flex items-center">
+            <!-- Cycle alarms: skip + add-once + delete -->
+            <template x-if="alarm.type === 'cycle' && alarm.enabled">
+              <div class="flex h-full">
+                <button class="h-full flex flex-col items-center justify-center px-3.5 gap-1 bg-accent-orange text-white text-xs border-none">
+                  <svg class="w-5 h-5 fill-white" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+                  跳过
+                </button>
+                <button class="h-full flex flex-col items-center justify-center px-3.5 gap-1 bg-accent-green text-white text-xs border-none">
+                  <svg class="w-5 h-5 fill-white" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                  加一次
+                </button>
+                <button class="h-full flex flex-col items-center justify-center px-3.5 gap-1 bg-accent-red text-white text-xs border-none">
+                  <svg class="w-5 h-5 fill-white" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                  删除
+                </button>
+              </div>
+            </template>
+            <!-- Non-cycle or disabled: just delete -->
+            <template x-if="alarm.type !== 'cycle' || !alarm.enabled">
+              <div class="flex h-full">
+                <button class="h-full flex flex-col items-center justify-center px-4 gap-1 bg-accent-red text-white text-xs border-none">
+                  <svg class="w-5 h-5 fill-white" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                  删除
+                </button>
+              </div>
+            </template>
+          </div>
+          <!-- Card -->
+          <div class="rounded-2xl p-[18px] px-5 relative z-10 transition-transform duration-300 cursor-pointer"
+               :class="[
+                 alarm.enabled ? 'bg-dark-700' : 'bg-[#1a1a2e]',
+                 alarm.swiped ? (alarm.type === 'cycle' && alarm.enabled ? '-translate-x-[168px]' : '-translate-x-[64px]') : ''
+               ]"
+               @click="if(!alarm.swiped) { editAlarm(index) } else { alarm.swiped = false }">
+            <div class="flex justify-between items-start">
+              <div class="text-[42px] font-light tracking-tight" :class="alarm.enabled ? 'text-white' : 'text-dark-400'" x-text="alarm.time"></div>
+              <!-- Toggle -->
+              <div class="w-[50px] h-7 rounded-full relative cursor-pointer mt-2 transition-colors duration-200 shrink-0"
+                   :class="alarm.enabled ? 'bg-primary' : 'bg-dark-500'"
+                   @click.stop="alarm.enabled = !alarm.enabled">
+                <div class="w-[22px] h-[22px] bg-white rounded-full absolute top-[3px] transition-transform duration-200"
+                     :class="alarm.enabled ? 'translate-x-[25px]' : 'translate-x-[3px]'"></div>
+              </div>
+            </div>
+            <div class="mt-2 flex items-center gap-2 flex-wrap" :class="!alarm.enabled && 'opacity-40'">
+              <span class="text-[11px] px-2 py-0.5 rounded-md font-medium"
+                    :class="badgeClass(alarm.type)" x-text="alarm.typeLabel"></span>
+              <span class="text-sm text-dark-200" x-text="alarm.label"></span>
+            </div>
+            <div class="mt-1.5 text-[13px] text-dark-300" :class="!alarm.enabled && 'opacity-40'" x-text="alarm.nextRing"></div>
+          </div>
+        </div>
+      </template>
+      <p class="text-center text-dark-400 text-xs pt-2 pb-1">← 左滑卡片查看更多操作</p>
+    </div>
+
+    <!-- Page Nav -->
+    <div class="absolute bottom-0 left-0 right-0 bg-dark-800 border-t border-dark-600 flex gap-2 px-5 pt-2.5 pb-7 z-10" x-ref="navList">
+      <button class="flex-1 py-2 rounded-xl text-xs bg-primary text-white border border-primary">闹钟列表</button>
+      <button @click="currentPage = 'create'; resetForm()" class="flex-1 py-2 rounded-xl text-xs bg-dark-700 text-dark-200 border border-dark-600 hover:border-primary">创建闹钟</button>
+      <button @click="editAlarm(0)" class="flex-1 py-2 rounded-xl text-xs bg-dark-700 text-dark-200 border border-dark-600 hover:border-primary">编辑闹钟</button>
+      <button @click="currentPage = 'notification'" class="flex-1 py-2 rounded-xl text-xs bg-dark-700 text-dark-200 border border-dark-600 hover:border-primary">通知样式</button>
+    </div>
+  </div>
+
+  <!-- ==================== PAGE 2: Create Alarm ==================== -->
+  <div x-show="currentPage === 'create'" class="flex-1 flex flex-col min-h-0">
+    <!-- Header -->
+    <div class="flex justify-between items-center px-6 py-4 shrink-0">
+      <button @click="currentPage = 'list'" class="text-dark-200 text-base">取消</button>
+      <h2 class="text-lg font-semibold text-white">新建闹钟</h2>
+      <button @click="currentPage = 'list'" class="text-primary font-semibold text-base">保存</button>
+    </div>
+
+    <!-- Scroll Content -->
+    <div class="flex-1 overflow-y-auto no-scrollbar px-6 pb-10">
+      <!-- Time Picker -->
+      <div class="flex justify-center items-center py-6 gap-0">
+        <!-- Hour Wheel -->
+        <div class="h-[180px] w-[90px] overflow-hidden relative">
+          <div class="absolute inset-x-0 top-0 h-[60px] wheel-mask-top z-20 pointer-events-none"></div>
+          <div class="absolute inset-x-0 bottom-0 h-[60px] wheel-mask-bottom z-20 pointer-events-none"></div>
+          <div class="absolute top-1/2 -translate-y-1/2 inset-x-0 h-12 bg-primary-bg rounded-xl z-10"></div>
+          <div class="pt-[66px] pb-[66px] text-center">
+            <template x-for="h in [form.hour - 1, form.hour, form.hour + 1]" :key="h">
+              <div class="h-12 leading-[48px] text-4xl font-light transition-colors"
+                   :class="h === form.hour ? 'text-white font-normal' : 'text-dark-400'"
+                   @click="form.hour = h"
+                   x-text="String(((h % 24) + 24) % 24).padStart(2, '0')"></div>
+            </template>
+          </div>
+        </div>
+        <span class="text-4xl font-light text-white mx-1">:</span>
+        <!-- Minute Wheel -->
+        <div class="h-[180px] w-[90px] overflow-hidden relative">
+          <div class="absolute inset-x-0 top-0 h-[60px] wheel-mask-top z-20 pointer-events-none"></div>
+          <div class="absolute inset-x-0 bottom-0 h-[60px] wheel-mask-bottom z-20 pointer-events-none"></div>
+          <div class="absolute top-1/2 -translate-y-1/2 inset-x-0 h-12 bg-primary-bg rounded-xl z-10"></div>
+          <div class="pt-[66px] pb-[66px] text-center">
+            <template x-for="m in [form.minute - 1, form.minute, form.minute + 1]" :key="m">
+              <div class="h-12 leading-[48px] text-4xl font-light transition-colors"
+                   :class="m === form.minute ? 'text-white font-normal' : 'text-dark-400'"
+                   @click="form.minute = m"
+                   x-text="String(((m % 60) + 60) % 60).padStart(2, '0')"></div>
+            </template>
+          </div>
+        </div>
+      </div>
+
+      <!-- Alarm Type -->
+      <div class="text-[13px] font-semibold text-dark-300 uppercase tracking-wider mb-3">闹钟类型</div>
+      <div class="bg-dark-700 rounded-[14px] overflow-hidden">
+        <template x-for="opt in typeOptions" :key="opt.value">
+          <div class="flex items-center px-[18px] py-4 cursor-pointer border-b border-dark-600 last:border-b-0 transition-colors hover:bg-dark-600/50"
+               @click="form.type = opt.value">
+            <!-- Radio -->
+            <div class="w-5 h-5 rounded-full border-2 mr-3.5 relative shrink-0 transition-colors"
+                 :class="form.type === opt.value ? 'border-primary' : 'border-dark-400'">
+              <div x-show="form.type === opt.value" class="w-2.5 h-2.5 bg-primary rounded-full absolute top-[3px] left-[3px]"></div>
+            </div>
+            <div class="flex-1">
+              <div class="text-[15px] text-gray-200" x-text="opt.name"></div>
+              <div class="text-xs text-dark-300 mt-0.5" x-text="opt.desc"></div>
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <!-- Dynamic Settings: Cycle -->
+      <div class="mt-4" x-show="form.type === 'cycle'">
+        <div class="text-[13px] font-semibold text-dark-300 uppercase tracking-wider mb-3">周期设置</div>
+        <div class="bg-dark-700 rounded-[14px] p-[18px]">
+          <!-- Interval -->
+          <div class="flex items-center justify-between py-2">
+            <span class="text-[15px] text-gray-200">循环间隔</span>
+            <div class="flex items-center gap-3">
+              <button @click="form.interval = Math.max(1, form.interval - 1)" class="w-9 h-9 rounded-[10px] bg-dark-600 text-white text-xl flex items-center justify-center active:bg-primary">−</button>
+              <span class="text-[22px] font-medium text-white min-w-[32px] text-center" x-text="form.interval"></span>
+              <button @click="form.interval++" class="w-9 h-9 rounded-[10px] bg-dark-600 text-white text-xl flex items-center justify-center active:bg-primary">+</button>
+              <span class="text-sm text-dark-200 ml-1">天</span>
+            </div>
+          </div>
+          <!-- Start Date -->
+          <div class="flex items-center justify-between pt-4 mt-2 border-t border-dark-600">
+            <span class="text-[15px] text-gray-200">起始日期</span>
+            <button class="bg-dark-600 rounded-[10px] px-4 py-2 text-primary-light text-[15px]" x-text="form.startDate">2025-06-22</button>
+          </div>
+        </div>
+        <!-- Preview -->
+        <div class="bg-primary-bg border border-primary-border rounded-xl p-3.5 mt-4">
+          <p class="text-sm text-primary-light leading-relaxed" x-text="cyclePreview"></p>
+        </div>
+      </div>
+
+      <!-- Dynamic Settings: Weekly -->
+      <div class="mt-4" x-show="form.type === 'weekly'">
+        <div class="text-[13px] font-semibold text-dark-300 uppercase tracking-wider mb-3">重复日</div>
+        <div class="flex justify-between gap-2">
+          <div class="w-[42px] h-[42px] rounded-full border-2 flex items-center justify-center text-sm cursor-pointer transition-all"
+               :class="form.weekdays.includes(0) ? 'bg-primary border-primary text-white' : 'bg-dark-700 border-dark-500 text-dark-200'"
+               @click="toggleWeekday(0)">一</div>
+          <div class="w-[42px] h-[42px] rounded-full border-2 flex items-center justify-center text-sm cursor-pointer transition-all"
+               :class="form.weekdays.includes(1) ? 'bg-primary border-primary text-white' : 'bg-dark-700 border-dark-500 text-dark-200'"
+               @click="toggleWeekday(1)">二</div>
+          <div class="w-[42px] h-[42px] rounded-full border-2 flex items-center justify-center text-sm cursor-pointer transition-all"
+               :class="form.weekdays.includes(2) ? 'bg-primary border-primary text-white' : 'bg-dark-700 border-dark-500 text-dark-200'"
+               @click="toggleWeekday(2)">三</div>
+          <div class="w-[42px] h-[42px] rounded-full border-2 flex items-center justify-center text-sm cursor-pointer transition-all"
+               :class="form.weekdays.includes(3) ? 'bg-primary border-primary text-white' : 'bg-dark-700 border-dark-500 text-dark-200'"
+               @click="toggleWeekday(3)">四</div>
+          <div class="w-[42px] h-[42px] rounded-full border-2 flex items-center justify-center text-sm cursor-pointer transition-all"
+               :class="form.weekdays.includes(4) ? 'bg-primary border-primary text-white' : 'bg-dark-700 border-dark-500 text-dark-200'"
+               @click="toggleWeekday(4)">五</div>
+          <div class="w-[42px] h-[42px] rounded-full border-2 flex items-center justify-center text-sm cursor-pointer transition-all"
+               :class="form.weekdays.includes(5) ? 'bg-primary border-primary text-white' : 'bg-dark-700 border-dark-500 text-dark-200'"
+               @click="toggleWeekday(5)">六</div>
+          <div class="w-[42px] h-[42px] rounded-full border-2 flex items-center justify-center text-sm cursor-pointer transition-all"
+               :class="form.weekdays.includes(6) ? 'bg-primary border-primary text-white' : 'bg-dark-700 border-dark-500 text-dark-200'"
+               @click="toggleWeekday(6)">日</div>
+        </div>
+        <!-- Preview -->
+        <div class="bg-primary-bg border border-primary-border rounded-xl p-3.5 mt-4">
+          <p class="text-sm text-primary-light leading-relaxed" x-text="weeklyPreview"></p>
+        </div>
+      </div>
+
+      <!-- Dynamic Settings: Once -->
+      <div class="mt-4" x-show="form.type === 'once'">
+        <div class="text-[13px] font-semibold text-dark-300 uppercase tracking-wider mb-3">日期</div>
+        <div class="bg-dark-700 rounded-[14px] p-[18px]">
+          <div class="flex items-center justify-between">
+            <span class="text-[15px] text-gray-200">响铃日期</span>
+            <button class="bg-dark-600 rounded-[10px] px-4 py-2 text-primary-light text-[15px]">2025-07-01</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Label -->
+      <div class="bg-dark-700 rounded-[14px] px-[18px] mt-6">
+        <input type="text" placeholder="备注（可选）" x-model="form.label"
+               class="w-full bg-transparent text-gray-200 text-[15px] py-3.5 outline-none placeholder:text-dark-400">
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== PAGE 3: Edit Alarm ==================== -->
+  <div x-show="currentPage === 'edit'" class="flex-1 flex flex-col min-h-0">
+    <!-- Header -->
+    <div class="flex justify-between items-center px-6 py-4 shrink-0">
+      <button @click="currentPage = 'list'" class="text-dark-200 text-base">取消</button>
+      <h2 class="text-lg font-semibold text-white">编辑闹钟</h2>
+      <button @click="currentPage = 'list'" class="text-primary font-semibold text-base">保存</button>
+    </div>
+
+    <!-- Scroll Content (same form as create, prefilled) -->
+    <div class="flex-1 overflow-y-auto no-scrollbar px-6 pb-10">
+      <!-- Time Picker -->
+      <div class="flex justify-center items-center py-6 gap-0">
+        <div class="h-[180px] w-[90px] overflow-hidden relative">
+          <div class="absolute inset-x-0 top-0 h-[60px] wheel-mask-top z-20 pointer-events-none"></div>
+          <div class="absolute inset-x-0 bottom-0 h-[60px] wheel-mask-bottom z-20 pointer-events-none"></div>
+          <div class="absolute top-1/2 -translate-y-1/2 inset-x-0 h-12 bg-primary-bg rounded-xl z-10"></div>
+          <div class="pt-[66px] pb-[66px] text-center">
+            <div class="h-12 leading-[48px] text-4xl font-light text-dark-400">05</div>
+            <div class="h-12 leading-[48px] text-4xl font-normal text-white">06</div>
+            <div class="h-12 leading-[48px] text-4xl font-light text-dark-400">07</div>
+          </div>
+        </div>
+        <span class="text-4xl font-light text-white mx-1">:</span>
+        <div class="h-[180px] w-[90px] overflow-hidden relative">
+          <div class="absolute inset-x-0 top-0 h-[60px] wheel-mask-top z-20 pointer-events-none"></div>
+          <div class="absolute inset-x-0 bottom-0 h-[60px] wheel-mask-bottom z-20 pointer-events-none"></div>
+          <div class="absolute top-1/2 -translate-y-1/2 inset-x-0 h-12 bg-primary-bg rounded-xl z-10"></div>
+          <div class="pt-[66px] pb-[66px] text-center">
+            <div class="h-12 leading-[48px] text-4xl font-light text-dark-400">29</div>
+            <div class="h-12 leading-[48px] text-4xl font-normal text-white">30</div>
+            <div class="h-12 leading-[48px] text-4xl font-light text-dark-400">31</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Type (Cycle selected) -->
+      <div class="text-[13px] font-semibold text-dark-300 uppercase tracking-wider mb-3">闹钟类型</div>
+      <div class="bg-dark-700 rounded-[14px] overflow-hidden">
+        <template x-for="opt in typeOptions" :key="'edit-' + opt.value">
+          <div class="flex items-center px-[18px] py-4 cursor-pointer border-b border-dark-600 last:border-b-0 transition-colors hover:bg-dark-600/50"
+               @click="editForm.type = opt.value">
+            <div class="w-5 h-5 rounded-full border-2 mr-3.5 relative shrink-0 transition-colors"
+                 :class="editForm.type === opt.value ? 'border-primary' : 'border-dark-400'">
+              <div x-show="editForm.type === opt.value" class="w-2.5 h-2.5 bg-primary rounded-full absolute top-[3px] left-[3px]"></div>
+            </div>
+            <div class="flex-1">
+              <div class="text-[15px] text-gray-200" x-text="opt.name"></div>
+              <div class="text-xs text-dark-300 mt-0.5" x-text="opt.desc"></div>
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <!-- Cycle settings (edit) -->
+      <div x-show="editForm.type === 'cycle'" class="mt-4">
+        <div class="text-[13px] font-semibold text-dark-300 uppercase tracking-wider mb-3">周期设置</div>
+        <div class="bg-dark-700 rounded-[14px] p-[18px]">
+          <div class="flex items-center justify-between py-2">
+            <span class="text-[15px] text-gray-200">循环间隔</span>
+            <div class="flex items-center gap-3">
+              <button @click="editForm.interval = Math.max(1, editForm.interval - 1)" class="w-9 h-9 rounded-[10px] bg-dark-600 text-white text-xl flex items-center justify-center active:bg-primary">−</button>
+              <span class="text-[22px] font-medium text-white min-w-[32px] text-center" x-text="editForm.interval"></span>
+              <button @click="editForm.interval++" class="w-9 h-9 rounded-[10px] bg-dark-600 text-white text-xl flex items-center justify-center active:bg-primary">+</button>
+              <span class="text-sm text-dark-200 ml-1">天</span>
+            </div>
+          </div>
+          <div class="flex items-center justify-between pt-4 mt-2 border-t border-dark-600">
+            <span class="text-[15px] text-gray-200">起始日期</span>
+            <button class="bg-dark-600 rounded-[10px] px-4 py-2 text-primary-light text-[15px]">2025-06-22</button>
+          </div>
+        </div>
+
+        <!-- Cycle Adjustment Section -->
+        <div class="text-[13px] font-semibold text-dark-300 uppercase tracking-wider mt-6 mb-3">周期调整</div>
+        <div class="bg-dark-700 rounded-[14px] overflow-hidden">
+          <div class="flex items-center justify-between px-[18px] py-4 border-b border-dark-600">
+            <div>
+              <div class="text-[15px] text-gray-200">跳过下一次</div>
+              <div class="text-xs text-dark-300 mt-0.5">6月26日（周四）将不响铃</div>
+            </div>
+            <svg class="w-5 h-5 fill-dark-300" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+          </div>
+          <div class="flex items-center justify-between px-[18px] py-4 border-b border-dark-600">
+            <div>
+              <div class="text-[15px] text-gray-200">临时加一次</div>
+              <div class="text-xs text-dark-300 mt-0.5">在非周期日额外响铃一次</div>
+            </div>
+            <svg class="w-5 h-5 fill-dark-300" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+          </div>
+          <div class="flex items-center justify-between px-[18px] py-4">
+            <div>
+              <div class="text-[15px] text-gray-200">推迟/提前一天</div>
+              <div class="text-xs text-dark-300 mt-0.5">微调下一次的响铃日期</div>
+            </div>
+            <svg class="w-5 h-5 fill-dark-300" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Weekly settings (edit) -->
+      <div x-show="editForm.type === 'weekly'" class="mt-4">
+        <div class="text-[13px] font-semibold text-dark-300 uppercase tracking-wider mb-3">重复日</div>
+        <div class="flex justify-between gap-2">
+          <div class="w-[42px] h-[42px] rounded-full border-2 flex items-center justify-center text-sm cursor-pointer transition-all"
+               :class="editForm.weekdays.includes(0) ? 'bg-primary border-primary text-white' : 'bg-dark-700 border-dark-500 text-dark-200'"
+               @click="toggleEditWeekday(0)">一</div>
+          <div class="w-[42px] h-[42px] rounded-full border-2 flex items-center justify-center text-sm cursor-pointer transition-all"
+               :class="editForm.weekdays.includes(1) ? 'bg-primary border-primary text-white' : 'bg-dark-700 border-dark-500 text-dark-200'"
+               @click="toggleEditWeekday(1)">二</div>
+          <div class="w-[42px] h-[42px] rounded-full border-2 flex items-center justify-center text-sm cursor-pointer transition-all"
+               :class="editForm.weekdays.includes(2) ? 'bg-primary border-primary text-white' : 'bg-dark-700 border-dark-500 text-dark-200'"
+               @click="toggleEditWeekday(2)">三</div>
+          <div class="w-[42px] h-[42px] rounded-full border-2 flex items-center justify-center text-sm cursor-pointer transition-all"
+               :class="editForm.weekdays.includes(3) ? 'bg-primary border-primary text-white' : 'bg-dark-700 border-dark-500 text-dark-200'"
+               @click="toggleEditWeekday(3)">四</div>
+          <div class="w-[42px] h-[42px] rounded-full border-2 flex items-center justify-center text-sm cursor-pointer transition-all"
+               :class="editForm.weekdays.includes(4) ? 'bg-primary border-primary text-white' : 'bg-dark-700 border-dark-500 text-dark-200'"
+               @click="toggleEditWeekday(4)">五</div>
+          <div class="w-[42px] h-[42px] rounded-full border-2 flex items-center justify-center text-sm cursor-pointer transition-all"
+               :class="editForm.weekdays.includes(5) ? 'bg-primary border-primary text-white' : 'bg-dark-700 border-dark-500 text-dark-200'"
+               @click="toggleEditWeekday(5)">六</div>
+          <div class="w-[42px] h-[42px] rounded-full border-2 flex items-center justify-center text-sm cursor-pointer transition-all"
+               :class="editForm.weekdays.includes(6) ? 'bg-primary border-primary text-white' : 'bg-dark-700 border-dark-500 text-dark-200'"
+               @click="toggleEditWeekday(6)">日</div>
+        </div>
+      </div>
+
+      <!-- Once settings (edit) -->
+      <div x-show="editForm.type === 'once'" class="mt-4">
+        <div class="text-[13px] font-semibold text-dark-300 uppercase tracking-wider mb-3">日期</div>
+        <div class="bg-dark-700 rounded-[14px] p-[18px]">
+          <div class="flex items-center justify-between">
+            <span class="text-[15px] text-gray-200">响铃日期</span>
+            <button class="bg-dark-600 rounded-[10px] px-4 py-2 text-primary-light text-[15px]">2025-07-01</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Label (edit) -->
+      <div class="bg-dark-700 rounded-[14px] px-[18px] mt-6">
+        <input type="text" placeholder="备注（可选）" x-model="editForm.label"
+               class="w-full bg-transparent text-gray-200 text-[15px] py-3.5 outline-none placeholder:text-dark-400">
+      </div>
+
+      <!-- Delete -->
+      <button class="w-full mt-6 py-3.5 rounded-[14px] bg-accent-red/10 text-accent-red text-[15px] font-medium border border-accent-red/20">
+        删除闹钟
+      </button>
+    </div>
+  </div>
+
+  <!-- ==================== PAGE 4: Notification Preview ==================== -->
+  <div x-show="currentPage === 'notification'" class="flex-1 flex flex-col min-h-0 px-6 pt-4">
+    <div class="flex items-center mb-6">
+      <button @click="currentPage = 'list'" class="text-dark-200 text-base mr-4">← 返回</button>
+      <h2 class="text-lg font-semibold text-white">通知预览</h2>
+    </div>
+
+    <!-- Lock Screen Style -->
+    <p class="text-[13px] font-semibold text-dark-300 uppercase tracking-wider mb-3">锁屏通知</p>
+    <div class="bg-dark-600 rounded-2xl p-3.5 flex items-start gap-3">
+      <div class="w-9 h-9 bg-primary rounded-[10px] flex items-center justify-center shrink-0">
+        <svg class="w-5 h-5 fill-white" viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+      </div>
+      <div class="flex-1">
+        <div class="text-xs text-dark-200">闹钟 App</div>
+        <div class="text-[15px] text-white font-semibold mt-0.5">白班 · 06:30</div>
+        <div class="text-[13px] text-dark-100 mt-1">每4天循环 · 下次：6月30日</div>
+      </div>
+      <span class="text-xs text-dark-300 mt-0.5">现在</span>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex gap-2 mt-3">
+      <button class="flex-1 py-2.5 rounded-[10px] bg-dark-500 text-gray-200 text-sm font-medium">关闭</button>
+      <button class="flex-1 py-2.5 rounded-[10px] bg-primary text-white text-sm font-medium">稍后提醒</button>
+    </div>
+
+    <!-- Expanded Notification -->
+    <p class="text-[13px] font-semibold text-dark-300 uppercase tracking-wider mt-8 mb-3">通知展开</p>
+    <div class="bg-dark-600 rounded-2xl p-4">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 bg-primary rounded-[10px] flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5 fill-white" viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+        </div>
+        <div class="flex-1">
+          <div class="text-[15px] text-white font-semibold">白班 · 06:30</div>
+          <div class="text-[13px] text-dark-100 mt-1">每4天循环 · 下次：6月30日</div>
+        </div>
+      </div>
+      <div class="flex gap-2 mt-4">
+        <button class="flex-1 py-2.5 rounded-[10px] bg-dark-500 text-gray-200 text-sm font-medium">关闭</button>
+        <button class="flex-1 py-2.5 rounded-[10px] bg-accent-orange/80 text-white text-sm font-medium">5分钟后</button>
+        <button class="flex-1 py-2.5 rounded-[10px] bg-primary text-white text-sm font-medium">10分钟后</button>
+      </div>
+    </div>
+
+    <!-- Heads-up Banner -->
+    <p class="text-[13px] font-semibold text-dark-300 uppercase tracking-wider mt-8 mb-3">横幅通知（Heads-up）</p>
+    <div class="bg-dark-600/90 rounded-2xl p-3 flex items-center gap-3 backdrop-blur-sm">
+      <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shrink-0">
+        <svg class="w-4 h-4 fill-white" viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="text-sm text-white font-semibold truncate">白班 · 06:30</div>
+        <div class="text-xs text-dark-100 truncate">每4天循环 · 下次：6月30日</div>
+      </div>
+      <span class="text-xs text-dark-300 shrink-0">现在</span>
+    </div>
+  </div>
+
+  <!-- ==================== Swipe Demo Overlay ==================== -->
+  <div x-show="currentPage === 'swipe-demo'" class="flex-1 flex flex-col min-h-0 px-6 pt-4">
+    <div class="flex items-center mb-6">
+      <button @click="currentPage = 'list'" class="text-dark-200 text-base mr-4">← 返回</button>
+      <h2 class="text-lg font-semibold text-white">滑动操作演示</h2>
+    </div>
+
+    <p class="text-sm text-dark-200 mb-4">左滑卡片查看快捷操作。滑动操作根据闹钟类型和开关状态不同：</p>
+
+    <!-- Case 1: Enabled cycle alarm — 3 actions -->
+    <p class="text-xs text-dark-300 mb-2">开启的周期闹钟 — 跳过 / 加一次 / 删除</p>
+    <div class="relative mb-4 rounded-2xl overflow-hidden">
+      <div class="absolute right-0 top-0 h-full flex items-center">
+        <button class="h-full flex flex-col items-center justify-center px-3.5 gap-1 bg-accent-orange text-white text-xs">
+          <svg class="w-5 h-5 fill-white" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+          跳过
+        </button>
+        <button class="h-full flex flex-col items-center justify-center px-3.5 gap-1 bg-accent-green text-white text-xs">
+          <svg class="w-5 h-5 fill-white" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+          加一次
+        </button>
+        <button class="h-full flex flex-col items-center justify-center px-3.5 gap-1 bg-accent-red text-white text-xs">
+          <svg class="w-5 h-5 fill-white" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+          删除
+        </button>
+      </div>
+      <div class="bg-dark-700 rounded-2xl p-[18px] px-5 relative z-10 -translate-x-[168px]">
+        <div class="flex justify-between items-start">
+          <div class="text-[42px] font-light text-white tracking-tight">06:30</div>
+          <div class="w-[50px] h-7 rounded-full bg-primary relative mt-2">
+            <div class="w-[22px] h-[22px] bg-white rounded-full absolute top-[3px] translate-x-[25px]"></div>
+          </div>
+        </div>
+        <div class="mt-2 flex items-center gap-2">
+          <span class="text-[11px] px-2 py-0.5 rounded-md font-medium bg-primary/20 text-primary-light">每4天</span>
+          <span class="text-sm text-dark-200">白班</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Case 2: Disabled alarm — delete only -->
+    <p class="text-xs text-dark-300 mb-2">关闭的闹钟（任意类型） — 仅删除</p>
+    <div class="relative mb-4 rounded-2xl overflow-hidden">
+      <div class="absolute right-0 top-0 h-full flex items-center">
+        <button class="h-full flex flex-col items-center justify-center px-4 gap-1 bg-accent-red text-white text-xs">
+          <svg class="w-5 h-5 fill-white" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+          删除
+        </button>
+      </div>
+      <div class="bg-[#1a1a2e] rounded-2xl p-[18px] px-5 relative z-10 -translate-x-[64px]">
+        <div class="flex justify-between items-start">
+          <div class="text-[42px] font-light text-dark-400 tracking-tight">09:30</div>
+          <div class="w-[50px] h-7 rounded-full bg-dark-500 relative mt-2">
+            <div class="w-[22px] h-[22px] bg-white rounded-full absolute top-[3px] translate-x-[3px]"></div>
+          </div>
+        </div>
+        <div class="mt-2 flex items-center gap-2 opacity-40">
+          <span class="text-[11px] px-2 py-0.5 rounded-md font-medium bg-accent-blue/20 text-accent-blue">一次性</span>
+          <span class="text-sm text-dark-200">取快递</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Case 3: Enabled non-cycle alarm — delete only -->
+    <p class="text-xs text-dark-300 mb-2">开启的非周期闹钟 — 仅删除</p>
+    <div class="relative mb-4 rounded-2xl overflow-hidden">
+      <div class="absolute right-0 top-0 h-full flex items-center">
+        <button class="h-full flex flex-col items-center justify-center px-4 gap-1 bg-accent-red text-white text-xs">
+          <svg class="w-5 h-5 fill-white" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+          删除
+        </button>
+      </div>
+      <div class="bg-dark-700 rounded-2xl p-[18px] px-5 relative z-10 -translate-x-[64px]">
+        <div class="flex justify-between items-start">
+          <div class="text-[42px] font-light text-white tracking-tight">22:00</div>
+          <div class="w-[50px] h-7 rounded-full bg-primary relative mt-2">
+            <div class="w-[22px] h-[22px] bg-white rounded-full absolute top-[3px] translate-x-[25px]"></div>
+          </div>
+        </div>
+        <div class="mt-2 flex items-center gap-2">
+          <span class="text-[11px] px-2 py-0.5 rounded-md font-medium bg-yellow-500/20 text-yellow-200">每天</span>
+          <span class="text-sm text-dark-200">睡前提醒</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function alarmApp() {
+  return {
+    currentPage: 'list',
+
+    alarms: [
+      { time: '06:30', type: 'cycle', typeLabel: '每4天', label: '白班', nextRing: '下次响铃：6月26日（周四）', enabled: true, swiped: false },
+      { time: '14:00', type: 'cycle', typeLabel: '每4天', label: '夜班', nextRing: '下次响铃：6月27日（周五）', enabled: true, swiped: false },
+      { time: '08:00', type: 'weekly', typeLabel: '周一至周五', label: '工作日', nextRing: '明天 · 周一', enabled: true, swiped: false },
+      { time: '22:00', type: 'daily', typeLabel: '每天', label: '睡前提醒', nextRing: '今天', enabled: true, swiped: false },
+      { time: '09:30', type: 'once', typeLabel: '一次性', label: '取快递', nextRing: '7月1日（周二）', enabled: false, swiped: false },
+    ],
+
+    typeOptions: [
+      { value: 'cycle', name: '自定义周期', desc: '每N天循环一次，支持跳过/临时加一次' },
+      { value: 'weekly', name: '每周重复', desc: '选择星期几重复' },
+      { value: 'daily', name: '每天', desc: '每天同一时间响铃' },
+      { value: 'once', name: '一次性', desc: '仅响铃一次' },
+    ],
+
+    weekDays: ['一', '二', '三', '四', '五', '六', '日'],
+
+    form: { hour: 6, minute: 30, type: 'cycle', interval: 4, startDate: '2025-06-22', weekdays: [0,1,2,3,4], label: '' },
+    editForm: { type: 'cycle', interval: 4, label: '白班', weekdays: [0,1,2,3,4] },
+
+    get cyclePreview() {
+      return `从 ${this.form.startDate} 开始，每 ${this.form.interval} 天响铃一次。下次：6月26日（周四）`;
+    },
+
+    get weeklyPreview() {
+      const dayNames = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+      const selected = this.form.weekdays.sort().map(i => dayNames[i]);
+      if (selected.length === 0) return '请选择至少一个重复日';
+      if (selected.length === 5 && [0,1,2,3,4].every(i => this.form.weekdays.includes(i))) return '工作日（周一至周五）重复';
+      if (selected.length === 7) return '每天重复';
+      return `每周 ${selected.join('、')} 重复`;
+    },
+
+    resetForm() {
+      this.form = { hour: 6, minute: 30, type: 'cycle', interval: 4, startDate: '2025-06-22', weekdays: [0,1,2,3,4], label: '' };
+    },
+
+    editAlarm(index) {
+      const a = this.alarms[index];
+      this.editForm.type = a.type;
+      this.editForm.interval = 4;
+      this.editForm.label = a.label;
+      this.currentPage = 'edit';
+    },
+
+    toggleWeekday(i) {
+      const idx = this.form.weekdays.indexOf(i);
+      if (idx > -1) this.form.weekdays.splice(idx, 1);
+      else this.form.weekdays.push(i);
+    },
+
+    toggleEditWeekday(i) {
+      const idx = this.editForm.weekdays.indexOf(i);
+      if (idx > -1) this.editForm.weekdays.splice(idx, 1);
+      else this.editForm.weekdays.push(i);
+    },
+
+    badgeClass(type) {
+      return {
+        'cycle': 'bg-primary/20 text-primary-light',
+        'weekly': 'bg-accent-green/20 text-accent-greenLight',
+        'daily': 'bg-yellow-500/20 text-accent-yellow',
+        'once': 'bg-accent-blue/20 text-accent-blue'
+      }[type] || '';
+    },
+  }
+}
+</script>
+
+</body>
+</html>
