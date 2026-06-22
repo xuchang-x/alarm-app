@@ -21,6 +21,13 @@
 每个功能需求一个子目录，包含需求描述、技术设计、任务拆分：
 
 - [Specs 使用说明](.ai/specs/README.md)
+- [001-alarm-mvp](.ai/specs/001-alarm-mvp/requirements.md): 闹钟 MVP（含周期闹钟核心功能）
+
+## 指令（Commands）— 可复用的工作流
+
+当用户触发特定任务时，读取对应指令文档按流程执行：
+
+- [需求调研](.ai/commands/requirement-research.md): 从模糊想法到结构化需求文档的完整流程
 
 ## 铁律
 
