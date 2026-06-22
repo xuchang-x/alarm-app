@@ -20,7 +20,13 @@
 
 ## 项目结构
 
-- 页面组件放 `src/screens/`
+- 路由页面放 `app/`（expo-router 文件系统路由）
 - 可复用组件放 `src/components/`
 - 业务逻辑用自定义 Hook 封装在 `src/hooks/`
+- 状态管理放 `src/store/`
+- 数据库操作放 `src/db/`
+- 服务层放 `src/services/`
 - 类型定义集中在 `src/types/`
+- 常量放 `src/constants/`
+- 工具函数放 `src/utils/`
+- 使用 `@/*` 路径别名引用 `src/` 下的模块（如 `@/types/alarm`）
