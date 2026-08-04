@@ -15,6 +15,7 @@
 
 - [编码规范](.ai/rules/coding.md): TypeScript / React Native / Expo 编码约定
 - [Git 规范](.ai/rules/git.md): Angular 提交规范（中文 message）、分支策略
+- [Skill 组织规范](.ai/rules/skills.md): Skill 存放位置、多平台软链接维护方式、命名规范
 
 ## 需求规格（Specs）— 要做什么功能
 
@@ -26,14 +27,14 @@
   - [通知调度方案](.ai/specs/001-alarm-mvp/notification-scheduling.md): 周期闹钟批量预调度策略
   - [任务拆分](.ai/specs/001-alarm-mvp/tasks.md): 开发任务清单与依赖关系
 
-## 指令（Commands）— 可复用的工作流
+## 技能（Skills）— 可复用的工作流
 
-当用户触发特定任务时，读取对应指令文档按流程执行：
+按开发环节组织，真实内容存放在 `.ai/skills/` 下（详见 [Skill 组织规范](.ai/rules/skills.md)），当用户触发特定任务时自动匹配对应 skill 并按流程执行：
 
-- [需求调研](.ai/commands/requirement-research.md): 从模糊想法到结构化需求文档的完整流程
-- [原型设计](.ai/commands/prototype-design.md): 从需求文档到可交互 HTML 原型的设计流程
-- [技术设计](.ai/commands/technical-design.md): 从需求+原型到 design.md 技术方案的讨论流程
-- [任务拆分](.ai/commands/task-breakdown.md): 从技术设计到可执行任务清单的拆分流程
+- [kit-requirement-research](.ai/skills/kit-requirement-research/SKILL.md): 需求调研，从模糊想法到结构化需求文档
+- [kit-design-prototype](.ai/skills/kit-design-prototype/SKILL.md): 原型设计，从需求文档到可交互 HTML 原型
+- [kit-design-plan](.ai/skills/kit-design-plan/SKILL.md): 技术设计，从需求+原型到 design.md 技术方案
+- [kit-design-tasks](.ai/skills/kit-design-tasks/SKILL.md): 任务拆分，从技术设计到可执行任务清单
 
 ## 铁律
 

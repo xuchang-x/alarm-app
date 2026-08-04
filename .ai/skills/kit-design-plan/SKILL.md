@@ -1,3 +1,8 @@
+---
+name: kit-design-plan
+description: 需求文档和交互原型确定后，逐项讨论技术决策并产出技术设计文档（design.md），涵盖技术选型、数据模型、核心流程。当用户说「技术设计」「方案设计」「写设计文档」时使用。
+---
+
 # 技术设计 (Technical Design)
 
 当需求文档和交互原型确定后，按照以下流程进行技术设计，最终输出 `design.md` 技术设计文档。
@@ -55,7 +60,7 @@
 
 **重点议题独立沉淀**：如果讨论内容足够深入（超出简单选型），将结论沉淀为独立文档，放在 `.ai/specs/{NNN}-{feature-name}/` 下，并在最终 `design.md` 中引用。
 
-参考案例：[周期闹钟通知调度方案](../specs/001-alarm-mvp/notification-scheduling.md) 就是一个从技术设计过程中拆出来的独立方案文档。
+参考案例：[周期闹钟通知调度方案](../../specs/001-alarm-mvp/notification-scheduling.md) 就是一个从技术设计过程中拆出来的独立方案文档。
 
 ### 第四步：编写 design.md
 
@@ -116,3 +121,4 @@ MVP 不做但需要留口子的事项。
 - 数据模型要包含建表 SQL，不要只画 ER 图
 - 重点议题的独立文档应自包含，不读 design.md 也能理解
 - 如果项目是 Expo 项目，查阅对应 SDK 版本的文档确认 API 可用性
+
