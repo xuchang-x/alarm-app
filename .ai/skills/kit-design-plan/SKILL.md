@@ -19,7 +19,7 @@ description: 需求文档和交互原型确定后，逐项讨论技术决策并�
 - `.ai/context/architecture.md`：项目结构和已有依赖
 - `.ai/specs/{NNN}-{feature-name}/requirements.md`：需求规格
 - `.ai/specs/{NNN}-{feature-name}/prototype/index.html`：交互原型
-- `.ai/rules/coding.md`：编码规范
+- `.ai/rules/typescript-react-native-style.md`：编码规范
 
 ## 执行流程
 
