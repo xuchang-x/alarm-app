@@ -54,23 +54,27 @@ export default function WeekdaySelector({
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 7,
     justifyContent: 'center',
   },
   chip: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: COLORS.border,
+    flex: 1,
+    height: 42,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 13,
+    backgroundColor: COLORS.input,
     justifyContent: 'center',
     alignItems: 'center',
   },
   chipSelected: {
     backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
   },
   chipText: {
     fontSize: 14,
     color: COLORS.textSecondary,
+    fontWeight: '600',
   },
   chipTextSelected: {
     color: '#ffffff',

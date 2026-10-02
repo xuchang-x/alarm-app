@@ -92,7 +92,7 @@ export default function CycleSettings({
           mode="date"
           display="default"
           onChange={handleDateChange}
-          themeVariant="dark"
+          themeVariant="light"
         />
       )}
     </View>
@@ -101,16 +101,21 @@ export default function CycleSettings({
 
 const styles = StyleSheet.create({
   container: {
-    gap: 16,
+    gap: 10,
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    minHeight: 52,
+    paddingHorizontal: 14,
+    borderRadius: 14,
+    backgroundColor: COLORS.input,
   },
   label: {
-    fontSize: 16,
     color: COLORS.textPrimary,
+    fontSize: 14,
+    fontWeight: '600',
   },
   inputWrapper: {
     flexDirection: 'row',
@@ -118,27 +123,29 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   input: {
-    backgroundColor: COLORS.border,
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    minWidth: 48,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+    borderRadius: 9,
+    backgroundColor: COLORS.card,
     color: COLORS.textPrimary,
-    fontSize: 16,
+    fontSize: 15,
+    fontWeight: '700',
     textAlign: 'center',
-    minWidth: 60,
   },
   unit: {
-    fontSize: 16,
+    fontSize: 14,
     color: COLORS.textSecondary,
   },
   dateButton: {
-    backgroundColor: COLORS.border,
-    borderRadius: 8,
-    paddingHorizontal: 16,
     paddingVertical: 8,
+    paddingLeft: 12,
   },
   dateText: {
-    fontSize: 16,
-    color: COLORS.textPrimary,
+    color: COLORS.primaryDark,
+    fontSize: 14,
+    fontWeight: '700',
   },
 });

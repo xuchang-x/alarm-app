@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StyleSheet, Text, View, Pressable, Modal, Platform } from 'react-native';
+import { StyleSheet, Text, View, Pressable, Platform } from 'react-native';
 import DateTimePicker, {
   DateTimePickerChangeEvent,
 } from '@react-native-community/datetimepicker';
@@ -31,7 +31,7 @@ export default function TimePicker({ hour, minute, onChange }: TimePickerProps) 
           mode="time"
           display="spinner"
           onValueChange={handleValueChange}
-          themeVariant="dark"
+          themeVariant="light"
         />
       </View>
     );
@@ -40,7 +40,9 @@ export default function TimePicker({ hour, minute, onChange }: TimePickerProps) 
   return (
     <View>
       <Pressable style={styles.androidTrigger} onPress={() => setShow(true)}>
+        <Text style={styles.timeLabel}>提醒时间</Text>
         <Text style={styles.timeText}>{formatTime(hour, minute)}</Text>
+        <Text style={styles.chevron}>›</Text>
       </Pressable>
       {show && (
         <DateTimePicker
@@ -58,14 +60,35 @@ export default function TimePicker({ hour, minute, onChange }: TimePickerProps) 
 const styles = StyleSheet.create({
   iosContainer: {
     alignItems: 'center',
+    paddingVertical: 8,
+    borderRadius: 18,
+    backgroundColor: COLORS.card,
   },
   androidTrigger: {
+    flexDirection: 'row',
     alignItems: 'center',
+    paddingHorizontal: 18,
     paddingVertical: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 18,
+    backgroundColor: COLORS.card,
+  },
+  timeLabel: {
+    flex: 1,
+    color: COLORS.textSecondary,
+    fontSize: 13,
+    fontWeight: '600',
   },
   timeText: {
-    fontSize: 48,
-    fontWeight: '300',
-    color: COLORS.textPrimary,
+    color: COLORS.primary,
+    fontSize: 30,
+    fontWeight: '800',
+    letterSpacing: -0.6,
+  },
+  chevron: {
+    marginLeft: 10,
+    color: COLORS.textMuted,
+    fontSize: 25,
   },
 });

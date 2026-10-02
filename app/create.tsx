@@ -10,10 +10,9 @@ import {
   KeyboardAvoidingView,
   Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import DateTimePicker, {
-  DateTimePickerEvent,
-} from '@react-native-community/datetimepicker';
+import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useAlarmStore } from '@/store/alarm-store';
 import TimePicker from '@/components/TimePicker';
 import WeekdaySelector from '@/components/WeekdaySelector';
@@ -31,44 +30,27 @@ const TYPE_OPTIONS: { key: AlarmType; label: string }[] = [
 
 export default function CreateScreen() {
   const router = useRouter();
-  const createAlarm = useAlarmStore((s) => s.createAlarm);
-
+  const createAlarm = useAlarmStore((state) => state.createAlarm);
   const [type, setType] = useState<AlarmType>('once');
   const [hour, setHour] = useState(8);
   const [minute, setMinute] = useState(0);
   const [label, setLabel] = useState('');
   const [snoozeMinutes, setSnoozeMinutes] = useState(DEFAULT_SNOOZE_MINUTES);
-
-  // once 专用
   const [onceDate, setOnceDate] = useState(formatDate(today()));
   const [showOnceDatePicker, setShowOnceDatePicker] = useState(false);
-
-  // weekly 专用
   const [weekdays, setWeekdays] = useState<Weekday[]>([1]);
-
-  // cycle 专用
   const [intervalDays, setIntervalDays] = useState(2);
   const [startDate, setStartDate] = useState(formatDate(today()));
-
   const [saving, setSaving] = useState(false);
 
-  const handleOnceDateChange = (
-    _event: DateTimePickerEvent,
-    selectedDate?: Date
-  ) => {
-    if (Platform.OS === 'android') {
-      setShowOnceDatePicker(false);
-    }
-    if (selectedDate) {
-      setOnceDate(formatDate(selectedDate));
-    }
+  const handleOnceDateChange = (_event: DateTimePickerEvent, selectedDate?: Date) => {
+    if (Platform.OS === 'android') setShowOnceDatePicker(false);
+    if (selectedDate) setOnceDate(formatDate(selectedDate));
   };
 
   const handleSnoozeChange = (text: string) => {
     const num = parseInt(text, 10);
-    if (!isNaN(num) && num > 0 && num <= 60) {
-      setSnoozeMinutes(num);
-    }
+    if (!isNaN(num) && num > 0 && num <= 60) setSnoozeMinutes(num);
   };
 
   const handleSave = async () => {
@@ -91,7 +73,7 @@ export default function CreateScreen() {
         startDate: type === 'cycle' ? startDate : undefined,
       });
       router.back();
-    } catch (error) {
+    } catch (_error) {
       Alert.alert('错误', '创建闹钟失败，请重试');
     } finally {
       setSaving(false);
@@ -99,222 +81,233 @@ export default function CreateScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <ScrollView
-        contentContainerStyle={styles.content}
-        keyboardShouldPersistTaps="handled"
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        {/* 时间选择器 */}
-        <TimePicker hour={hour} minute={minute} onChange={(h, m) => { setHour(h); setMinute(m); }} />
-
-        {/* 闹钟类型 */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>重复方式</Text>
-          <View style={styles.typeRow}>
-            {TYPE_OPTIONS.map(({ key, label: typeLabel }) => (
-              <Pressable
-                key={key}
-                style={[styles.typeChip, type === key && styles.typeChipActive]}
-                onPress={() => setType(key)}
-              >
-                <Text
-                  style={[
-                    styles.typeChipText,
-                    type === key && styles.typeChipTextActive,
-                  ]}
-                >
-                  {typeLabel}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
+        <View style={styles.header}>
+          <Pressable style={styles.headerButton} onPress={() => router.back()}>
+            <Text style={styles.headerButtonText}>取消</Text>
+          </Pressable>
+          <Text style={styles.headerTitle}>新建闹钟</Text>
+          <View style={styles.headerPlaceholder} />
         </View>
 
-        {/* 按类型动态展示设置项 */}
-        {type === 'once' && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>日期</Text>
-            <Pressable
-              style={styles.dateButton}
-              onPress={() => setShowOnceDatePicker(true)}
-            >
-              <Text style={styles.dateText}>{onceDate}</Text>
-            </Pressable>
-            {showOnceDatePicker && (
-              <DateTimePicker
-                value={new Date(onceDate + 'T00:00:00')}
-                mode="date"
-                display="default"
-                onChange={handleOnceDateChange}
-                themeVariant="dark"
-                minimumDate={today()}
-              />
-            )}
-          </View>
-        )}
-
-        {type === 'weekly' && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>选择星期</Text>
-            <WeekdaySelector selected={weekdays} onChange={setWeekdays} />
-          </View>
-        )}
-
-        {type === 'cycle' && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>周期设置</Text>
-            <CycleSettings
-              intervalDays={intervalDays}
-              startDate={startDate}
-              onIntervalChange={setIntervalDays}
-              onStartDateChange={setStartDate}
+        <ScrollView
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.hero}>
+            <Text style={styles.eyebrow}>NEW REMINDER</Text>
+            <Text style={styles.heroTitle}>安排一个时间</Text>
+            <TimePicker
+              hour={hour}
+              minute={minute}
+              onChange={(nextHour, nextMinute) => {
+                setHour(nextHour);
+                setMinute(nextMinute);
+              }}
             />
           </View>
-        )}
 
-        {/* 标签 */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>标签</Text>
-          <TextInput
-            style={styles.labelInput}
-            value={label}
-            onChangeText={setLabel}
-            placeholder="闹钟名称（选填）"
-            placeholderTextColor={COLORS.textDisabled}
-            maxLength={50}
-          />
-        </View>
-
-        {/* 贪睡 */}
-        <View style={styles.section}>
-          <View style={styles.snoozeRow}>
-            <Text style={styles.sectionTitle}>贪睡时长</Text>
-            <View style={styles.snoozeInputWrapper}>
-              <TextInput
-                style={styles.snoozeInput}
-                value={String(snoozeMinutes)}
-                onChangeText={handleSnoozeChange}
-                keyboardType="number-pad"
-                placeholderTextColor={COLORS.textDisabled}
-              />
-              <Text style={styles.snoozeUnit}>分钟</Text>
+          <View style={styles.sectionCard}>
+            <Text style={styles.sectionTitle}>重复方式</Text>
+            <Text style={styles.sectionHint}>选择提醒发生的规律</Text>
+            <View style={styles.typeRow}>
+              {TYPE_OPTIONS.map(({ key, label: typeLabel }) => (
+                <Pressable
+                  key={key}
+                  style={[styles.typeChip, type === key && styles.typeChipActive]}
+                  onPress={() => setType(key)}
+                >
+                  <Text style={[styles.typeChipText, type === key && styles.typeChipTextActive]}>
+                    {typeLabel}
+                  </Text>
+                </Pressable>
+              ))}
             </View>
           </View>
-        </View>
 
-        {/* 保存按钮 */}
-        <Pressable
-          style={[styles.saveButton, saving && styles.saveButtonDisabled]}
-          onPress={handleSave}
-          disabled={saving}
-        >
-          <Text style={styles.saveButtonText}>
-            {saving ? '保存中...' : '保存'}
-          </Text>
-        </Pressable>
-      </ScrollView>
-    </KeyboardAvoidingView>
+          {type === 'once' && (
+            <View style={styles.sectionCard}>
+              <Text style={styles.sectionTitle}>日期</Text>
+              <Text style={styles.sectionHint}>这次提醒在哪一天发生</Text>
+              <Pressable style={styles.dateButton} onPress={() => setShowOnceDatePicker(true)}>
+                <View>
+                  <Text style={styles.dateLabel}>提醒日期</Text>
+                  <Text style={styles.dateText}>{onceDate}</Text>
+                </View>
+                <Text style={styles.chevron}>›</Text>
+              </Pressable>
+              {showOnceDatePicker && (
+                <DateTimePicker
+                  value={new Date(onceDate + 'T00:00:00')}
+                  mode="date"
+                  display="default"
+                  onChange={handleOnceDateChange}
+                  themeVariant="light"
+                  minimumDate={today()}
+                />
+              )}
+            </View>
+          )}
+
+          {type === 'weekly' && (
+            <View style={styles.sectionCard}>
+              <Text style={styles.sectionTitle}>选择星期</Text>
+              <Text style={styles.sectionHint}>每周在选中的日期提醒</Text>
+              <WeekdaySelector selected={weekdays} onChange={setWeekdays} />
+            </View>
+          )}
+
+          {type === 'cycle' && (
+            <View style={styles.sectionCard}>
+              <Text style={styles.sectionTitle}>周期设置</Text>
+              <Text style={styles.sectionHint}>按固定间隔重复提醒</Text>
+              <CycleSettings
+                intervalDays={intervalDays}
+                startDate={startDate}
+                onIntervalChange={setIntervalDays}
+                onStartDateChange={setStartDate}
+              />
+            </View>
+          )}
+
+          <View style={styles.sectionCard}>
+            <Text style={styles.sectionTitle}>提醒信息</Text>
+            <Text style={styles.sectionHint}>给这条提醒加一个容易识别的名字</Text>
+            <TextInput
+              style={styles.labelInput}
+              value={label}
+              onChangeText={setLabel}
+              placeholder="例如：晨间服药"
+              placeholderTextColor={COLORS.textMuted}
+              selectionColor={COLORS.primary}
+              maxLength={50}
+            />
+          </View>
+
+          <View style={styles.sectionCard}>
+            <View style={styles.snoozeHeader}>
+              <View>
+                <Text style={styles.sectionTitle}>贪睡时长</Text>
+                <Text style={styles.sectionHint}>通知后延迟再次提醒</Text>
+              </View>
+              <View style={styles.snoozeInputWrapper}>
+                <TextInput
+                  style={styles.snoozeInput}
+                  value={String(snoozeMinutes)}
+                  onChangeText={handleSnoozeChange}
+                  keyboardType="number-pad"
+                  selectionColor={COLORS.primary}
+                />
+                <Text style={styles.snoozeUnit}>分钟</Text>
+              </View>
+            </View>
+          </View>
+
+          <Pressable
+            style={({ pressed }) => [styles.saveButton, saving && styles.saveButtonDisabled, pressed && styles.saveButtonPressed]}
+            onPress={handleSave}
+            disabled={saving}
+          >
+            <Text style={styles.saveButtonText}>{saving ? '保存中...' : '保存闹钟'}</Text>
+          </Pressable>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  content: {
-    padding: 24,
-    paddingBottom: 48,
-  },
-  section: {
-    marginTop: 28,
-  },
-  sectionTitle: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    marginBottom: 12,
-  },
-  typeRow: {
+  flex: { flex: 1 },
+  container: { flex: 1, backgroundColor: COLORS.background },
+  header: {
     flexDirection: 'row',
-    gap: 10,
-  },
-  typeChip: {
-    flex: 1,
-    paddingVertical: 10,
-    borderRadius: 8,
-    backgroundColor: COLORS.border,
     alignItems: 'center',
-  },
-  typeChipActive: {
-    backgroundColor: COLORS.primary,
-  },
-  typeChipText: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-  },
-  typeChipTextActive: {
-    color: '#ffffff',
-    fontWeight: '600',
-  },
-  dateButton: {
-    backgroundColor: COLORS.border,
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    alignSelf: 'flex-start',
-  },
-  dateText: {
-    fontSize: 16,
-    color: COLORS.textPrimary,
-  },
-  labelInput: {
-    backgroundColor: COLORS.border,
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    color: COLORS.textPrimary,
-    fontSize: 16,
-  },
-  snoozeRow: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
   },
-  snoozeInputWrapper: {
+  headerButton: { minWidth: 56, paddingVertical: 8 },
+  headerButtonText: { color: COLORS.primary, fontSize: 14, fontWeight: '700' },
+  headerTitle: { color: COLORS.textPrimary, fontSize: 17, fontWeight: '800' },
+  headerPlaceholder: { minWidth: 56 },
+  content: { paddingHorizontal: 20, paddingBottom: 36 },
+  hero: { paddingVertical: 12 },
+  eyebrow: { color: COLORS.primary, fontSize: 10, fontWeight: '700', letterSpacing: 1.4 },
+  heroTitle: { marginTop: 6, marginBottom: 18, color: COLORS.textPrimary, fontSize: 27, fontWeight: '800' },
+  sectionCard: {
+    padding: 17,
+    marginTop: 14,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 20,
+    backgroundColor: COLORS.card,
+    shadowColor: COLORS.shadow,
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
+    elevation: 1,
+  },
+  sectionTitle: { color: COLORS.textPrimary, fontSize: 15, fontWeight: '800' },
+  sectionHint: { marginTop: 4, marginBottom: 13, color: COLORS.textSecondary, fontSize: 12, lineHeight: 17 },
+  typeRow: { flexDirection: 'row', gap: 7 },
+  typeChip: { flex: 1, alignItems: 'center', paddingVertical: 11, borderRadius: 12, backgroundColor: COLORS.input },
+  typeChipActive: { backgroundColor: COLORS.primary },
+  typeChipText: { color: COLORS.textSecondary, fontSize: 13, fontWeight: '600' },
+  typeChipTextActive: { color: '#FFFFFF', fontWeight: '800' },
+  dateButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'space-between',
+    paddingHorizontal: 14,
+    paddingVertical: 13,
+    borderRadius: 14,
+    backgroundColor: COLORS.input,
   },
-  snoozeInput: {
-    backgroundColor: COLORS.border,
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+  dateLabel: { color: COLORS.textSecondary, fontSize: 11 },
+  dateText: { marginTop: 3, color: COLORS.primaryDark, fontSize: 15, fontWeight: '700' },
+  chevron: { color: COLORS.textMuted, fontSize: 25 },
+  labelInput: {
+    paddingHorizontal: 14,
+    paddingVertical: 13,
+    borderRadius: 14,
+    backgroundColor: COLORS.input,
     color: COLORS.textPrimary,
-    fontSize: 16,
-    textAlign: 'center',
-    minWidth: 60,
-  },
-  snoozeUnit: {
     fontSize: 14,
-    color: COLORS.textSecondary,
   },
+  snoozeHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  snoozeInputWrapper: { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  snoozeInput: {
+    minWidth: 48,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+    borderRadius: 10,
+    backgroundColor: COLORS.primarySoft,
+    color: COLORS.primaryDark,
+    fontSize: 15,
+    fontWeight: '800',
+    textAlign: 'center',
+  },
+  snoozeUnit: { color: COLORS.textSecondary, fontSize: 13 },
   saveButton: {
-    marginTop: 36,
-    backgroundColor: COLORS.primary,
-    borderRadius: 12,
-    paddingVertical: 16,
     alignItems: 'center',
+    marginTop: 22,
+    paddingVertical: 15,
+    borderRadius: 16,
+    backgroundColor: COLORS.primary,
+    shadowColor: COLORS.shadow,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 14,
+    elevation: 4,
   },
-  saveButtonDisabled: {
-    opacity: 0.5,
-  },
-  saveButtonText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#ffffff',
-  },
+  saveButtonPressed: { backgroundColor: COLORS.primaryDark, transform: [{ scale: 0.99 }] },
+  saveButtonDisabled: { opacity: 0.55 },
+  saveButtonText: { color: '#FFFFFF', fontSize: 15, fontWeight: '800' },
 });

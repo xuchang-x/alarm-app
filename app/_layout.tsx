@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { Stack, useRouter } from 'expo-router';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 import { initDatabase } from '@/db/schema';
 import { useAlarmStore } from '@/store/alarm-store';
 import * as repo from '@/db/alarm-repository';
@@ -87,18 +89,20 @@ export default function RootLayout() {
   }, [router]);
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <Stack
-        screenOptions={{
-          headerStyle: { backgroundColor: COLORS.background },
-          headerTintColor: COLORS.textPrimary,
-          contentStyle: { backgroundColor: COLORS.background },
-        }}
-      >
-        <Stack.Screen name="index" options={{ title: '闹钟' }} />
-        <Stack.Screen name="create" options={{ title: '创建闹钟' }} />
-        <Stack.Screen name="[id]/edit" options={{ title: '编辑闹钟' }} />
-      </Stack>
-    </GestureHandlerRootView>
+    <SafeAreaProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <StatusBar style="dark" />
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: COLORS.background },
+          }}
+        >
+          <Stack.Screen name="index" />
+          <Stack.Screen name="create" />
+          <Stack.Screen name="[id]/edit" />
+        </Stack>
+      </GestureHandlerRootView>
+    </SafeAreaProvider>
   );
 }

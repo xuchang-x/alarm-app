@@ -7,6 +7,7 @@ import {
   Pressable,
   ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useAlarmStore, getNextRingDate } from '@/store/alarm-store';
 import AlarmCard from '@/components/AlarmCard';
@@ -18,15 +19,12 @@ export default function HomeScreen() {
   const router = useRouter();
   const { alarms, loading, loadAlarms, toggleAlarm, deleteAlarm } =
     useAlarmStore();
-
-  // 缓存每个闹钟的下次响铃日期
   const [nextDates, setNextDates] = useState<Record<number, string | null>>({});
 
   useEffect(() => {
     loadAlarms();
   }, [loadAlarms]);
 
-  // 加载下次响铃日期
   useEffect(() => {
     async function loadNextDates() {
       const dates: Record<number, string | null> = {};
@@ -40,6 +38,7 @@ export default function HomeScreen() {
       }
       setNextDates(dates);
     }
+
     if (alarms.length > 0) {
       loadNextDates();
     }
@@ -51,21 +50,21 @@ export default function HomeScreen() {
       if (!alarm) return;
       const nextDate = await getNextRingDate(alarm);
       if (nextDate) {
-        await useAlarmStore.getState().addAdjustment(id, 'skip', formatDate(nextDate));
+        await useAlarmStore
+          .getState()
+          .addAdjustment(id, 'skip', formatDate(nextDate));
       }
     },
     [alarms]
   );
 
-  const handleAddOnce = useCallback(
-    (id: number) => {
-      // 简易实现：加明天一次（后续可弹日期选择器）
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      useAlarmStore.getState().addAdjustment(id, 'add', formatDate(tomorrow));
-    },
-    []
-  );
+  const handleAddOnce = useCallback((id: number) => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    useAlarmStore
+      .getState()
+      .addAdjustment(id, 'add', formatDate(tomorrow));
+  }, []);
 
   const renderItem = useCallback(
     ({ item }: { item: Alarm }) => (
@@ -82,38 +81,94 @@ export default function HomeScreen() {
     [nextDates, toggleAlarm, deleteAlarm, handleSkip, handleAddOnce, router]
   );
 
+  const enabledCount = alarms.filter((alarm) => alarm.enabled).length;
+
   if (loading && alarms.length === 0) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
-      </View>
+      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color={COLORS.primary} />
+          <Text style={styles.loadingText}>正在加载闹钟</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (alarms.length === 0) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+        <View style={styles.pageHeader}>
+          <View>
+            <Text style={styles.eyebrow}>DAILY REMINDERS</Text>
+            <Text style={styles.title}>我的闹钟</Text>
+            <Text style={styles.subtitle}>让重要的事情准时发生</Text>
+          </View>
+          <View style={styles.headerIcon}>
+            <Text style={styles.headerIconText}>◷</Text>
+          </View>
+        </View>
+        <View style={styles.emptyState}>
+          <View style={styles.emptyIcon}>
+            <Text style={styles.emptyIconText}>◷</Text>
+          </View>
+          <Text style={styles.emptyTitle}>还没有闹钟</Text>
+          <Text style={styles.emptySubtitle}>
+            创建一个提醒，开始安排你的节奏
+          </Text>
+          <Pressable
+            style={styles.emptyButton}
+            onPress={() => router.push('/create')}
+          >
+            <Text style={styles.emptyButtonText}>创建第一个闹钟</Text>
+          </Pressable>
+        </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
-      {alarms.length === 0 ? (
-        <View style={styles.centered}>
-          <Text style={styles.emptyText}>还没有闹钟</Text>
-          <Text style={styles.emptySubtext}>点击右下角 + 创建一个</Text>
-        </View>
-      ) : (
-        <FlatList
-          data={alarms}
-          keyExtractor={(item) => String(item.id)}
-          renderItem={renderItem}
-          contentContainerStyle={styles.list}
-        />
-      )}
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+      <FlatList
+        data={alarms}
+        keyExtractor={(item) => String(item.id)}
+        renderItem={renderItem}
+        contentContainerStyle={styles.list}
+        showsVerticalScrollIndicator={false}
+        ListHeaderComponent={
+          <View style={styles.listHeader}>
+            <View style={styles.pageHeader}>
+              <View>
+                <Text style={styles.eyebrow}>DAILY REMINDERS</Text>
+                <Text style={styles.title}>我的闹钟</Text>
+                <Text style={styles.subtitle}>{enabledCount} 个提醒正在运行</Text>
+              </View>
+              <View style={styles.headerIcon}>
+                <Text style={styles.headerIconText}>◷</Text>
+              </View>
+            </View>
+            <View style={styles.summaryCard}>
+              <View style={styles.summaryIcon}>
+                <Text style={styles.summaryIconText}>✓</Text>
+              </View>
+              <View style={styles.summaryCopy}>
+                <Text style={styles.summaryTitle}>今天安排得很好</Text>
+                <Text style={styles.summaryText}>所有重要提醒都会准时通知你</Text>
+              </View>
+              <Text style={styles.summaryArrow}>›</Text>
+            </View>
+            <Text style={styles.sectionHeading}>全部提醒</Text>
+          </View>
+        }
+      />
 
-      {/* FAB */}
       <Pressable
-        style={styles.fab}
+        style={({ pressed }) => [styles.fab, pressed && styles.fabPressed]}
         onPress={() => router.push('/create')}
       >
-        <Text style={styles.fabText}>+</Text>
+        <Text style={styles.fabText}>＋</Text>
+        <Text style={styles.fabLabel}>新建</Text>
       </Pressable>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -126,40 +181,180 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: COLORS.background,
   },
-  list: {
-    paddingTop: 8,
-    paddingBottom: 100,
-  },
-  emptyText: {
-    fontSize: 18,
+  loadingText: {
+    marginTop: 12,
+    fontSize: 13,
     color: COLORS.textSecondary,
   },
-  emptySubtext: {
-    fontSize: 14,
-    color: COLORS.textDisabled,
+  list: {
+    paddingHorizontal: 20,
+    paddingBottom: 112,
+  },
+  listHeader: {
+    paddingBottom: 6,
+  },
+  pageHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 2,
+    paddingTop: 10,
+    paddingBottom: 20,
+  },
+  eyebrow: {
+    color: COLORS.primary,
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1.4,
+  },
+  title: {
+    marginTop: 5,
+    color: COLORS.textPrimary,
+    fontSize: 30,
+    fontWeight: '800',
+    letterSpacing: -0.8,
+  },
+  subtitle: {
+    marginTop: 5,
+    color: COLORS.textSecondary,
+    fontSize: 13,
+  },
+  headerIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.primarySoft,
+  },
+  headerIconText: {
+    color: COLORS.primary,
+    fontSize: 26,
+    fontWeight: '600',
+  },
+  summaryCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 14,
+    borderRadius: 18,
+    backgroundColor: COLORS.primarySoft,
+  },
+  summaryIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.primary,
+  },
+  summaryIconText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '800',
+  },
+  summaryCopy: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  summaryTitle: {
+    color: COLORS.textPrimary,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  summaryText: {
+    marginTop: 3,
+    color: COLORS.textSecondary,
+    fontSize: 11,
+  },
+  summaryArrow: {
+    color: COLORS.primary,
+    fontSize: 26,
+    fontWeight: '300',
+  },
+  sectionHeading: {
+    marginTop: 24,
+    marginBottom: 4,
+    color: COLORS.textPrimary,
+    fontSize: 16,
+    fontWeight: '800',
+  },
+  emptyState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 36,
+    paddingBottom: 80,
+  },
+  emptyIcon: {
+    width: 88,
+    height: 88,
+    borderRadius: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.primarySoft,
+  },
+  emptyIconText: {
+    color: COLORS.primary,
+    fontSize: 44,
+  },
+  emptyTitle: {
+    marginTop: 20,
+    color: COLORS.textPrimary,
+    fontSize: 22,
+    fontWeight: '800',
+  },
+  emptySubtitle: {
     marginTop: 8,
+    color: COLORS.textSecondary,
+    fontSize: 14,
+  },
+  emptyButton: {
+    marginTop: 24,
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 15,
+    backgroundColor: COLORS.primary,
+    shadowColor: COLORS.shadow,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18,
+    shadowRadius: 14,
+    elevation: 4,
+  },
+  emptyButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
   },
   fab: {
     position: 'absolute',
-    right: 24,
-    bottom: 32,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: COLORS.primary,
-    justifyContent: 'center',
+    right: 20,
+    bottom: 24,
+    flexDirection: 'row',
     alignItems: 'center',
-    elevation: 8,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    paddingHorizontal: 18,
+    height: 54,
+    borderRadius: 18,
+    backgroundColor: COLORS.primary,
+    shadowColor: COLORS.shadow,
+    shadowOffset: { width: 0, height: 7 },
+    shadowOpacity: 0.22,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  fabPressed: {
+    backgroundColor: COLORS.primaryDark,
+    transform: [{ scale: 0.97 }],
   },
   fabText: {
-    fontSize: 28,
-    color: '#ffffff',
-    lineHeight: 30,
+    color: '#FFFFFF',
+    fontSize: 22,
+    lineHeight: 24,
+  },
+  fabLabel: {
+    marginLeft: 6,
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
   },
 });

@@ -10,16 +10,21 @@ export const NOTIFICATION_ID_PREFIX = 'alarm';
 /** 通知 category 标识 */
 export const NOTIFICATION_CATEGORY = 'alarm';
 
-/** 深色主题颜色 */
+/** Eva / UI Kitten 风格颜色：浅色暖灰背景 + 紫蓝主色 */
 export const COLORS = {
-  background: '#0f0f23',
-  card: '#1a1a2e',
-  primary: '#4a9eff',
-  danger: '#ff4757',
-  warning: '#ffa502',
-  success: '#2ed573',
-  textPrimary: '#ffffff',
-  textSecondary: '#888888',
-  textDisabled: '#555555',
-  border: '#2a2a3e',
+  background: '#F7F5FC',
+  card: '#FFFFFF',
+  input: '#F3F1F8',
+  primary: '#6C5CE7',
+  primaryDark: '#5545C8',
+  primarySoft: '#EAE6FF',
+  danger: '#E85D75',
+  warning: '#E79A4D',
+  success: '#45B89C',
+  textPrimary: '#25223A',
+  textSecondary: '#6D6880',
+  textMuted: '#9C97AC',
+  textDisabled: '#B9B5C4',
+  border: '#E5E1F0',
+  shadow: '#51468A',
 } as const;
