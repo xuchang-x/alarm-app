@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { StyleSheet, Text, View, Pressable, Modal, Platform } from 'react-native';
 import DateTimePicker, {
-  DateTimePickerEvent,
+  DateTimePickerChangeEvent,
 } from '@react-native-community/datetimepicker';
 import { COLORS } from '@/constants';
 import { formatTime } from '@/utils/date';
@@ -18,13 +18,9 @@ export default function TimePicker({ hour, minute, onChange }: TimePickerProps) 
   const dateValue = new Date();
   dateValue.setHours(hour, minute, 0, 0);
 
-  const handleChange = (_event: DateTimePickerEvent, selectedDate?: Date) => {
-    if (Platform.OS === 'android') {
-      setShow(false);
-    }
-    if (selectedDate) {
-      onChange(selectedDate.getHours(), selectedDate.getMinutes());
-    }
+  // 新 API：仅在用户确认选中时间时触发（date 非可选）
+  const handleValueChange = (_event: DateTimePickerChangeEvent, date: Date) => {
+    onChange(date.getHours(), date.getMinutes());
   };
 
   if (Platform.OS === 'ios') {
@@ -34,7 +30,7 @@ export default function TimePicker({ hour, minute, onChange }: TimePickerProps) 
           value={dateValue}
           mode="time"
           display="spinner"
-          onChange={handleChange}
+          onValueChange={handleValueChange}
           themeVariant="dark"
         />
       </View>
@@ -51,7 +47,8 @@ export default function TimePicker({ hour, minute, onChange }: TimePickerProps) 
           value={dateValue}
           mode="time"
           display="spinner"
-          onChange={handleChange}
+          onValueChange={handleValueChange}
+          onDismiss={() => setShow(false)}
         />
       )}
     </View>
