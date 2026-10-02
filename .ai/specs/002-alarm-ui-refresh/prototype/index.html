@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Alarm App · 15 套开源 UI 方向</title>
+  <style>
+    :root { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", sans-serif; color: #f5f7fb; background: #080a0f; }
+    * { box-sizing: border-box; }
+    body { margin:0; min-height:100vh; padding:28px; background:radial-gradient(circle at 10% 0%, #1a2340 0, transparent 34%), #080a0f; }
+    button, a { font:inherit; }
+    button { border:0; cursor:pointer; }
+    a { color:inherit; }
+    .shell { max-width:1380px; margin:auto; }
+    .intro { display:flex; justify-content:space-between; align-items:flex-end; gap:24px; margin-bottom:20px; }
+    .eyebrow { color:#8490a8; letter-spacing:.13em; font-size:11px; text-transform:uppercase; }
+    h1 { margin:8px 0; font-size:clamp(25px,4vw,42px); line-height:1.05; letter-spacing:-.05em; }
+    .intro p { margin:0; max-width:700px; color:#a7afc2; font-size:14px; line-height:1.6; }
+    .toolbar { display:flex; gap:5px; padding:5px; border:1px solid #293248; border-radius:14px; background:#151a27; white-space:nowrap; }
+    .toolbar button { padding:9px 13px; color:#8993a9; background:transparent; border-radius:9px; font-size:13px; }
+    .toolbar button.active { color:#fff; background:#4e78f5; }
+    .source-strip { display:flex; gap:8px; flex-wrap:wrap; margin:0 0 24px; }
+    .source-strip a { display:inline-flex; gap:6px; align-items:center; padding:7px 10px; color:#b9c3d7; background:#111725; border:1px solid #242e44; border-radius:99px; text-decoration:none; font-size:11px; }
+    .source-strip a:hover { border-color:#5e80ec; color:#fff; }
+    .grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:15px; align-items:start; }
+    .option { min-width:0; }
+    .meta { min-height:72px; padding:0 3px 9px; }
+    .meta-top { display:flex; justify-content:space-between; gap:6px; align-items:flex-start; }
+    .title { font-size:15px; font-weight:750; line-height:1.2; }
+    .subtitle { margin-top:5px; color:#8c96aa; font-size:11px; line-height:1.45; }
+    .license { flex:none; padding:4px 7px; border-radius:99px; background:#1b2b54; color:#b9c9ff; font-size:10px; }
+    .source-link { display:inline-block; margin-top:6px; color:#7f9dfd; font-size:10px; text-decoration:none; }
+    .phone { padding:9px; background:#262b37; border-radius:29px; box-shadow:0 14px 32px rgba(0,0,0,.25), inset 0 0 0 1px rgba(255,255,255,.08); }
+    .screen { position:relative; min-height:690px; overflow:hidden; padding:22px 15px 18px; border-radius:23px; }
+    .status { display:flex; justify-content:space-between; margin-bottom:25px; opacity:.56; font-size:10px; }
+    .nav { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+    .nav h2 { margin:0; font-size:25px; letter-spacing:-.05em; }
+    .nav small { display:block; margin-top:5px; opacity:.58; font-size:10px; }
+    .icon-btn { display:grid; place-items:center; width:30px; height:30px; border-radius:50%; background:rgba(255,255,255,.09); color:inherit; }
+    .section-label { display:flex; justify-content:space-between; margin:17px 3px 8px; font-size:10px; letter-spacing:.1em; text-transform:uppercase; opacity:.58; }
+    .alarm { padding:15px; margin:9px 0; border-radius:16px; transition:.2s; }
+    .alarm:active { transform:scale(.98); }
+    .alarm-top { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
+    .time { font-size:33px; font-weight:700; line-height:1; letter-spacing:-.07em; }
+    .ampm { margin-left:4px; font-size:10px; opacity:.53; }
+    .switch { width:38px; height:22px; padding:3px; border-radius:99px; background:#3f4657; }
+    .switch i { display:block; width:16px; height:16px; border-radius:50%; background:#fff; transition:.2s; }
+    .switch.on { background:#5b82f7; }
+    .switch.on i { transform:translateX(16px); }
+    .label { margin-top:10px; font-size:13px; font-weight:700; }
+    .rule { margin-top:4px; font-size:11px; opacity:.63; }
+    .next { margin-top:10px; font-size:10px; }
+    .actions { display:flex; gap:6px; margin-top:11px; }
+    .actions button { flex:1; padding:7px 3px; border-radius:8px; color:inherit; background:rgba(255,255,255,.1); font-size:10px; }
+    .fab { position:absolute; right:17px; bottom:18px; width:47px; height:47px; border-radius:15px; color:#fff; font-size:23px; box-shadow:0 8px 18px rgba(0,0,0,.23); }
+    .segmented { display:flex; gap:4px; padding:4px; margin-bottom:18px; border-radius:12px; }
+    .segmented button { flex:1; padding:8px 2px; border-radius:8px; color:inherit; background:transparent; opacity:.65; font-size:10px; }
+    .segmented button.active { opacity:1; background:rgba(255,255,255,.15); }
+    .time-hero { margin:14px 0 22px; text-align:center; font-size:56px; font-weight:300; letter-spacing:-.09em; }
+    .form-group { padding:13px; margin-top:9px; border-radius:14px; }
+    .form-row { display:flex; justify-content:space-between; align-items:center; gap:8px; min-height:31px; }
+    .form-row + .form-row { padding-top:9px; margin-top:9px; border-top:1px solid rgba(255,255,255,.1); }
+    .form-label { font-size:12px; }
+    .form-value { max-width:58%; overflow:hidden; color:inherit; opacity:.68; font-size:11px; text-overflow:ellipsis; white-space:nowrap; }
+    .days { display:flex; gap:5px; margin-top:10px; }
+    .day { display:grid; flex:1; height:26px; place-items:center; border-radius:50%; background:rgba(255,255,255,.08); opacity:.6; font-size:10px; }
+    .day.active { opacity:1; }
+    .save { width:100%; padding:12px; margin-top:16px; border-radius:11px; color:#fff; font-size:12px; font-weight:750; }
+    .timeline { display:grid; grid-template-columns:42px 1fr; gap:9px; }
+    .timeline-time { padding-top:19px; text-align:right; opacity:.58; font-size:10px; }
+    .timeline-rail { position:relative; }
+    .timeline-rail:before { position:absolute; top:0; bottom:-14px; left:0; width:1px; background:currentColor; opacity:.16; content:""; }
+    .timeline-rail:after { position:absolute; top:23px; left:-3px; width:7px; height:7px; border-radius:50%; background:currentColor; content:""; }
+    .timeline .alarm { margin:8px 0 15px; }
+    .note { margin:11px 3px 0; color:#8490a8; font-size:10px; line-height:1.5; }
+    .a .screen { background:linear-gradient(160deg,#101628,#0b0f18); } .a .alarm { background:#1a2235; border:1px solid #273451; } .a .alarm.muted { color:#6e7890; } .a .next { color:#86a9ff; } .a .fab,.a .save { background:#5b82f7; } .a .segmented,.a .form-group { background:#172036; }
+    .b .screen { background:linear-gradient(160deg,#fcfafb,#f1edf8); color:#2e2a36; } .b .status,.b .section-label,.b .note { color:#8a8390; } .b .alarm { background:#fff; border:1px solid #e9e2f0; box-shadow:0 7px 14px rgba(87,66,108,.08); } .b .alarm.muted { color:#aaa3ad; } .b .switch { background:#d8d0df; } .b .switch.on { background:#8d73e8; } .b .next { color:#7255ce; } .b .fab,.b .save { background:#8d73e8; } .b .segmented,.b .form-group { background:#e9e3f1; } .b .day { background:#ddd4e8; } .b .day.active { background:#8d73e8; color:#fff; }
+    .c .screen { background:linear-gradient(160deg,#101a1b,#0b1113); } .c .alarm { background:#142526; border-left:3px solid #4dc8a9; } .c .alarm.muted { color:#647875; border-left-color:#34504a; } .c .next { color:#63ddbc; } .c .fab,.c .save { background:#35ad92; } .c .segmented,.c .form-group { background:#142324; } .c .day { background:#1b3834; } .c .day.active { background:#35ad92; color:#fff; }
+    .d .screen { background:linear-gradient(160deg,#f6f8fb,#edf1f5); color:#27313d; } .d .status,.d .section-label,.d .note { color:#798593; } .d .alarm { background:#fff; border:1px solid #e1e7ee; box-shadow:0 5px 12px rgba(53,67,87,.07); } .d .alarm.muted { color:#9aa5b1; } .d .switch { background:#cbd4df; } .d .switch.on { background:#3db7a0; } .d .next { color:#2d9d89; } .d .fab,.d .save { background:#3db7a0; } .d .segmented,.d .form-group { background:#e4eaf0; } .d .day { background:#d8e0e8; } .d .day.active { background:#3db7a0; color:#fff; }
+    .e .screen { background:linear-gradient(160deg,#0c1730,#0c1425); } .e .alarm { background:#122346; border-left:3px solid #55d8c2; } .e .alarm.muted { color:#647593; border-left-color:#334667; } .e .next { color:#62e2ca; } .e .fab,.e .save { background:#2ba996; } .e .segmented,.e .form-group { background:#11213f; } .e .day { background:#1b3457; } .e .day.active { background:#2ba996; color:#fff; }
+
+    .f .screen { background:linear-gradient(160deg,#f8fbff,#edf3fa); color:#223449; } .f .status,.f .section-label,.f .note { color:#708298; } .f .alarm { background:#fff; border:1px solid #dce7f3; border-radius:10px; box-shadow:0 5px 12px rgba(47,85,119,.08); } .f .alarm.muted { color:#98a7b7; } .f .switch { background:#c7d5e3; } .f .switch.on { background:#ee8b57; } .f .next { color:#df7145; } .f .fab,.f .save { background:#ee8b57; border-radius:10px; } .f .segmented,.f .form-group { background:#e7eff7; border-radius:10px; } .f .day { background:#dbe7f1; } .f .day.active { background:#ee8b57; color:#fff; }
+    .g .screen { background:linear-gradient(160deg,#f8fafc,#eef1f5); color:#25313d; } .g .status,.g .section-label,.g .note { color:#71808f; } .g .alarm { background:#fff; border:1px solid #d6dde5; border-radius:10px; } .g .alarm.muted { color:#9aa6b2; } .g .switch { background:#cbd4dc; } .g .switch.on { background:#4779c9; } .g .next { color:#3b69af; } .g .fab,.g .save { background:#4779c9; border-radius:9px; } .g .segmented,.g .form-group { background:#e6ebf0; border-radius:10px; } .g .day { background:#d8e0e8; } .g .day.active { background:#4779c9; color:#fff; }
+    .h .screen { background:linear-gradient(160deg,#fffaf8,#f5eee9); color:#342925; } .h .status,.h .section-label,.h .note { color:#8e7970; } .h .alarm { background:#fff; border:1px solid #f0dfd7; border-radius:14px; } .h .alarm.muted { color:#b3a39c; } .h .switch { background:#ded1cb; } .h .switch.on { background:#e25d4f; } .h .next { color:#ca4d43; } .h .fab,.h .save { background:#e25d4f; } .h .segmented,.h .form-group { background:#f1e5df; } .h .day { background:#e7d8d1; } .h .day.active { background:#e25d4f; color:#fff; }
+    .i .screen { background:linear-gradient(160deg,#131518,#0b0d0f); } .i .alarm { background:#1a1d20; border:1px solid #30363b; border-radius:9px; } .i .alarm.muted { color:#687076; } .i .switch { background:#41484b; } .i .switch.on { background:#b5d334; } .i .next { color:#c3e63c; } .i .fab,.i .save { background:#b5d334; color:#111; border-radius:9px; } .i .segmented,.i .form-group { background:#1b1f22; border-radius:9px; } .i .day { background:#2d3438; } .i .day.active { background:#b5d334; color:#111; }
+    .j .screen { background:linear-gradient(160deg,#f4f6ff,#e9efff); color:#23305f; } .j .status,.j .section-label,.j .note { color:#7884ad; } .j .alarm { background:#fff; border:1px solid #dce3ff; border-radius:18px; box-shadow:0 8px 18px rgba(63,83,155,.08); } .j .alarm.muted { color:#9aa4c4; } .j .switch { background:#cad3f4; } .j .switch.on { background:#526adf; } .j .next { color:#526adf; } .j .fab,.j .save { background:#526adf; border-radius:17px; } .j .segmented,.j .form-group { background:#e0e7ff; border-radius:15px; } .j .day { background:#d4defa; } .j .day.active { background:#526adf; color:#fff; }
+    .k .screen { background:linear-gradient(160deg,#111c35,#0c1427); } .k .alarm { background:#162646; border-radius:4px; border-bottom:1px solid #2b4168; } .k .alarm.muted { color:#7182a5; } .k .switch { background:#435271; } .k .switch.on { background:#f0565f; } .k .next { color:#ff8b8e; } .k .fab,.k .save { background:#f0565f; border-radius:8px; } .k .segmented,.k .form-group { background:#15233f; border-radius:4px; } .k .day { background:#213557; border-radius:4px; } .k .day.active { background:#f0565f; color:#fff; }
+    .l .screen { background:linear-gradient(160deg,#fbfffe,#eef8f5); color:#264943; } .l .status,.l .section-label,.l .note { color:#718b85; } .l .alarm { background:#fff; border:1px solid #d9ece6; border-radius:20px; } .l .alarm.muted { color:#a0b4af; } .l .switch { background:#c6dcd6; } .l .switch.on { background:#3fae9b; } .l .next { color:#248c7d; } .l .fab,.l .save { background:#3fae9b; border-radius:20px; } .l .segmented,.l .form-group { background:#e2f1ed; border-radius:20px; } .l .day { background:#d5e9e3; } .l .day.active { background:#3fae9b; color:#fff; }
+    .m .screen { background:linear-gradient(160deg,#151515,#0e0e0e); } .m .alarm { background:#202020; border:1px solid #363636; border-radius:14px; } .m .alarm.muted { color:#777; } .m .switch { background:#555; } .m .switch.on { background:#e7a84b; } .m .next { color:#f2bd6b; } .m .fab,.m .save { background:#e7a84b; color:#17120b; border-radius:12px; } .m .segmented,.m .form-group { background:#252525; border-radius:12px; } .m .day { background:#393939; } .m .day.active { background:#e7a84b; color:#17120b; }
+    .n .screen { background:linear-gradient(160deg,#faf8ff,#f1ecfa); color:#30283d; } .n .status,.n .section-label,.n .note { color:#8d809f; } .n .alarm { background:#fff; border:1px solid #e6ddf2; border-radius:21px; box-shadow:0 9px 20px rgba(110,80,150,.1); } .n .alarm.muted { color:#a99db2; } .n .switch { background:#d9cee8; } .n .switch.on { background:#d95a9e; } .n .next { color:#b6377d; } .n .fab,.n .save { background:#d95a9e; border-radius:21px; } .n .segmented,.n .form-group { background:#ebe2f5; border-radius:17px; } .n .day { background:#dfd3ec; } .n .day.active { background:#d95a9e; color:#fff; }
+    .o .screen { background:#fff; color:#1f1f24; } .o .status,.o .section-label,.o .note { color:#7c7c86; } .o .alarm { background:#fff; border:1px solid #d9d9e2; border-radius:8px; } .o .alarm.muted { color:#a2a2aa; } .o .switch { background:#cfcfd8; } .o .switch.on { background:#6e56cf; } .o .next { color:#6045c0; } .o .fab,.o .save { background:#6e56cf; border-radius:8px; } .o .segmented,.o .form-group { background:#f4f4f8; border-radius:8px; } .o .day { background:#e8e8ee; border-radius:8px; } .o .day.active { background:#6e56cf; color:#fff; }
+    @media (max-width:1250px) { .grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+    @media (max-width:790px) { body { padding:17px 11px 30px; } .intro { flex-direction:column; align-items:flex-start; } .grid { grid-template-columns:1fr; max-width:420px; margin:auto; } }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="intro">
+      <div>
+        <div class="eyebrow">Alarm App / open-source UI study</div>
+        <h1>15 套开源 UI 方向效果图</h1>
+        <p>每套方案都把当前项目的闹钟列表、周期提醒、快捷操作和创建表单重新套了一遍。前 5 套为原始方向，后 10 套为新增方向。点击「首页 / 创建」切换页面，在卡片中试用开关与重复方式。</p>
+      </div>
+      <div class="toolbar" role="tablist" aria-label="页面切换">
+        <button class="active" data-screen="home">首页效果</button>
+        <button data-screen="create">创建效果</button>
+      </div>
+    </header>
+    <nav class="source-strip" aria-label="开源来源">
+      <a href="https://github.com/callstack/react-native-paper" target="_blank">① Paper · MIT ↗</a>
+            <a href="https://github.com/akveo/react-native-ui-kitten" target="_blank">② UI Kitten · MIT ↗</a>
+            <a href="https://github.com/tamagui/tamagui" target="_blank">③ Tamagui · MIT ↗</a>
+            <a href="https://github.com/gluestack/gluestack-ui" target="_blank">④ gluestack · MIT ↗</a>
+            <a href="https://github.com/wix/react-native-ui-lib" target="_blank">⑤ UI Lib · MIT ↗</a>
+            <a href="https://github.com/react-native-elements/react-native-elements" target="_blank">⑥ RNEUI · MIT ↗</a>
+            <a href="https://github.com/microsoft/fluentui-react-native" target="_blank">⑦ Fluent · MIT ↗</a>
+            <a href="https://github.com/ant-design/ant-design-mobile-rn" target="_blank">⑧ Ant Design RN · MIT ↗</a>
+            <a href="https://github.com/nativewind/nativewind" target="_blank">⑨ NativeWind · MIT ↗</a>
+            <a href="https://github.com/ionic-team/ionic-framework" target="_blank">⑩ Ionic · MIT ↗</a>
+            <a href="https://github.com/framework7io/framework7" target="_blank">⑪ Framework7 · MIT ↗</a>
+            <a href="https://github.com/OnsenUI/OnsenUI" target="_blank">⑫ Onsen UI · Apache-2.0 ↗</a>
+            <a href="https://github.com/GeekyAnts/NativeBase" target="_blank">⑬ NativeBase · MIT ↗</a>
+            <a href="https://github.com/chakra-ui/chakra-ui" target="_blank">⑭ Chakra UI · MIT ↗</a>
+            <a href="https://github.com/radix-ui/themes" target="_blank">⑮ Radix Themes · MIT ↗</a>
+    </nav>
+    <section class="grid" id="grid"></section>
+  </main>
+  <script>
+    const variants = [
+      { id:'a', cls:'a', title:'1 · Material 3 / Paper', subtitle:'深色表面、紫蓝主色、卡片 + FAB', badge:'迁移成本低', source:'callstack/react-native-paper', license:'MIT', url:'https://github.com/callstack/react-native-paper', note:'适合保留当前深色主题，先把层级和控件状态做精致。', timeline:false },
+      { id:'b', cls:'b', title:'2 · Eva / UI Kitten', subtitle:'浅色暖灰、圆角卡片、状态色', badge:'更有亲和力', source:'akveo/react-native-ui-kitten', license:'MIT', url:'https://github.com/akveo/react-native-ui-kitten', note:'适合生活化提醒，标签和状态更容易形成记忆点。', timeline:false },
+      { id:'c', cls:'c', title:'3 · Tamagui', subtitle:'Token 极简、青绿强调、信息克制', badge:'扩展性强', source:'tamagui/tamagui', license:'MIT', url:'https://github.com/tamagui/tamagui', note:'适合先定设计 token，再持续扩展主题和组件。', timeline:true },
+      { id:'d', cls:'d', title:'4 · gluestack-ui', subtitle:'中性浅色、白色浮层、柔和阴影', badge:'工具感轻', source:'gluestack/gluestack-ui', license:'MIT', url:'https://github.com/gluestack/gluestack-ui', note:'适合希望更轻、更干净的日常提醒工具。', timeline:false },
+      { id:'e', cls:'e', title:'5 · React Native UI Lib', subtitle:'深海军蓝、时间线、周期优先', badge:'突出周期', source:'wix/react-native-ui-lib', license:'MIT', url:'https://github.com/wix/react-native-ui-lib', note:'最适合把「下次响铃」和周期快捷操作变成核心卖点。', timeline:true },
+      { id:'f', cls:'f', title:'6 · RNEUI', subtitle:'浅蓝面板、橙色动作、效率卡片', badge:'迁移友好', source:'react-native-elements/react-native-elements', license:'MIT', url:'https://github.com/react-native-elements/react-native-elements', note:'适合保留卡片结构，同时增加更明确的主操作色。', timeline:false },
+      { id:'g', cls:'g', title:'7 · Fluent UI RN', subtitle:'中性灰阶、蓝色状态、规整面板', badge:'企业效率', source:'microsoft/fluentui-react-native', license:'MIT', url:'https://github.com/microsoft/fluentui-react-native', note:'适合强调清晰、可靠和跨平台一致性的提醒工具。', timeline:true },
+      { id:'h', cls:'h', title:'8 · Ant Design RN', subtitle:'暖白底、红色主按钮、表单分组', badge:'表单清晰', source:'ant-design/ant-design-mobile-rn', license:'MIT', url:'https://github.com/ant-design/ant-design-mobile-rn', note:'适合创建/编辑页，字段关系和操作反馈很直观。', timeline:false },
+      { id:'i', cls:'i', title:'9 · NativeWind', subtitle:'石墨黑底、荧光绿、紧凑工具感', badge:'极简高对比', source:'nativewind/nativewind', license:'MIT', url:'https://github.com/nativewind/nativewind', note:'适合喜欢高对比、少装饰、快速扫读的用户。', timeline:false },
+      { id:'j', cls:'j', title:'10 · Ionic', subtitle:'靛蓝背景、圆润浮层、强导航感', badge:'移动优先', source:'ionic-team/ionic-framework', license:'MIT', url:'https://github.com/ionic-team/ionic-framework', note:'适合把首页做成更完整的移动工具入口。', timeline:true },
+      { id:'k', cls:'k', title:'11 · Framework7', subtitle:'深蓝列表、红色强调、紧凑行样式', badge:'列表高效', source:'framework7io/framework7', license:'MIT', url:'https://github.com/framework7io/framework7', note:'适合闹钟数量较多时，优先保证列表扫读效率。', timeline:false },
+      { id:'l', cls:'l', title:'12 · Onsen UI', subtitle:'白底细线、青绿色、轻量圆角', badge:'轻量亲和', source:'OnsenUI/OnsenUI', license:'Apache-2.0', url:'https://github.com/OnsenUI/OnsenUI', note:'适合做轻量、低干扰的日常提醒页面。', timeline:false },
+      { id:'m', cls:'m', title:'13 · NativeBase', subtitle:'炭黑表面、琥珀色、层级卡片', badge:'暗色层级', source:'GeekyAnts/NativeBase', license:'MIT', url:'https://github.com/GeekyAnts/NativeBase', note:'适合延续当前暗色基础，同时把主操作做得更温暖。', timeline:true },
+      { id:'n', cls:'n', title:'14 · Chakra UI', subtitle:'淡紫背景、粉色主色、超大圆角', badge:'柔和品牌感', source:'chakra-ui/chakra-ui', license:'MIT', url:'https://github.com/chakra-ui/chakra-ui', note:'适合希望产品更有品牌感、更柔和的方向。', timeline:false },
+      { id:'o', cls:'o', title:'15 · Radix Themes', subtitle:'白底细边框、紫色强调、无障碍优先', badge:'克制清晰', source:'radix-ui/themes', license:'MIT', url:'https://github.com/radix-ui/themes', note:'适合追求高可读性、克制和明确状态反馈的方向。', timeline:true }
+    ];
+    const state = { screen:'home', type:'cycle', enabled:[true,true,false,true,true,false,true,false,true,true,false,true,true,false,true] };
+    const grid = document.getElementById('grid');
+    function card(v,index) {
+      const enabled = state.enabled[index];
+      const timeline = v.timeline;
+      return `<article class="alarm ${enabled ? '' : 'muted'}"><div class="alarm-top"><div><span class="time">07:30</span><span class="ampm">AM</span></div><button class="switch ${enabled ? 'on' : ''}" data-toggle="${index}" aria-label="切换闹钟"><i></i></button></div><div class="label">${v.timeline ? '晨间服药' : '晨间提醒'}</div><div class="rule">${timeline ? '每 3 天 · 从今天开始' : '工作日 · 周一至周五'}</div><div class="next">↗ 下次响铃：${timeline ? '10 月 5 日' : '明天'}</div>${timeline ? '<div class="actions"><button>跳过一次</button><button>临时加一次</button></div>' : ''}</article>`;
+    }
+    function home(v,index) {
+      const timeline = v.id === 'c' || v.id === 'e';
+      const body = timeline ? `<div class="timeline"><div class="timeline-time">07:30</div><div class="timeline-rail">${card(v,index)}</div><div class="timeline-time">09:00</div><div class="timeline-rail">${card(v,(index+1)%variants.length)}</div></div>` : card(v,index)+card(v,(index+1)%5);
+      return `<div class="status"><span>9:41</span><span>▮▮▮  ▰</span></div><div class="nav"><div><h2>闹钟</h2><small>3 个提醒 · ${timeline ? '按时间排序' : '今天'}</small></div><button class="icon-btn">⋯</button></div><div class="section-label"><span>已开启</span><span>2 个</span></div>${body}<div class="section-label"><span>已暂停</span><span>1 个</span></div>${card(v,2)}<button class="fab" aria-label="新建">＋</button>`;
+    }
+    function create(v) {
+      const labels = ['一次','每天','每周','周期'];
+      const selected = state.type;
+      const field = selected === 'cycle' ? ['间隔','每 3 天','起始日期','2026 年 10 月 2 日 ›'] : selected === 'weekly' ? ['重复日','周一至周五'] : selected === 'daily' ? ['重复','每天'] : ['日期','今天'];
+      return `<div class="status"><span>9:41</span><span>‹ 返回</span></div><div class="nav"><div><h2>新建闹钟</h2><small>${v.timeline ? '先看下一次响铃，再补充细节' : '把提醒安排好'}</small></div><button class="icon-btn">×</button></div><div class="time-hero">07:30</div><div class="segmented">${labels.map((x,i)=>{const k=['once','daily','weekly','cycle'][i]; return `<button class="${selected===k?'active':''}" data-type="${k}">${x}</button>`}).join('')}</div><div class="form-group"><div class="form-row"><span class="form-label">${field[0]}</span><span class="form-value">${field[1]}</span></div>${field.length>2?`<div class="form-row"><span class="form-label">${field[2]}</span><span class="form-value">${field[3]}</span></div>`:''}</div>${selected==='weekly'?'<div class="days">'+['一','二','三','四','五','六','日'].map((d,i)=>`<span class="day ${i<5?'active':''}">${d}</span>`).join('')+'</div>':''}<div class="form-group"><div class="form-row"><span class="form-label">标签</span><span class="form-value">晨间服药 ›</span></div><div class="form-row"><span class="form-label">贪睡</span><span class="form-value">10 分钟 ›</span></div></div><button class="save">保存闹钟</button>`;
+    }
+    function render() {
+      grid.innerHTML = variants.map((v,index)=>`<div class="option"><div class="meta"><div class="meta-top"><div><div class="title">${v.title}</div><div class="subtitle">${v.subtitle}</div></div><span class="license">${v.badge}</span></div><a class="source-link" href="${v.url}" target="_blank">开源来源：${v.source} · ${v.license} ↗</a></div><div class="phone ${v.cls}"><div class="screen">${state.screen==='home'?home(v,index):create(v)}</div></div><div class="note">${v.note}</div></div>`).join('');
+      document.querySelectorAll('[data-toggle]').forEach(el=>el.addEventListener('click',()=>{state.enabled[Number(el.dataset.toggle)] = !state.enabled[Number(el.dataset.toggle)]; render();}));
+      document.querySelectorAll('[data-type]').forEach(el=>el.addEventListener('click',()=>{state.type=el.dataset.type; render();}));
+    }
+    document.querySelectorAll('[data-screen]').forEach(el=>el.addEventListener('click',()=>{state.screen=el.dataset.screen; document.querySelectorAll('[data-screen]').forEach(x=>x.classList.toggle('active',x===el)); render();}));
+    render();
+  </script>
+</body>
+</html>
