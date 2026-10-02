@@ -89,6 +89,15 @@
     .m .screen { background:linear-gradient(160deg,#151515,#0e0e0e); } .m .alarm { background:#202020; border:1px solid #363636; border-radius:14px; } .m .alarm.muted { color:#777; } .m .switch { background:#555; } .m .switch.on { background:#e7a84b; } .m .next { color:#f2bd6b; } .m .fab,.m .save { background:#e7a84b; color:#17120b; border-radius:12px; } .m .segmented,.m .form-group { background:#252525; border-radius:12px; } .m .day { background:#393939; } .m .day.active { background:#e7a84b; color:#17120b; }
     .n .screen { background:linear-gradient(160deg,#faf8ff,#f1ecfa); color:#30283d; } .n .status,.n .section-label,.n .note { color:#8d809f; } .n .alarm { background:#fff; border:1px solid #e6ddf2; border-radius:21px; box-shadow:0 9px 20px rgba(110,80,150,.1); } .n .alarm.muted { color:#a99db2; } .n .switch { background:#d9cee8; } .n .switch.on { background:#d95a9e; } .n .next { color:#b6377d; } .n .fab,.n .save { background:#d95a9e; border-radius:21px; } .n .segmented,.n .form-group { background:#ebe2f5; border-radius:17px; } .n .day { background:#dfd3ec; } .n .day.active { background:#d95a9e; color:#fff; }
     .o .screen { background:#fff; color:#1f1f24; } .o .status,.o .section-label,.o .note { color:#7c7c86; } .o .alarm { background:#fff; border:1px solid #d9d9e2; border-radius:8px; } .o .alarm.muted { color:#a2a2aa; } .o .switch { background:#cfcfd8; } .o .switch.on { background:#6e56cf; } .o .next { color:#6045c0; } .o .fab,.o .save { background:#6e56cf; border-radius:8px; } .o .segmented,.o .form-group { background:#f4f4f8; border-radius:8px; } .o .day { background:#e8e8ee; border-radius:8px; } .o .day.active { background:#6e56cf; color:#fff; }
+
+    .empty-state { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:490px; padding:18px; text-align:center; }
+    .empty-icon { display:grid; place-items:center; width:76px; height:76px; margin-bottom:20px; border-radius:26px; background:rgba(255,255,255,.1); font-size:34px; }
+    .empty-title { font-size:20px; font-weight:750; letter-spacing:-.03em; }
+    .empty-copy { max-width:210px; margin:10px 0 18px; opacity:.62; font-size:11px; line-height:1.6; }
+    .empty-primary { padding:11px 16px; border-radius:11px; color:#fff; font-size:11px; font-weight:750; }
+    .danger-action { width:100%; padding:10px; margin-top:10px; border:1px solid currentColor; border-radius:11px; background:transparent; color:#ee6d78; font-size:11px; }
+    .edit-hint { margin-top:10px; color:inherit; opacity:.54; font-size:10px; line-height:1.5; }
+    .a .empty-primary { background:#5b82f7; } .b .empty-primary { background:#8d73e8; } .c .empty-primary { background:#35ad92; } .d .empty-primary { background:#3db7a0; } .e .empty-primary { background:#2ba996; } .f .empty-primary { background:#ee8b57; } .g .empty-primary { background:#4779c9; } .h .empty-primary { background:#e25d4f; } .i .empty-primary { background:#b5d334; color:#111; } .j .empty-primary { background:#526adf; } .k .empty-primary { background:#f0565f; } .l .empty-primary { background:#3fae9b; } .m .empty-primary { background:#e7a84b; color:#17120b; } .n .empty-primary { background:#d95a9e; } .o .empty-primary { background:#6e56cf; }
     @media (max-width:1250px) { .grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
     @media (max-width:790px) { body { padding:17px 11px 30px; } .intro { flex-direction:column; align-items:flex-start; } .grid { grid-template-columns:1fr; max-width:420px; margin:auto; } }
   </style>
@@ -99,11 +108,13 @@
       <div>
         <div class="eyebrow">Alarm App / open-source UI study</div>
         <h1>15 套开源 UI 方向效果图</h1>
-        <p>每套方案都把当前项目的闹钟列表、周期提醒、快捷操作和创建表单重新套了一遍。前 5 套为原始方向，后 10 套为新增方向。点击「首页 / 创建」切换页面，在卡片中试用开关与重复方式。</p>
+        <p>每套方案都把当前项目的闹钟列表、周期提醒、快捷操作和创建表单重新套了一遍。前 5 套为原始方向，后 10 套为新增方向。点击「首页列表 / 创建 / 编辑 / 空状态」逐页查看，每一套方案都能单独对比完整页面。</p>
       </div>
       <div class="toolbar" role="tablist" aria-label="页面切换">
-        <button class="active" data-screen="home">首页效果</button>
-        <button data-screen="create">创建效果</button>
+        <button class="active" data-screen="home">首页列表</button>
+        <button data-screen="create">创建闹钟</button>
+        <button data-screen="edit">编辑闹钟</button>
+        <button data-screen="empty">空状态</button>
       </div>
     </header>
     <nav class="source-strip" aria-label="开源来源">
@@ -151,20 +162,24 @@
       return `<article class="alarm ${enabled ? '' : 'muted'}"><div class="alarm-top"><div><span class="time">07:30</span><span class="ampm">AM</span></div><button class="switch ${enabled ? 'on' : ''}" data-toggle="${index}" aria-label="切换闹钟"><i></i></button></div><div class="label">${v.timeline ? '晨间服药' : '晨间提醒'}</div><div class="rule">${timeline ? '每 3 天 · 从今天开始' : '工作日 · 周一至周五'}</div><div class="next">↗ 下次响铃：${timeline ? '10 月 5 日' : '明天'}</div>${timeline ? '<div class="actions"><button>跳过一次</button><button>临时加一次</button></div>' : ''}</article>`;
     }
     function home(v,index) {
-      const timeline = v.id === 'c' || v.id === 'e';
-      const body = timeline ? `<div class="timeline"><div class="timeline-time">07:30</div><div class="timeline-rail">${card(v,index)}</div><div class="timeline-time">09:00</div><div class="timeline-rail">${card(v,(index+1)%variants.length)}</div></div>` : card(v,index)+card(v,(index+1)%5);
+      const timeline = v.timeline;
+      const body = timeline ? `<div class="timeline"><div class="timeline-time">07:30</div><div class="timeline-rail">${card(v,index)}</div><div class="timeline-time">09:00</div><div class="timeline-rail">${card(v,(index+1)%variants.length)}</div></div>` : card(v,index)+card(v,(index+1)%variants.length);
       return `<div class="status"><span>9:41</span><span>▮▮▮  ▰</span></div><div class="nav"><div><h2>闹钟</h2><small>3 个提醒 · ${timeline ? '按时间排序' : '今天'}</small></div><button class="icon-btn">⋯</button></div><div class="section-label"><span>已开启</span><span>2 个</span></div>${body}<div class="section-label"><span>已暂停</span><span>1 个</span></div>${card(v,2)}<button class="fab" aria-label="新建">＋</button>`;
     }
-    function create(v) {
+    function form(v, edit) {
       const labels = ['一次','每天','每周','周期'];
       const selected = state.type;
       const field = selected === 'cycle' ? ['间隔','每 3 天','起始日期','2026 年 10 月 2 日 ›'] : selected === 'weekly' ? ['重复日','周一至周五'] : selected === 'daily' ? ['重复','每天'] : ['日期','今天'];
-      return `<div class="status"><span>9:41</span><span>‹ 返回</span></div><div class="nav"><div><h2>新建闹钟</h2><small>${v.timeline ? '先看下一次响铃，再补充细节' : '把提醒安排好'}</small></div><button class="icon-btn">×</button></div><div class="time-hero">07:30</div><div class="segmented">${labels.map((x,i)=>{const k=['once','daily','weekly','cycle'][i]; return `<button class="${selected===k?'active':''}" data-type="${k}">${x}</button>`}).join('')}</div><div class="form-group"><div class="form-row"><span class="form-label">${field[0]}</span><span class="form-value">${field[1]}</span></div>${field.length>2?`<div class="form-row"><span class="form-label">${field[2]}</span><span class="form-value">${field[3]}</span></div>`:''}</div>${selected==='weekly'?'<div class="days">'+['一','二','三','四','五','六','日'].map((d,i)=>`<span class="day ${i<5?'active':''}">${d}</span>`).join('')+'</div>':''}<div class="form-group"><div class="form-row"><span class="form-label">标签</span><span class="form-value">晨间服药 ›</span></div><div class="form-row"><span class="form-label">贪睡</span><span class="form-value">10 分钟 ›</span></div></div><button class="save">保存闹钟</button>`;
+      return `<div class="status"><span>9:41</span><span>‹ 返回</span></div><div class="nav"><div><h2>${edit ? '编辑闹钟' : '新建闹钟'}</h2><small>${edit ? '晨间服药 · 已开启' : (v.timeline ? '先看下一次响铃，再补充细节' : '把提醒安排好')}</small></div><button class="icon-btn">×</button></div><div class="time-hero">07:30</div><div class="segmented">${labels.map((x,i)=>{const k=['once','daily','weekly','cycle'][i]; return `<button class="${selected===k?'active':''}" data-type="${k}">${x}</button>`}).join('')}</div><div class="form-group"><div class="form-row"><span class="form-label">${field[0]}</span><span class="form-value">${field[1]}</span></div>${field.length>2?`<div class="form-row"><span class="form-label">${field[2]}</span><span class="form-value">${field[3]}</span></div>`:''}</div>${selected==='weekly'?'<div class="days">'+['一','二','三','四','五','六','日'].map((d,i)=>`<span class="day ${i<5?'active':''}">${d}</span>`).join('')+'</div>':''}<div class="form-group"><div class="form-row"><span class="form-label">标签</span><span class="form-value">晨间服药 ›</span></div><div class="form-row"><span class="form-label">贪睡</span><span class="form-value">10 分钟 ›</span></div></div>${edit?'<div class="edit-hint">上次修改：今天 08:12 · 通知已安排</div><button class="danger-action">删除这个闹钟</button>':''}<button class="save">${edit ? '保存修改' : '保存闹钟'}</button>`;
+    }
+    function empty(v) {
+      return `<div class="status"><span>9:41</span><span>▮▮▮  ▰</span></div><div class="nav"><div><h2>闹钟</h2><small>还没有提醒</small></div><button class="icon-btn">⋯</button></div><div class="empty-state"><div class="empty-icon">⏰</div><div class="empty-title">先创建一个提醒</div><div class="empty-copy">把起床、用药或周期任务安排好，到时间我会提醒你。</div><button class="empty-primary" data-go="create">创建第一个闹钟</button></div>`;
     }
     function render() {
-      grid.innerHTML = variants.map((v,index)=>`<div class="option"><div class="meta"><div class="meta-top"><div><div class="title">${v.title}</div><div class="subtitle">${v.subtitle}</div></div><span class="license">${v.badge}</span></div><a class="source-link" href="${v.url}" target="_blank">开源来源：${v.source} · ${v.license} ↗</a></div><div class="phone ${v.cls}"><div class="screen">${state.screen==='home'?home(v,index):create(v)}</div></div><div class="note">${v.note}</div></div>`).join('');
+      grid.innerHTML = variants.map((v,index)=>`<div class="option"><div class="meta"><div class="meta-top"><div><div class="title">${v.title}</div><div class="subtitle">${v.subtitle}</div></div><span class="license">${v.badge}</span></div><a class="source-link" href="${v.url}" target="_blank">开源来源：${v.source} · ${v.license} ↗</a></div><div class="phone ${v.cls}"><div class="screen">${state.screen==='home'?home(v,index):state.screen==='create'?form(v,false):state.screen==='edit'?form(v,true):empty(v)}</div></div><div class="note">${v.note}</div></div>`).join('');
       document.querySelectorAll('[data-toggle]').forEach(el=>el.addEventListener('click',()=>{state.enabled[Number(el.dataset.toggle)] = !state.enabled[Number(el.dataset.toggle)]; render();}));
       document.querySelectorAll('[data-type]').forEach(el=>el.addEventListener('click',()=>{state.type=el.dataset.type; render();}));
+      document.querySelectorAll('[data-go]').forEach(el=>el.addEventListener('click',()=>{state.screen=el.dataset.go; document.querySelectorAll('[data-screen]').forEach(x=>x.classList.toggle('active',x.dataset.screen===state.screen)); render();}));
     }
     document.querySelectorAll('[data-screen]').forEach(el=>el.addEventListener('click',()=>{state.screen=el.dataset.screen; document.querySelectorAll('[data-screen]').forEach(x=>x.classList.toggle('active',x===el)); render();}));
     render();
