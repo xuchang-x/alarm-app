@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useAlarmStore, getNextRingDate } from '@/store/alarm-store';
 import AlarmCard from '@/components/AlarmCard';
+import ViewNavigationLink from '@/components/ViewNavigationLink';
 import type { Alarm } from '@/types/alarm';
 import type { AlarmCategory, AlarmType } from '@/types/alarm';
 import { ALARM_CATEGORIES, COLORS } from '@/constants';
@@ -193,10 +194,11 @@ export default function HomeScreen() {
               <Text style={styles.resultCount}>共 {filteredAlarms.length} 个提醒</Text>
               <Pressable onPress={() => setSortMode((current) => current === 'next' ? 'label' : current === 'label' ? 'created' : 'next')}><Text style={styles.sortText}>排序：{sortMode === 'next' ? '下次' : sortMode === 'label' ? '名称' : '创建时间'} ↻</Text></Pressable>
             </View>
-            <Pressable style={styles.calendarEntry} onPress={() => router.push('/calendar')}>
-              <View><Text style={styles.calendarEntryTitle}>查看日历</Text><Text style={styles.calendarEntryText}>按月、周或单天查看提醒分布</Text></View>
-              <Text style={styles.calendarEntryArrow}>›</Text>
-            </Pressable>
+            <ViewNavigationLink
+              label="查看日历"
+              description="按月、周或单天查看提醒分布"
+              onPress={() => router.replace('/calendar')}
+            />
             <View style={styles.summaryCard}>
               <View style={styles.summaryIcon}>
                 <Text style={styles.summaryIconText}>✓</Text>
@@ -343,21 +345,6 @@ const styles = StyleSheet.create({
   filteredEmpty: { alignItems: 'center', paddingVertical: 42 },
   filteredEmptyTitle: { color: COLORS.textPrimary, fontSize: 15, fontWeight: '800' },
   filteredEmptyText: { marginTop: 6, color: COLORS.textMuted, fontSize: 12 },
-  calendarEntry: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 13,
-    borderRadius: 16,
-    backgroundColor: COLORS.card,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  calendarEntryTitle: { color: COLORS.primaryDark, fontSize: 13, fontWeight: '800' },
-  calendarEntryText: { marginTop: 3, color: COLORS.textSecondary, fontSize: 11 },
-  calendarEntryArrow: { color: COLORS.primary, fontSize: 26, fontWeight: '300' },
   emptyState: {
     flex: 1,
     alignItems: 'center',

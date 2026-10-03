@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import ViewNavigationLink from '@/components/ViewNavigationLink';
 import { addDays, format, isSameDay, isSameMonth } from 'date-fns';
 import { useAlarmStore } from '@/store/alarm-store';
 import * as repo from '@/db/alarm-repository';
@@ -188,7 +189,7 @@ export default function CalendarScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <View style={styles.header}>
-        <Pressable style={styles.headerButton} onPress={() => router.back()}><Text style={styles.headerButtonText}>列表</Text></Pressable>
+        <ViewNavigationLink label="列表" compact onPress={() => router.replace('/')} />
         <Text style={styles.headerTitle}>日历</Text>
         <Pressable style={styles.headerButton} onPress={() => { setAnchor(today()); setSelectedDate(today()); }}><Text style={styles.headerButtonText}>今天</Text></Pressable>
       </View>
@@ -216,7 +217,7 @@ export default function CalendarScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 12 },
-  headerButton: { minWidth: 56, paddingVertical: 8 },
+  headerButton: { minWidth: 72, minHeight: 40, alignItems: 'center', justifyContent: 'center', paddingVertical: 8 },
   headerButtonText: { color: COLORS.primary, fontSize: 14, fontWeight: '700' },
   headerTitle: { color: COLORS.textPrimary, fontSize: 17, fontWeight: '800' },
   content: { paddingHorizontal: 16, paddingBottom: 30 },
