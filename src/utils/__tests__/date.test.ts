@@ -8,6 +8,8 @@ import {
   parseDate,
   makeNotificationId,
   formatTime,
+  getCycleRhythm,
+  daysUntil,
 } from '../date';
 
 describe('formatDate', () => {
@@ -93,5 +95,61 @@ describe('formatTime', () => {
     expect(formatTime(8, 5)).toBe('08:05');
     expect(formatTime(23, 59)).toBe('23:59');
     expect(formatTime(0, 0)).toBe('00:00');
+  });
+});
+
+describe('getCycleRhythm', () => {
+  it('起始日当天是周期第 1 天', () => {
+    const rhythm = getCycleRhythm('2025-01-01', 4, new Date(2025, 0, 1));
+    expect(rhythm).toEqual({ intervalDays: 4, dayIndex: 1 });
+  });
+
+  it('周期内第 2 天', () => {
+    const rhythm = getCycleRhythm('2025-01-01', 4, new Date(2025, 0, 2));
+    expect(rhythm).toEqual({ intervalDays: 4, dayIndex: 2 });
+  });
+
+  it('跨多个周期后取模：第 9 天回到第 1 天（4 天周期）', () => {
+    // 2025-01-01 起得 4 天周期：1,5,9,13…都是第 1 天
+    const rhythm = getCycleRhythm('2025-01-01', 4, new Date(2025, 0, 9));
+    expect(rhythm).toEqual({ intervalDays: 4, dayIndex: 1 });
+  });
+
+  it('参考日在起始日之前（周期未开始）返回 null', () => {
+    const rhythm = getCycleRhythm('2025-01-10', 3, new Date(2025, 0, 1));
+    expect(rhythm).toBeNull();
+  });
+
+  it('跨月边界正确计算', () => {
+    // 2025-01-30 起 2 天周期：1/30、2/1 都是第 1 天
+    const rhythm = getCycleRhythm('2025-01-30', 2, new Date(2025, 1, 1));
+    expect(rhythm).toEqual({ intervalDays: 2, dayIndex: 1 });
+  });
+
+  it('非法参数返回 null', () => {
+    expect(getCycleRhythm('', 4, new Date(2025, 0, 1))).toBeNull();
+    expect(getCycleRhythm('2025-01-01', 0, new Date(2025, 0, 1))).toBeNull();
+    expect(getCycleRhythm('2025-01-01', -2, new Date(2025, 0, 1))).toBeNull();
+    expect(getCycleRhythm('2025-01-01', NaN, new Date(2025, 0, 1))).toBeNull();
+  });
+});
+
+describe('daysUntil', () => {
+  it('同一天为 0', () => {
+    expect(daysUntil(new Date(2025, 0, 5), new Date(2025, 0, 5))).toBe(0);
+  });
+
+  it('未来日期为正数', () => {
+    expect(daysUntil(new Date(2025, 0, 10), new Date(2025, 0, 5))).toBe(5);
+  });
+
+  it('过去日期为负数', () => {
+    expect(daysUntil(new Date(2025, 0, 1), new Date(2025, 0, 5))).toBe(-4);
+  });
+
+  it('忽略时分秒按自然日计算', () => {
+    expect(
+      daysUntil(new Date(2025, 0, 6, 8, 30), new Date(2025, 0, 5, 23, 59))
+    ).toBe(1);
   });
 });
