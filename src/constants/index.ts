@@ -27,6 +27,10 @@ export const COLORS = {
   textDisabled: '#B9B5C4',
   border: '#E5E1F0',
   shadow: '#51468A',
+  /** 今日页 hero 卡分隔线（primaryDark 低透明度） */
+  heroDivider: 'rgba(85, 69, 200, 0.18)',
+  /** 今日页节奏点阵未点亮色 */
+  heroDotOff: '#D9D2F5',
 } as const;
 
 export const ALARM_CATEGORIES = [
