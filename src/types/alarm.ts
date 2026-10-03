@@ -2,7 +2,7 @@
 export type AlarmType = 'once' | 'daily' | 'weekly' | 'cycle';
 
 /** 预设提醒分类 */
-export type AlarmCategory = 'work' | 'medication' | 'life' | 'sport' | 'other';
+export type AlarmCategory = 'work' | 'life' | 'sport' | 'other';
 
 /** 闹钟调整类型 */
 export type AdjustmentType = 'skip' | 'add';

@@ -72,7 +72,9 @@ export default function AlarmCard({
     transform: [{ translateX: translateX.value }],
   }));
 
-  const category = ALARM_CATEGORIES.find((item) => item.key === alarm.category) ?? ALARM_CATEGORIES[4];
+  const category =
+    ALARM_CATEGORIES.find((item) => item.key === alarm.category) ??
+    ALARM_CATEGORIES[ALARM_CATEGORIES.length - 1];
   const isExpiredOnce = alarm.type === 'once' && alarm.onceDate !== null && parseDate(alarm.onceDate) < today();
 
   return (

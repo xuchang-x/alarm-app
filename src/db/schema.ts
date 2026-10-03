@@ -28,6 +28,13 @@ async function ensureAlarmCategoryColumn(
   }
 }
 
+/** 用药分类已下线，存量数据归入「其他」 */
+async function migrateRemovedCategories(
+  db: Awaited<ReturnType<typeof getDatabase>>
+): Promise<void> {
+  await db.runAsync("UPDATE alarms SET category = 'other' WHERE category = 'medication'");
+}
+
 const CREATE_ADJUSTMENTS_TABLE = `
   CREATE TABLE IF NOT EXISTS alarm_adjustments (
     id         INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -50,6 +57,7 @@ export async function initDatabase(): Promise<void> {
   const db = await getDatabase();
   await db.execAsync(CREATE_ALARMS_TABLE);
   await ensureAlarmCategoryColumn(db);
+  await migrateRemovedCategories(db);
   await db.execAsync(CREATE_ADJUSTMENTS_TABLE);
   await db.execAsync(CREATE_APP_SETTINGS_TABLE);
 }

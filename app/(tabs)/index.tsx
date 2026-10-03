@@ -14,7 +14,6 @@ import { useRouter } from 'expo-router';
 import { useAlarmStore, getNextRingDate } from '@/store/alarm-store';
 import AlarmCard from '@/components/AlarmCard';
 import { PageHeading } from '@/components/PageHeader';
-import ViewNavigationLink from '@/components/ViewNavigationLink';
 import type { Alarm } from '@/types/alarm';
 import type { AlarmCategory, AlarmType } from '@/types/alarm';
 import { ALARM_CATEGORIES, COLORS } from '@/constants';
@@ -189,11 +188,6 @@ export default function HomeScreen() {
               <Text style={styles.resultCount}>共 {filteredAlarms.length} 个提醒</Text>
               <Pressable onPress={() => setSortMode((current) => current === 'next' ? 'label' : current === 'label' ? 'created' : 'next')}><Text style={styles.sortText}>排序：{sortMode === 'next' ? '下次' : sortMode === 'label' ? '名称' : '创建时间'} ↻</Text></Pressable>
             </View>
-            <ViewNavigationLink
-              label="查看日历"
-              description="按月、周或单天查看提醒分布"
-              onPress={() => router.replace('/calendar')}
-            />
             <Text style={styles.sectionHeading}>全部提醒</Text>
           </View>
         }
