@@ -230,7 +230,7 @@ export default function CreateScreen() {
               style={styles.labelInput}
               value={label}
               onChangeText={setLabel}
-              placeholder="例如：晨间服药"
+              placeholder="例如：早班闹钟"
               placeholderTextColor={COLORS.textMuted}
               selectionColor={COLORS.primary}
               maxLength={50}

@@ -28,7 +28,7 @@ async function ensureAlarmCategoryColumn(
   }
 }
 
-/** 用药分类已下线，存量数据归入「其他」 */
+/** 旧分类已下线，存量数据归入「其他」 */
 async function migrateRemovedCategories(
   db: Awaited<ReturnType<typeof getDatabase>>
 ): Promise<void> {
