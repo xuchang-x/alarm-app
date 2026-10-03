@@ -19,8 +19,9 @@ interface TimePickerProps {
 interface WheelColumnProps {
   items: string[];
   selectedIndex: number;
-  onChange: (index: number) => void;
+  onChange: (index: number, direction: -1 | 1, wrapped: boolean) => void;
   accessibilityLabel: string;
+  cyclic?: boolean;
 }
 
 const ITEM_HEIGHT = 48;
@@ -42,24 +43,70 @@ function to24Hour(hourIndex: number, periodIndex: number): number {
   return hour === 12 ? 12 : hour + 12;
 }
 
+function clampHour(hour: number): number {
+  return Math.max(0, Math.min(23, hour));
+}
+
 function WheelColumn({
   items,
   selectedIndex,
   onChange,
   accessibilityLabel,
+  cyclic = false,
 }: WheelColumnProps) {
   const scrollRef = useRef<ScrollView>(null);
+  const currentVirtualIndexRef = useRef(selectedIndex + (cyclic ? items.length : 0));
+  const ignoredVirtualIndexRef = useRef<number | null>(null);
+  const skipNextScrollEndRef = useRef(false);
+  const renderedItems = cyclic
+    ? Array.from({ length: items.length * 3 }, (_, index) => items[index % items.length])
+    : items;
+  const middleStart = cyclic ? items.length : 0;
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({ y: selectedIndex * ITEM_HEIGHT, animated: false });
-  }, [selectedIndex]);
+    const virtualIndex = middleStart + selectedIndex;
+    currentVirtualIndexRef.current = virtualIndex;
+    scrollRef.current?.scrollTo({ y: virtualIndex * ITEM_HEIGHT, animated: false });
+  }, [middleStart, selectedIndex]);
 
   const handleScrollEnd = (offsetY: number) => {
-    const nextIndex = Math.max(
+    if (skipNextScrollEndRef.current) {
+      skipNextScrollEndRef.current = false;
+      return;
+    }
+
+    const nextVirtualIndex = Math.max(
       0,
-      Math.min(items.length - 1, Math.round(offsetY / ITEM_HEIGHT))
+      Math.min(renderedItems.length - 1, Math.round(offsetY / ITEM_HEIGHT))
     );
-    onChange(nextIndex);
+    if (ignoredVirtualIndexRef.current === nextVirtualIndex) {
+      ignoredVirtualIndexRef.current = null;
+      return;
+    }
+
+    const previousVirtualIndex = currentVirtualIndexRef.current;
+    const nextIndex = cyclic
+      ? (nextVirtualIndex - middleStart + items.length) % items.length
+      : nextVirtualIndex;
+    const moved = nextVirtualIndex !== previousVirtualIndex;
+    const direction: -1 | 1 = nextVirtualIndex < previousVirtualIndex ? -1 : 1;
+    const wrapped = cyclic && (
+      nextVirtualIndex < middleStart || nextVirtualIndex >= middleStart + items.length
+    );
+
+    currentVirtualIndexRef.current = nextVirtualIndex;
+    if (moved) {
+      ignoredVirtualIndexRef.current = null;
+      onChange(nextIndex, direction, wrapped);
+    }
+
+    if (wrapped) {
+      const centeredIndex = middleStart + nextIndex;
+      ignoredVirtualIndexRef.current = nextVirtualIndex;
+      skipNextScrollEndRef.current = true;
+      currentVirtualIndexRef.current = centeredIndex;
+      scrollRef.current?.scrollTo({ y: centeredIndex * ITEM_HEIGHT, animated: false });
+    }
   };
 
   return (
@@ -72,18 +119,31 @@ function WheelColumn({
         snapToInterval={ITEM_HEIGHT}
         decelerationRate="fast"
         scrollEventThrottle={16}
+        onScrollBeginDrag={() => {
+          skipNextScrollEndRef.current = false;
+          ignoredVirtualIndexRef.current = null;
+        }}
         onMomentumScrollEnd={(event) => handleScrollEnd(event.nativeEvent.contentOffset.y)}
         onScrollEndDrag={(event) => handleScrollEnd(event.nativeEvent.contentOffset.y)}
       >
-        {items.map((item, index) => {
-          const selected = index === selectedIndex;
+        {renderedItems.map((item, index) => {
+          const selected = index === middleStart + selectedIndex;
           return (
             <Pressable
               key={`${item}-${index}`}
               style={styles.wheelItem}
               onPress={() => {
-                onChange(index);
-                scrollRef.current?.scrollTo({ y: index * ITEM_HEIGHT, animated: true });
+                const nextIndex = cyclic ? index % items.length : index;
+                const previousVirtualIndex = currentVirtualIndexRef.current;
+                const direction: -1 | 1 = index < previousVirtualIndex ? -1 : 1;
+                const wrapped = cyclic && (
+                  index < middleStart || index >= middleStart + items.length
+                );
+                currentVirtualIndexRef.current = index;
+                onChange(nextIndex, direction, wrapped);
+                const centeredIndex = cyclic ? middleStart + nextIndex : nextIndex;
+                currentVirtualIndexRef.current = centeredIndex;
+                scrollRef.current?.scrollTo({ y: centeredIndex * ITEM_HEIGHT, animated: true });
               }}
             >
               <Text style={[styles.wheelItemText, selected && styles.wheelItemTextSelected]}>
@@ -102,9 +162,26 @@ export default function TimePicker({ hour, minute, onChange }: TimePickerProps) 
   const [draftHour, setDraftHour] = useState(0);
   const [draftMinute, setDraftMinute] = useState(0);
   const [draftPeriod, setDraftPeriod] = useState(0);
+  const draftHourRef = useRef(0);
+  const draftMinuteRef = useRef(0);
+  const draftPeriodRef = useRef(0);
+
+  const setDraftTime = (nextHour: number, nextMinute: number) => {
+    const normalizedHour = clampHour(nextHour);
+    const time = to12Hour(normalizedHour);
+    draftHourRef.current = time.hourIndex;
+    draftMinuteRef.current = nextMinute;
+    draftPeriodRef.current = time.periodIndex;
+    setDraftHour(time.hourIndex);
+    setDraftMinute(nextMinute);
+    setDraftPeriod(time.periodIndex);
+  };
 
   const openPicker = () => {
     const time = to12Hour(hour);
+    draftHourRef.current = time.hourIndex;
+    draftMinuteRef.current = minute;
+    draftPeriodRef.current = time.periodIndex;
     setDraftHour(time.hourIndex);
     setDraftMinute(minute);
     setDraftPeriod(time.periodIndex);
@@ -114,6 +191,22 @@ export default function TimePicker({ hour, minute, onChange }: TimePickerProps) 
   const confirmPicker = () => {
     onChange(to24Hour(draftHour, draftPeriod), draftMinute);
     setShow(false);
+  };
+
+  const handleHourChange = (index: number) => {
+    draftHourRef.current = index;
+    setDraftHour(index);
+  };
+
+  const handleMinuteChange = (index: number, direction: -1 | 1, wrapped: boolean) => {
+    const currentHour = to24Hour(draftHourRef.current, draftPeriodRef.current);
+    const nextHour = wrapped ? clampHour(currentHour + direction) : currentHour;
+    setDraftTime(nextHour, index);
+  };
+
+  const handlePeriodChange = (index: number) => {
+    draftPeriodRef.current = index;
+    setDraftPeriod(index);
   };
 
   return (
@@ -153,10 +246,27 @@ export default function TimePicker({ hour, minute, onChange }: TimePickerProps) 
 
             <View style={styles.wheelArea}>
               <View style={styles.selectionBand} pointerEvents="none" />
-              <WheelColumn items={HOURS} selectedIndex={draftHour} onChange={setDraftHour} accessibilityLabel="小时" />
+              <WheelColumn
+                items={HOURS}
+                selectedIndex={draftHour}
+                onChange={handleHourChange}
+                accessibilityLabel="小时"
+                cyclic
+              />
               <Text style={styles.colon}>:</Text>
-              <WheelColumn items={MINUTES} selectedIndex={draftMinute} onChange={setDraftMinute} accessibilityLabel="分钟" />
-              <WheelColumn items={PERIODS} selectedIndex={draftPeriod} onChange={setDraftPeriod} accessibilityLabel="上午或下午" />
+              <WheelColumn
+                items={MINUTES}
+                selectedIndex={draftMinute}
+                onChange={handleMinuteChange}
+                accessibilityLabel="分钟"
+                cyclic
+              />
+              <WheelColumn
+                items={PERIODS}
+                selectedIndex={draftPeriod}
+                onChange={handlePeriodChange}
+                accessibilityLabel="上午或下午"
+              />
             </View>
 
             <View style={styles.modalFooter}>
