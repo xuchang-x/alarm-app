@@ -127,8 +127,8 @@ export default function SettingsScreen() {
         </SettingsSection>
 
         <SettingsSection title="默认提醒" description="只影响之后新建的闹钟">
-          <Text style={styles.rowTitle}>默认贪睡时长</Text>
-          <Text style={styles.rowDescription}>通知响起后，稍后提醒的默认延迟时间</Text>
+          <Text style={styles.rowTitle}>默认稍后提醒时长</Text>
+          <Text style={styles.rowDescription}>通知响起后，延迟再次提醒的默认时间</Text>
           <View style={styles.optionRow}>
             {SNOOZE_OPTIONS.map((minutes) => (
               <Pressable
