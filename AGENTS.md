@@ -20,6 +20,8 @@
   - [通知调度方案](.ai/specs/001-alarm-mvp/notification-scheduling.md): 周期闹钟批量预调度策略
   - [任务拆分](.ai/specs/001-alarm-mvp/tasks.md): 开发任务清单与依赖关系
 - [006-product-redesign](.ai/specs/006-product-redesign/requirements.md): 产品整体重设计（今日/计划/全部/设置 4 Tab、创建主线化、视觉方向选型中；001~005 能力全保留）
+  - [技术设计](.ai/specs/006-product-redesign/design.md): 导航重排、useTodayOverview、AlarmForm 复用、目录结构目标态
+  - [任务拆分](.ai/specs/006-product-redesign/tasks.md): T1~T9 开发任务清单与依赖关系
 
 ## 技能（Skills）— 可复用的工作流
 
