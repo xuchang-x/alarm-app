@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>006 产品整体重设计 · 视觉方向原型（3 套）</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif; background: #f4f4f6; color: #1c1c1e; padding: 24px; }
+  .intro { max-width: 1240px; margin: 0 auto 18px; }
+  .eyebrow { font-size: 11px; letter-spacing: .12em; color: #888; text-transform: uppercase; }
+  .intro h1 { font-size: 24px; margin-top: 6px; }
+  .intro p { margin-top: 6px; font-size: 13px; color: #666; line-height: 1.6; }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+  .toolbar button { padding: 8px 14px; border-radius: 9px; border: 1px solid #ddd; background: #fff; font-size: 12px; font-weight: 600; cursor: pointer; color: #555; }
+  .toolbar button.active { background: #1c1c1e; color: #fff; border-color: #1c1c1e; }
+  .grid { max-width: 1240px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 26px; }
+  .meta { margin-bottom: 10px; }
+  .meta-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+  .meta .title { font-size: 15px; font-weight: 800; }
+  .meta .subtitle { font-size: 12px; color: #666; margin-top: 3px; }
+  .meta .badge { font-size: 10px; font-weight: 700; background: #ececf1; color: #555; padding: 3px 8px; border-radius: 99px; white-space: nowrap; }
+  .source-link { display: inline-block; margin-top: 6px; font-size: 11px; color: #5260ff; text-decoration: none; }
+  .note { margin-top: 10px; font-size: 11px; color: #777; line-height: 1.6; }
+
+  .phone { width: 330px; max-width: 100%; margin: 0 auto; border-radius: 34px; border: 8px solid #222; background: var(--bg); overflow: hidden; box-shadow: 0 14px 34px rgba(0,0,0,.16); }
+  .screen { height: 640px; overflow: hidden; position: relative; display: flex; flex-direction: column; background: var(--bg); color: var(--text); font-size: 13px; }
+  .screen::-webkit-scrollbar { display: none; }
+  .status { display: flex; justify-content: space-between; padding: 10px 18px 2px; font-size: 11px; color: var(--muted); flex-shrink: 0; }
+  .page { flex: 1; overflow-y: auto; min-height: 0; padding: 8px 16px 24px; }
+  .page::-webkit-scrollbar { display: none; }
+  .page-title { font-size: 21px; font-weight: 800; margin-top: 4px; }
+  .page-sub { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+  /* 今日 */
+  .next-card { margin-top: 14px; border-radius: var(--r-lg); padding: 18px; background: var(--hero-bg); color: var(--hero-text); box-shadow: var(--shadow); }
+  .next-eyebrow { font-size: 11px; font-weight: 700; opacity: .75; letter-spacing: .06em; }
+  .next-time { font-size: 46px; font-weight: 800; line-height: 1.1; margin-top: 4px; }
+  .next-label { font-size: 14px; font-weight: 700; margin-top: 2px; }
+  .next-count { font-size: 12px; margin-top: 6px; opacity: .9; }
+  .rhythm { display: flex; align-items: center; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--hero-divider); font-size: 11px; font-weight: 600; }
+  .rhythm-dots { display: flex; gap: 4px; }
+  .rhythm-dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--hero-dot-off); }
+  .rhythm-dots i.on { background: var(--hero-dot-on); }
+  .section-head { display: flex; justify-content: space-between; align-items: baseline; margin: 18px 0 8px; }
+  .section-head h3 { font-size: 14px; font-weight: 800; }
+  .section-head span { font-size: 11px; color: var(--muted); }
+  .tl-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: var(--r-md); background: var(--surface); border: 1px solid var(--border); margin-bottom: 8px; box-shadow: var(--shadow-sm); }
+  .tl-item.done { background: var(--surface-dim); }
+  .tl-time { font-size: 15px; font-weight: 800; min-width: 46px; }
+  .tl-item.done .tl-time, .tl-item.done .tl-label { color: var(--muted); font-weight: 600; }
+  .tl-bar { width: 4px; align-self: stretch; border-radius: 2px; }
+  .tl-body { flex: 1; min-width: 0; }
+  .tl-label { font-size: 13px; font-weight: 700; }
+  .tl-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .tl-tag { font-size: 10px; font-weight: 700; color: var(--muted); }
+
+  /* Tab bar */
+  .tabbar { display: flex; background: var(--tabbar-bg); border-top: 1px solid var(--border); padding: 8px 6px 12px; flex-shrink: 0; }
+  .tab { flex: 1; text-align: center; font-size: 10px; font-weight: 700; color: var(--muted); cursor: pointer; padding: 4px 0; border-radius: 8px; }
+  .tab .ico { display: block; font-size: 17px; margin-bottom: 2px; }
+  .tab.active { color: var(--primary); }
+  .fab { position: absolute; right: 16px; bottom: 78px; z-index: 4; width: 50px; height: 50px; border-radius: var(--r-fab); background: var(--primary); color: var(--on-primary); font-size: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: var(--shadow); border: none; }
+
+  /* 创建/编辑 */
+  .nav { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px 4px; }
+  .nav button { border: none; background: none; color: var(--primary); font-size: 13px; font-weight: 700; cursor: pointer; }
+  .nav b { font-size: 14px; }
+  .time-hero { text-align: center; font-size: 52px; font-weight: 800; margin: 14px 0 4px; }
+  .time-hero small { display: block; font-size: 11px; color: var(--muted); font-weight: 600; margin-top: 4px; }
+  .freq { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px; }
+  .freq button { position: relative; padding: 13px 10px; border-radius: var(--r-md); border: 1px solid var(--border); background: var(--surface); font-size: 12px; font-weight: 700; color: var(--text); cursor: pointer; text-align: left; }
+  .freq button small { display: block; font-size: 10px; color: var(--muted); font-weight: 500; margin-top: 3px; }
+  .freq button.active { border-color: var(--primary); background: var(--primary-soft); color: var(--primary); }
+  .freq button.active small { color: var(--primary); opacity: .7; }
+  .expand { margin-top: 10px; border-radius: var(--r-md); border: 1px solid var(--border); background: var(--surface); padding: 14px; }
+  .expand h4 { font-size: 11px; color: var(--muted); font-weight: 700; }
+  .stepper { display: flex; align-items: center; gap: 14px; margin-top: 8px; }
+  .stepper button { width: 34px; height: 34px; border-radius: var(--r-sm); border: 1px solid var(--border); background: var(--bg); font-size: 17px; color: var(--primary); cursor: pointer; font-weight: 700; }
+  .stepper b { font-size: 20px; min-width: 30px; text-align: center; }
+  .chips { display: flex; gap: 8px; margin-top: 10px; }
+  .chips button { flex: 1; padding: 9px 6px; border-radius: var(--r-sm); border: 1px solid var(--border); background: var(--bg); font-size: 11px; font-weight: 700; color: var(--muted); cursor: pointer; white-space: nowrap; }
+  .chips button.active { border-color: var(--primary); background: var(--primary-soft); color: var(--primary); }
+  .more { margin-top: 14px; border-radius: var(--r-md); border: 1px solid var(--border); background: var(--surface); }
+  .more-row { display: flex; justify-content: space-between; align-items: center; padding: 13px 14px; font-size: 12px; }
+  .more-row + .more-row { border-top: 1px solid var(--border); }
+  .more-row .k { color: var(--muted); font-weight: 600; }
+  .more-row .v { font-weight: 700; color: var(--text); }
+  .save { width: 100%; margin-top: 16px; padding: 14px; border: none; border-radius: var(--r-md); background: var(--primary); color: var(--on-primary); font-size: 14px; font-weight: 800; cursor: pointer; }
+  .danger { width: 100%; margin-top: 10px; padding: 13px 14px; border: 1px solid #ECC7C7; border-radius: var(--r-md); background: none; color: #C0392B; font-size: 14px; font-weight: 800; cursor: pointer; }
+
+  /* 全部 */
+  .filter-row { display: flex; gap: 8px; margin-top: 12px; }
+  .filter-row button { padding: 8px 12px; border-radius: 99px; border: 1px solid var(--border); background: var(--surface); font-size: 11px; font-weight: 700; color: var(--muted); cursor: pointer; }
+  .filter-row button.active { border-color: var(--primary); color: var(--primary); background: var(--primary-soft); }
+  .alarm-card { display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: var(--r-md); background: var(--surface); border: 1px solid var(--border); margin-bottom: 10px; box-shadow: var(--shadow-sm); }
+  .alarm-card .t { font-size: 21px; font-weight: 800; }
+  .alarm-card .bd { flex: 1; min-width: 0; }
+  .alarm-card .lb { font-size: 12px; font-weight: 700; margin-top: 2px; }
+  .alarm-card .mt { font-size: 10px; color: var(--muted); margin-top: 2px; }
+  .alarm-card.paused .t, .alarm-card.paused .lb { color: var(--muted); font-weight: 600; }
+  .sw { width: 42px; height: 25px; border-radius: 99px; background: var(--border); position: relative; cursor: pointer; border: none; flex-shrink: 0; }
+  .sw::after { content: ''; position: absolute; top: 2px; left: 2px; width: 21px; height: 21px; border-radius: 50%; background: #fff; transition: left .15s; box-shadow: 0 1px 3px rgba(0,0,0,.2); }
+  .sw.on { background: var(--primary); }
+  .sw.on::after { left: 19px; }
+
+  /* 计划 */
+  .plan-head { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
+  .plan-head b { font-size: 16px; }
+  .plan-head div { display: flex; gap: 6px; }
+  .plan-head button { border: 1px solid var(--border); background: var(--surface); border-radius: var(--r-sm); padding: 6px 10px; font-size: 11px; color: var(--text); cursor: pointer; font-weight: 700; }
+  .seg { display: flex; background: var(--surface-dim); border-radius: var(--r-sm); padding: 3px; margin-top: 10px; }
+  .seg button { flex: 1; padding: 7px; border: none; border-radius: calc(var(--r-sm) - 2px); background: none; font-size: 11px; font-weight: 700; color: var(--muted); cursor: pointer; }
+  .seg button.active { background: var(--surface); color: var(--text); box-shadow: var(--shadow-sm); }
+  .month { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; margin-top: 12px; }
+  .month .wd { text-align: center; font-size: 9px; color: var(--muted); font-weight: 700; padding: 4px 0; }
+  .month .d { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 11px; border-radius: var(--r-sm); color: var(--text); }
+  .month .d.out { color: var(--border); }
+  .month .d.today { background: var(--primary); color: var(--on-primary); font-weight: 800; }
+  .month .dots { display: flex; gap: 2px; margin-top: 2px; height: 4px; }
+  .month .dots i { width: 4px; height: 4px; border-radius: 50%; }
+  .day-detail { margin-top: 12px; }
+
+  /* 设置 */
+  .set-group { margin-top: 16px; }
+  .set-group h4 { font-size: 12px; font-weight: 800; }
+  .set-group p { font-size: 10px; color: var(--muted); margin-top: 2px; }
+  .set-card { margin-top: 8px; border-radius: var(--r-md); border: 1px solid var(--border); background: var(--surface); padding: 14px; box-shadow: var(--shadow-sm); }
+  .set-line { display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 700; }
+  .pill { font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 99px; background: #ddf4ed; color: #1e8e5a; }
+
+  /* 空状态 */
+  .empty { text-align: center; padding: 90px 28px 0; }
+  .empty .ico { font-size: 44px; }
+  .empty h3 { font-size: 17px; margin-top: 14px; }
+  .empty p { font-size: 12px; color: var(--muted); margin-top: 8px; line-height: 1.7; }
+  .empty button { margin-top: 20px; padding: 13px 26px; border: none; border-radius: var(--r-md); background: var(--primary); color: var(--on-primary); font-size: 13px; font-weight: 800; cursor: pointer; }
+
+  /* ===== 方案 0：当前风格基线 Eva / UI Kitten（现有 COLORS token） ===== */
+  .v-eva { --bg:#F7F5FC; --surface:#FFFFFF; --surface-dim:#F3F1F8; --border:#E5E1F0; --text:#25223A; --muted:#6D6880; --primary:#6C5CE7; --primary-soft:#EAE6FF; --on-primary:#fff; --r-lg:20px; --r-md:16px; --r-sm:12px; --r-fab:18px; --tabbar-bg:#FFFFFF; --hero-bg:#EAE6FF; --hero-text:#5545C8; --hero-divider:rgba(85,69,200,.18); --hero-dot-on:#6C5CE7; --hero-dot-off:#D9D2F5; --shadow:0 5px 14px rgba(81,70,138,.10); --shadow-sm:0 2px 8px rgba(81,70,138,.05); }
+  /* ===== 方案 1：Material 3 ===== */
+  .v-m3 { --bg:#FEF7FF; --surface:#F3EDF7; --surface-dim:#ECE6F0; --border:#E6E0EC; --text:#1D1B20; --muted:#7A7484; --primary:#6750A4; --primary-soft:#EADDFF; --on-primary:#fff; --r-lg:28px; --r-md:16px; --r-sm:10px; --r-fab:16px; --tabbar-bg:#F3EDF7; --hero-bg:#6750A4; --hero-text:#fff; --hero-divider:rgba(255,255,255,.25); --hero-dot-on:#fff; --hero-dot-off:rgba(255,255,255,.35); --shadow:0 2px 10px rgba(103,80,164,.25); --shadow-sm:0 1px 3px rgba(29,27,32,.06); }
+  /* ===== 方案 2：Tamagui 极简 ===== */
+  .v-tam { --bg:#FFFFFF; --surface:#FFFFFF; --surface-dim:#F6F6F6; --border:#E7E7E7; --text:#0D0D0D; --muted:#8C8C8C; --primary:#0CA6A6; --primary-soft:#E6F7F7; --on-primary:#fff; --r-lg:14px; --r-md:12px; --r-sm:8px; --r-fab:50%; --tabbar-bg:#FFFFFF; --hero-bg:#0D0D0D; --hero-text:#fff; --hero-divider:rgba(255,255,255,.2); --hero-dot-on:#0CA6A6; --hero-dot-off:rgba(255,255,255,.25); --shadow:none; --shadow-sm:none; }
+  /* ===== 方案 3：Ionic ===== */
+  .v-ion { --bg:#F4F5FB; --surface:#FFFFFF; --surface-dim:#EDEFF7; --border:#E8EAF3; --text:#1E212B; --muted:#82889B; --primary:#5260FF; --primary-soft:#E9EBFF; --on-primary:#fff; --r-lg:22px; --r-md:18px; --r-sm:12px; --r-fab:50%; --tabbar-bg:#FFFFFF; --hero-bg:linear-gradient(135deg,#5260FF,#7A88FF); --hero-text:#fff; --hero-divider:rgba(255,255,255,.25); --hero-dot-on:#fff; --hero-dot-off:rgba(255,255,255,.4); --shadow:0 8px 22px rgba(82,96,255,.22); --shadow-sm:0 3px 12px rgba(30,33,43,.07); }
+</style>
+</head>
+<body>
+  <div class="intro">
+    <div class="eyebrow">Alarm App / 006 Product Redesign</div>
+    <h1>「我的节奏」视觉方向 · 当前风格基线 + 3 套新增调研</h1>
+    <p>方案 0 用项目现有 Eva token 渲染新信息架构（验证「不换视觉、只重组逻辑」）；方案 1~3 是新调研方向。四套渲染同一组页面与同一组示例数据（排班 / 浇花节奏场景），差异只来自视觉 token。点击顶部按钮切换页面；手机内的 Tab、开关、频率选项、步进器均可交互。</p>
+    <div class="toolbar" role="tablist" aria-label="页面切换">
+      <button class="active" data-screen="today">今日</button>
+      <button data-screen="plan">计划</button>
+      <button data-screen="all">全部</button>
+      <button data-screen="settings">设置</button>
+      <button data-screen="create">创建提醒</button>
+      <button data-screen="edit">编辑提醒</button>
+      <button data-screen="empty">空状态</button>
+    </div>
+  </div>
+  <div class="grid" id="grid"></div>
+
+<script>
+  const variants = [
+    { id:'eva', cls:'v-eva', title:'0 · 当前风格基线 · Eva / UI Kitten', subtitle:'浅色暖灰 + 白卡 + 紫主色 · 现有 token', badge:'当前风格基线', source:'akveo/react-native-ui-kitten', license:'MIT', url:'https://github.com/akveo/react-native-ui-kitten', note:'用现有 COLORS token（002 spec 已确认方向，见 src/constants/index.ts）渲染新信息架构：今日/计划/全部/设置 + 创建主线，验证「不换视觉、只重组逻辑」的效果。' },
+    { id:'m3', cls:'v-m3', title:'1 · Material 3 方向', subtitle:'紫调 tonal surface · 大圆角 · 表达力强', badge:'迁移成本低 · 可直接用', source:'callstack/react-native-paper', license:'MIT', url:'https://github.com/callstack/react-native-paper', note:'「下一次响铃」用主色填充卡 + 节奏点阵；FAB / 开关 / 分段控件都有现成 RN 组件，与 Expo 直接兼容。' },
+    { id:'tam', cls:'v-tam', title:'2 · Tamagui 方向', subtitle:'黑白 + 青绿 · 细边框 · 极简高密', badge:'信息密度高 · token 驱动', source:'tamagui/tamagui', license:'MIT', url:'https://github.com/tamagui/tamagui', note:'层级靠字重与留白表达，节奏信息做成点阵 + 分数式标记；token 体系与「Token 单一来源」要求天然对齐。' },
+    { id:'ion', cls:'v-ion', title:'3 · Ionic 方向', subtitle:'靛蓝渐变 · 圆润浮层 · 移动原生感', badge:'圆润亲和 · 仅视觉参考', source:'ionic-team/ionic-framework', license:'MIT', url:'https://github.com/ionic-team/ionic-framework', note:'Web 框架，只借鉴视觉语言（渐变 hero 卡、胶囊倒计时、iOS 式分段控件），实现时用 RN 组件重画。' },
+  ];
+
+  const CATS = { '工作':'#6C5CE7', '生活':'#E79A4D', '运动':'#45B89C', '其他':'#8A839C' };
+
+  const state = {
+    screen: 'today',
+    freq: 'cycle',
+    interval: 4,
+    startQuick: 'today',
+    alarms: [
+      { id:1, time:'07:30', label:'白班闹钟', cat:'工作', type:'每 4 天 · 明天第 3 天', next:'10月4日', enabled:true },
+      { id:2, time:'09:00', label:'给绿萝浇水', cat:'生活', type:'每 3 天 · 今天第 3 天', next:'今天', enabled:true },
+      { id:3, time:'21:30', label:'晚间阅读', cat:'生活', type:'每天', next:'今天 21:30', enabled:true },
+      { id:4, time:'08:00', label:'站会提醒', cat:'工作', type:'每周一三五', next:'周一', enabled:false },
+      { id:5, time:'18:00', label:'交水电费', cat:'其他', type:'每 14 天 · 还剩 7 天', next:'10月10日', enabled:true },
+    ],
+  };
+
+  function tabbar(active) {
+    const tabs = [['today','今日','◷'],['plan','计划','▦'],['all','全部','☷'],['settings','设置','⚙']];
+    return `<div class="tabbar">${tabs.map(t=>`<div class="tab ${active===t[0]?'active':''}" data-screen="${t[0]}"><span class="ico">${t[2]}</span>${t[1]}</div>`).join('')}</div>`;
+  }
+
+  function dots(total, filled) {
+    return `<span class="rhythm-dots">${Array.from({length:total},(_,i)=>`<i class="${i<filled?'on':''}"></i>`).join('')}</span>`;
+  }
+
+  function screenToday() {
+    const items = [
+      { time:'07:30', label:'白班闹钟', meta:'每 4 天 · 已响', cat:'工作', done:true },
+      { time:'09:00', label:'给绿萝浇水', meta:'每 3 天 · 今天是浇水日', cat:'生活', done:false },
+      { time:'21:30', label:'晚间阅读', meta:'每天', cat:'生活', done:false },
+    ];
+    return `
+      <div class="status"><span>9:41</span><span>▮▮▮ ▰</span></div>
+      <div class="page">
+        <div class="page-title">10月3日 · 周六</div>
+        <div class="page-sub">今天有 2 个提醒</div>
+        <div class="next-card">
+          <div class="next-eyebrow">下一次响铃</div>
+          <div class="next-time">09:00</div>
+          <div class="next-label">给绿萝浇水</div>
+          <div class="next-count">还有 3 小时 12 分</div>
+          <div class="rhythm">${dots(3,3)} 每 3 天 · 今天第 3 天 · 今天就是浇水日</div>
+        </div>
+        <div class="section-head"><h3>今日时间轴</h3><span>3 条</span></div>
+        ${items.map(x=>`
+          <div class="tl-item ${x.done?'done':''}">
+            <span class="tl-time">${x.time}</span>
+            <i class="tl-bar" style="background:${CATS[x.cat]}"></i>
+            <div class="tl-body"><div class="tl-label">${x.label}</div><div class="tl-meta">${x.meta}</div></div>
+            ${x.done?'<span class="tl-tag">已响</span>':''}
+          </div>`).join('')}
+      </div>
+      <button class="fab" data-screen="create">＋</button>
+      ${tabbar('today')}`;
+  }
+
+  function freqFields(edit) {
+    const f = state.freq;
+    if (f === 'once') return `<div class="expand"><h4>日期</h4><div class="chips"><button class="active">今天 10月3日</button><button>明天</button><button>选日期 ›</button></div></div>`;
+    if (f === 'weekly') return `<div class="expand"><h4>每周哪几天</h4><div class="chips">${['一','二','三','四','五','六','日'].map((d,i)=>`<button class="${[0,2,4].includes(i)?'active':''}">${d}</button>`).join('')}</div></div>`;
+    if (f === 'cycle') return `<div class="expand"><h4>每隔几天响一次</h4>
+      <div class="stepper"><button data-step="-1">−</button><b>${state.interval}</b><span style="font-size:12px;color:var(--muted)">天</span><button data-step="1">＋</button></div>
+      <h4 style="margin-top:12px">从哪天开始算</h4>
+      <div class="chips"><button class="${state.startQuick==='today'?'active':''}" data-start="today">今天开始</button><button class="${state.startQuick==='tomorrow'?'active':''}" data-start="tomorrow">明天开始</button></div>
+      <div style="margin-top:10px;font-size:11px;color:var(--primary);font-weight:700">下次响铃：${state.startQuick==='today'?'10月3日':'10月4日'} 09:00，之后每 ${state.interval} 天一次</div></div>`;
+    return '';
+  }
+
+  function screenForm(edit) {
+    const freqs = [['once','就一次','临时提醒一次'],['daily','每天','固定时间天天响'],['weekly','每周','选一周中的几天'],['cycle','每 N 天','排班 / 浇花的节奏']];
+    return `
+      <div class="status"><span>9:41</span><span>▮▮▮ ▰</span></div>
+      <div class="nav"><button data-screen="today">取消</button><b>${edit?'编辑提醒':'新建提醒'}</b><span style="width:34px"></span></div>
+      <div class="page">
+        <div class="time-hero">${edit?'07:30':'09:00'}<small>点击调整时间</small></div>
+        <div class="freq">
+          ${freqs.map(x=>`<button class="${state.freq===x[0]?'active':''}" data-freq="${x[0]}">${x[1]}<small>${x[2]}</small></button>`).join('')}
+        </div>
+        ${freqFields(edit)}
+        <div class="more">
+          <div class="more-row"><span class="k">标签</span><span class="v">${edit?'白班闹钟':'未填写 · 例如：白班闹钟'}</span></div>
+          <div class="more-row"><span class="k">分类</span><span class="v">工作</span></div>
+          <div class="more-row"><span class="k">稍后提醒</span><span class="v">10 分钟</span></div>
+        </div>
+        <button class="save">${edit?'保存修改':'保存提醒'}</button>
+        ${edit?'<button class="danger">删除这个提醒</button>':''}
+      </div>`;
+  }
+
+  function screenAll() {
+    const list = [...state.alarms].sort((a,b)=>a.enabled===b.enabled?0:a.enabled?-1:1);
+    return `
+      <div class="status"><span>9:41</span><span>▮▮▮ ▰</span></div>
+      <div class="page">
+        <div class="page-title">全部提醒</div>
+        <div class="page-sub">${state.alarms.filter(a=>a.enabled).length} 个正在运行 · 按下次响铃排序</div>
+        <div class="filter-row"><button class="active">筛选 ▾</button><button>排序：下次 ↻</button></div>
+        <div style="margin-top:14px">
+        ${list.map(a=>`
+          <div class="alarm-card ${a.enabled?'':'paused'}">
+            <div><div class="t">${a.time}</div></div>
+            <div class="bd">
+              <div class="lb"><i style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${CATS[a.cat]};margin-right:5px"></i>${a.label}</div>
+              <div class="mt">${a.type} · 下次：${a.next}</div>
+            </div>
+            <button class="sw ${a.enabled?'on':''}" data-toggle="${a.id}" aria-label="开关"></button>
+          </div>`).join('')}
+        </div>
+      </div>
+      <button class="fab" data-screen="create">＋</button>
+      ${tabbar('all')}`;
+  }
+
+  function screenPlan() {
+    const dotDays = { 3:['#E79A4D','#E79A4D'], 4:['#6C5CE7'], 6:['#E79A4D'], 8:['#6C5CE7'], 9:['#E79A4D'], 10:['#8A839C'], 12:['#E79A4D'], 15:['#E79A4D','#45B89C'], 18:['#E79A4D'], 21:['#E79A4D'], 24:['#E79A4D'], 27:['#E79A4D'], 30:['#E79A4D'] };
+    let cells = '';
+    ['一','二','三','四','五','六','日'].forEach(d=>cells+=`<div class="wd">${d}</div>`);
+    for (let i=0;i<35;i++){
+      const n = i-3;
+      if (n<1||n>31) { cells+=`<div class="d out">${n<1?28+n:n-31}</div>`; continue; }
+      const ds = dotDays[n]||[];
+      cells+=`<div class="d ${n===3?'today':''}">${n}<div class="dots">${ds.map(c=>`<i style="background:${c}"></i>`).join('')}</div></div>`;
+    }
+    return `
+      <div class="status"><span>9:41</span><span>▮▮▮ ▰</span></div>
+      <div class="page">
+        <div class="page-title">计划</div>
+        <div class="plan-head"><b>2026年10月</b><div><button>‹</button><button>今天</button><button>›</button></div></div>
+        <div class="seg">${['月','周','3天','日'].map((x,i)=>`<button class="${i===0?'active':''}">${x}</button>`).join('')}</div>
+        <div class="month">${cells}</div>
+        <div class="section-head"><h3>10月3日</h3><span>2 个提醒</span></div>
+        <div class="day-detail">
+          <div class="tl-item"><span class="tl-time">09:00</span><i class="tl-bar" style="background:${CATS['生活']}"></i><div class="tl-body"><div class="tl-label">给绿萝浇水</div><div class="tl-meta">每 3 天</div></div></div>
+          <div class="tl-item"><span class="tl-time">21:30</span><i class="tl-bar" style="background:${CATS['生活']}"></i><div class="tl-body"><div class="tl-label">晚间阅读</div><div class="tl-meta">每天</div></div></div>
+        </div>
+      </div>
+      ${tabbar('plan')}`;
+  }
+
+  function screenSettings() {
+    return `
+      <div class="status"><span>9:41</span><span>▮▮▮ ▰</span></div>
+      <div class="page">
+        <div class="page-title">设置</div>
+        <div class="set-group"><h4>通知权限</h4><p>确保提醒可以按时送达</p>
+          <div class="set-card"><div class="set-line">系统通知 <span class="pill">已允许</span></div></div></div>
+        <div class="set-group"><h4>默认提醒</h4><p>只影响之后新建的提醒</p>
+          <div class="set-card"><div class="set-line">默认稍后提醒时长 <span style="color:var(--muted);font-size:11px">10 分钟 ›</span></div></div></div>
+        <div class="set-group"><h4>外观</h4><p>统一控制各页面的主题偏好</p>
+          <div class="set-card"><div class="chips" style="margin-top:0"><button class="active">跟随系统</button><button>浅色</button></div></div></div>
+      </div>
+      ${tabbar('settings')}`;
+  }
+
+  function screenEmpty() {
+    return `
+      <div class="status"><span>9:41</span><span>▮▮▮ ▰</span></div>
+      <div class="page">
+        <div class="page-title">10月3日 · 周六</div>
+        <div class="empty">
+          <div class="ico">◷</div>
+          <h3>还没有任何节奏</h3>
+          <p>排班、浇花、定期任务……<br>设一个「每 N 天一次」的提醒，到时间我会准时叫你。</p>
+          <button data-screen="create">创建第一个提醒</button>
+        </div>
+      </div>
+      ${tabbar('today')}`;
+  }
+
+  function renderScreen() {
+    if (state.screen==='today') return screenToday();
+    if (state.screen==='plan') return screenPlan();
+    if (state.screen==='all') return screenAll();
+    if (state.screen==='settings') return screenSettings();
+    if (state.screen==='create') return screenForm(false);
+    if (state.screen==='edit') return screenForm(true);
+    return screenEmpty();
+  }
+
+  function render() {
+    document.getElementById('grid').innerHTML = variants.map(v=>`
+      <div class="option">
+        <div class="meta">
+          <div class="meta-top"><div><div class="title">${v.title}</div><div class="subtitle">${v.subtitle}</div></div><span class="badge">${v.badge}</span></div>
+          <a class="source-link" href="${v.url}" target="_blank">开源来源：${v.source} · ${v.license} ↗</a>
+        </div>
+        <div class="phone ${v.cls}"><div class="screen">${renderScreen()}</div></div>
+        <div class="note">${v.note}</div>
+      </div>`).join('');
+    bind();
+  }
+
+  function bind() {
+    document.querySelectorAll('.toolbar button').forEach(b=>{
+      b.classList.toggle('active', b.dataset.screen===state.screen);
+      b.onclick = ()=>{ state.screen=b.dataset.screen; render(); };
+    });
+    document.querySelectorAll('.screen [data-screen]').forEach(el=>{
+      el.onclick = ()=>{ state.screen=el.dataset.screen; render(); };
+    });
+    document.querySelectorAll('[data-toggle]').forEach(el=>{
+      el.onclick = ()=>{ const a=state.alarms.find(x=>x.id===Number(el.dataset.toggle)); if(a){a.enabled=!a.enabled; render();} };
+    });
+    document.querySelectorAll('[data-freq]').forEach(el=>{
+      el.onclick = ()=>{ state.freq=el.dataset.freq; render(); };
+    });
+    document.querySelectorAll('[data-step]').forEach(el=>{
+      el.onclick = ()=>{ state.interval=Math.min(30,Math.max(2,state.interval+Number(el.dataset.step))); render(); };
+    });
+    document.querySelectorAll('[data-start]').forEach(el=>{
+      el.onclick = ()=>{ state.startQuick=el.dataset.start; render(); };
+    });
+  }
+
+  render();
+</script>
+</body>
+</html>
