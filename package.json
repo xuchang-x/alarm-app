@@ -1,6 +1,6 @@
 {
   "name": "alarm-app",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "main": "expo-router/entry",
   "dependencies": {
     "@react-native-community/datetimepicker": "^9.1.0",
