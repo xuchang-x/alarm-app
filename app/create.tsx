@@ -14,6 +14,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useAlarmStore } from '@/store/alarm-store';
+import * as repo from '@/db/alarm-repository';
+import { findConflictingAlarms } from '@/services/conflicts';
 import TimePicker from '@/components/TimePicker';
 import WeekdaySelector from '@/components/WeekdaySelector';
 import CycleSettings from '@/components/CycleSettings';
@@ -27,6 +29,19 @@ const TYPE_OPTIONS: { key: AlarmType; label: string }[] = [
   { key: 'weekly', label: '每周' },
   { key: 'cycle', label: '周期' },
 ];
+
+function confirmConflicts(labels: string[]): Promise<boolean> {
+  return new Promise((resolve) => {
+    Alert.alert(
+      '发现时间冲突',
+      `未来 30 天内有 ${labels.length} 个提醒会在同一时间响铃：${labels.join('、')}`,
+      [
+        { text: '返回修改', style: 'cancel', onPress: () => resolve(false) },
+        { text: '仍然保存', onPress: () => resolve(true) },
+      ]
+    );
+  });
+}
 
 export default function CreateScreen() {
   const router = useRouter();
@@ -59,6 +74,25 @@ export default function CreateScreen() {
       Alert.alert('提示', '请至少选择一个星期');
       return;
     }
+
+    const draft = {
+      id: -1,
+      type,
+      hour,
+      minute,
+      label: label.trim(),
+      category,
+      enabled: true,
+      onceDate: type === 'once' ? onceDate : null,
+      weekdays: type === 'weekly' ? weekdays : null,
+      intervalDays: type === 'cycle' ? intervalDays : null,
+      startDate: type === 'cycle' ? startDate : null,
+      snoozeMinutes,
+      createdAt: '',
+      updatedAt: '',
+    };
+    const conflicts = await findConflictingAlarms(draft, useAlarmStore.getState().alarms, repo.getAdjustments);
+    if (conflicts.length > 0 && !(await confirmConflicts(conflicts.map((alarm) => alarm.label || '未命名提醒')))) return;
 
     setSaving(true);
     try {
