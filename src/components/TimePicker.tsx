@@ -26,22 +26,8 @@ interface WheelColumnProps {
 
 const ITEM_HEIGHT = 48;
 const WHEEL_HEIGHT = ITEM_HEIGHT * 3;
-const HOURS = Array.from({ length: 12 }, (_, index) => String(index + 1).padStart(2, '0'));
+const HOURS = Array.from({ length: 24 }, (_, index) => String(index).padStart(2, '0'));
 const MINUTES = Array.from({ length: 60 }, (_, index) => String(index).padStart(2, '0'));
-const PERIODS = ['AM', 'PM'];
-
-function to12Hour(hour: number): { hourIndex: number; periodIndex: number } {
-  return {
-    hourIndex: (hour % 12 || 12) - 1,
-    periodIndex: hour >= 12 ? 1 : 0,
-  };
-}
-
-function to24Hour(hourIndex: number, periodIndex: number): number {
-  const hour = hourIndex + 1;
-  if (periodIndex === 0) return hour === 12 ? 0 : hour;
-  return hour === 12 ? 12 : hour + 12;
-}
 
 function clampHour(hour: number): number {
   return Math.max(0, Math.min(23, hour));
@@ -161,35 +147,27 @@ export default function TimePicker({ hour, minute, onChange }: TimePickerProps) 
   const [show, setShow] = useState(false);
   const [draftHour, setDraftHour] = useState(0);
   const [draftMinute, setDraftMinute] = useState(0);
-  const [draftPeriod, setDraftPeriod] = useState(0);
   const draftHourRef = useRef(0);
   const draftMinuteRef = useRef(0);
-  const draftPeriodRef = useRef(0);
 
   const setDraftTime = (nextHour: number, nextMinute: number) => {
     const normalizedHour = clampHour(nextHour);
-    const time = to12Hour(normalizedHour);
-    draftHourRef.current = time.hourIndex;
+    draftHourRef.current = normalizedHour;
     draftMinuteRef.current = nextMinute;
-    draftPeriodRef.current = time.periodIndex;
-    setDraftHour(time.hourIndex);
+    setDraftHour(normalizedHour);
     setDraftMinute(nextMinute);
-    setDraftPeriod(time.periodIndex);
   };
 
   const openPicker = () => {
-    const time = to12Hour(hour);
-    draftHourRef.current = time.hourIndex;
+    draftHourRef.current = hour;
     draftMinuteRef.current = minute;
-    draftPeriodRef.current = time.periodIndex;
-    setDraftHour(time.hourIndex);
+    setDraftHour(hour);
     setDraftMinute(minute);
-    setDraftPeriod(time.periodIndex);
     setShow(true);
   };
 
   const confirmPicker = () => {
-    onChange(to24Hour(draftHour, draftPeriod), draftMinute);
+    onChange(draftHour, draftMinute);
     setShow(false);
   };
 
@@ -199,14 +177,9 @@ export default function TimePicker({ hour, minute, onChange }: TimePickerProps) 
   };
 
   const handleMinuteChange = (index: number, direction: -1 | 1, wrapped: boolean) => {
-    const currentHour = to24Hour(draftHourRef.current, draftPeriodRef.current);
+    const currentHour = draftHourRef.current;
     const nextHour = wrapped ? clampHour(currentHour + direction) : currentHour;
     setDraftTime(nextHour, index);
-  };
-
-  const handlePeriodChange = (index: number) => {
-    draftPeriodRef.current = index;
-    setDraftPeriod(index);
   };
 
   return (
@@ -239,7 +212,7 @@ export default function TimePicker({ hour, minute, onChange }: TimePickerProps) 
               </View>
               <View style={styles.previewPill}>
                 <Text style={styles.previewText}>
-                  {formatTime(to24Hour(draftHour, draftPeriod), draftMinute)}
+                  {formatTime(draftHour, draftMinute)}
                 </Text>
               </View>
             </View>
@@ -260,12 +233,6 @@ export default function TimePicker({ hour, minute, onChange }: TimePickerProps) 
                 onChange={handleMinuteChange}
                 accessibilityLabel="分钟"
                 cyclic
-              />
-              <WheelColumn
-                items={PERIODS}
-                selectedIndex={draftPeriod}
-                onChange={handlePeriodChange}
-                accessibilityLabel="上午或下午"
               />
             </View>
 
