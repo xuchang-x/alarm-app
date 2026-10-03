@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { PageHeading } from '@/components/PageHeader';
 import { useRouter } from 'expo-router';
 import { addDays, format, isSameDay, isSameMonth } from 'date-fns';
 import { useAlarmStore } from '@/store/alarm-store';
@@ -333,14 +334,28 @@ export default function CalendarScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      <View style={styles.header}>
-        <View style={styles.headerPlaceholder} />
-        <Text style={styles.headerTitle}>日历</Text>
-        <Pressable style={styles.headerButton} onPress={() => { setAnchor(today()); setSelectedDate(today()); }}><Text style={styles.headerButtonText}>今天</Text></Pressable>
-      </View>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.titleRow}>
-          <View><Text style={styles.eyebrow}>SCHEDULE</Text><Text style={styles.title}>{title}</Text></View>
+        <PageHeading
+          eyebrow="CALENDAR"
+          title="日历"
+          subtitle="按月、周或单天查看提醒分布"
+          rightAlign="end"
+          style={styles.pageHeader}
+          right={
+            <Pressable
+              accessibilityRole="button"
+              style={styles.todayButton}
+              onPress={() => {
+                setAnchor(today());
+                setSelectedDate(today());
+              }}
+            >
+              <Text style={styles.todayButtonText}>今天</Text>
+            </Pressable>
+          }
+        />
+        <View style={styles.calHeader}>
+          <Text style={styles.calTitle}>{title}</Text>
           <View style={styles.navButtons}>
             <Pressable style={styles.navButton} onPress={() => move(-1)}><Text style={styles.navButtonText}>‹</Text></Pressable>
             <Pressable style={styles.navButton} onPress={() => move(1)}><Text style={styles.navButtonText}>›</Text></Pressable>
@@ -369,15 +384,12 @@ export default function CalendarScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 12 },
-  headerPlaceholder: { minWidth: 72, minHeight: 40 },
-  headerButton: { minWidth: 72, minHeight: 40, alignItems: 'center', justifyContent: 'center', paddingVertical: 8 },
-  headerButtonText: { color: COLORS.primary, fontSize: 14, fontWeight: '700' },
-  headerTitle: { color: COLORS.textPrimary, fontSize: 17, fontWeight: '800' },
   content: { paddingHorizontal: 16, paddingBottom: 30 },
-  titleRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', paddingTop: 12, paddingBottom: 16 },
-  eyebrow: { color: COLORS.primary, fontSize: 10, fontWeight: '700', letterSpacing: 1.4 },
-  title: { marginTop: 5, color: COLORS.textPrimary, fontSize: 26, fontWeight: '800' },
+  pageHeader: { paddingTop: 10, paddingBottom: 20 },
+  todayButton: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 12, backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.border },
+  todayButtonText: { color: COLORS.primary, fontSize: 12, fontWeight: '700' },
+  calHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 4, paddingBottom: 14 },
+  calTitle: { color: COLORS.textPrimary, fontSize: 20, fontWeight: '800' },
   navButtons: { flexDirection: 'row', gap: 8 },
   navButton: { width: 38, height: 38, alignItems: 'center', justifyContent: 'center', borderRadius: 12, backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.border },
   navButtonText: { color: COLORS.primary, fontSize: 26, lineHeight: 28 },

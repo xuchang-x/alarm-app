@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useAlarmStore, getNextRingDate } from '@/store/alarm-store';
 import AlarmCard from '@/components/AlarmCard';
+import { PageHeading } from '@/components/PageHeader';
 import ViewNavigationLink from '@/components/ViewNavigationLink';
 import type { Alarm } from '@/types/alarm';
 import type { AlarmCategory, AlarmType } from '@/types/alarm';
@@ -125,11 +126,11 @@ export default function HomeScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
         <View style={styles.pageHeader}>
-          <View>
-            <Text style={styles.eyebrow}>DAILY REMINDERS</Text>
-            <Text style={styles.title}>我的闹钟</Text>
-            <Text style={styles.subtitle}>让重要的事情准时发生</Text>
-          </View>
+          <PageHeading
+            eyebrow="DAILY REMINDERS"
+            title="我的闹钟"
+            subtitle="让重要的事情准时发生"
+          />
         </View>
         <View style={styles.emptyState}>
           <View style={styles.emptyIcon}>
@@ -162,11 +163,11 @@ export default function HomeScreen() {
         ListHeaderComponent={
           <View style={styles.listHeader}>
             <View style={styles.pageHeader}>
-              <View>
-                <Text style={styles.eyebrow}>DAILY REMINDERS</Text>
-                <Text style={styles.title}>我的闹钟</Text>
-                <Text style={styles.subtitle}>{enabledCount} 个提醒正在运行</Text>
-              </View>
+              <PageHeading
+                eyebrow="DAILY REMINDERS"
+                title="我的闹钟"
+                subtitle={`${enabledCount} 个提醒正在运行`}
+              />
             </View>
             <TextInput
               style={styles.searchInput}
@@ -232,30 +233,9 @@ const styles = StyleSheet.create({
     paddingBottom: 6,
   },
   pageHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: 2,
     paddingTop: 10,
     paddingBottom: 20,
-  },
-  eyebrow: {
-    color: COLORS.primary,
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 1.4,
-  },
-  title: {
-    marginTop: 5,
-    color: COLORS.textPrimary,
-    fontSize: 30,
-    fontWeight: '800',
-    letterSpacing: -0.8,
-  },
-  subtitle: {
-    marginTop: 5,
-    color: COLORS.textSecondary,
-    fontSize: 13,
   },
   sectionHeading: {
     marginTop: 24,

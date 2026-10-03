@@ -20,6 +20,7 @@ import { findConflictingAlarms } from '@/services/conflicts';
 import TimePicker from '@/components/TimePicker';
 import WeekdaySelector from '@/components/WeekdaySelector';
 import CycleSettings from '@/components/CycleSettings';
+import { NavBar, PageHeading } from '@/components/PageHeader';
 import type { AlarmCategory, AlarmType, Weekday } from '@/types/alarm';
 import { ALARM_CATEGORIES, COLORS, DEFAULT_SNOOZE_MINUTES } from '@/constants';
 import { formatDate, today } from '@/utils/date';
@@ -133,13 +134,10 @@ export default function CreateScreen() {
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <View style={styles.header}>
-          <Pressable style={styles.headerButton} onPress={() => router.back()}>
-            <Text style={styles.headerButtonText}>取消</Text>
-          </Pressable>
-          <Text style={styles.headerTitle}>新建闹钟</Text>
-          <View style={styles.headerPlaceholder} />
-        </View>
+        <NavBar
+          title="新建闹钟"
+          leftAction={{ label: '取消', onPress: () => router.back() }}
+        />
 
         <ScrollView
           contentContainerStyle={styles.content}
@@ -147,8 +145,11 @@ export default function CreateScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.hero}>
-            <Text style={styles.eyebrow}>NEW REMINDER</Text>
-            <Text style={styles.heroTitle}>安排一个时间</Text>
+            <PageHeading
+              eyebrow="NEW REMINDER"
+              title="安排一个时间"
+              style={styles.heroHeading}
+            />
             <TimePicker
               hour={hour}
               minute={minute}
@@ -288,21 +289,9 @@ export default function CreateScreen() {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   container: { flex: 1, backgroundColor: COLORS.background },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-  },
-  headerButton: { minWidth: 56, paddingVertical: 8 },
-  headerButtonText: { color: COLORS.primary, fontSize: 14, fontWeight: '700' },
-  headerTitle: { color: COLORS.textPrimary, fontSize: 17, fontWeight: '800' },
-  headerPlaceholder: { minWidth: 56 },
   content: { paddingHorizontal: 20, paddingBottom: 36 },
   hero: { paddingVertical: 12 },
-  eyebrow: { color: COLORS.primary, fontSize: 10, fontWeight: '700', letterSpacing: 1.4 },
-  heroTitle: { marginTop: 6, marginBottom: 18, color: COLORS.textPrimary, fontSize: 27, fontWeight: '800' },
+  heroHeading: { marginBottom: 18 },
   sectionCard: {
     padding: 17,
     marginTop: 14,

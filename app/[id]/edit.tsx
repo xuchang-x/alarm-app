@@ -18,6 +18,7 @@ import { useAlarmStore } from '@/store/alarm-store';
 import * as repo from '@/db/alarm-repository';
 import { findConflictingAlarms } from '@/services/conflicts';
 import TimePicker from '@/components/TimePicker';
+import { NavBar, PageHeading } from '@/components/PageHeader';
 import WeekdaySelector from '@/components/WeekdaySelector';
 import CycleSettings from '@/components/CycleSettings';
 import type { Alarm, AlarmCategory, AlarmType, Weekday } from '@/types/alarm';
@@ -168,13 +169,10 @@ export default function EditScreen() {
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <View style={styles.header}>
-          <Pressable style={styles.headerButton} onPress={() => router.back()}>
-            <Text style={styles.headerButtonText}>取消</Text>
-          </Pressable>
-          <Text style={styles.headerTitle}>编辑闹钟</Text>
-          <View style={styles.headerPlaceholder} />
-        </View>
+        <NavBar
+          title="编辑闹钟"
+          leftAction={{ label: '取消', onPress: () => router.back() }}
+        />
 
         <ScrollView
           contentContainerStyle={styles.content}
@@ -182,16 +180,17 @@ export default function EditScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.hero}>
-            <View style={styles.heroTopRow}>
-              <View>
-                <Text style={styles.eyebrow}>EDIT REMINDER</Text>
-                <Text style={styles.heroTitle}>调整你的安排</Text>
-              </View>
-              <View style={[styles.enabledPill, !alarm?.enabled && styles.disabledPill]}>
-                <View style={[styles.enabledDot, !alarm?.enabled && styles.disabledDot]} />
-                <Text style={styles.enabledText}>{alarm?.enabled ? '已开启' : '已暂停'}</Text>
-              </View>
-            </View>
+            <PageHeading
+              eyebrow="EDIT REMINDER"
+              title="调整你的安排"
+              style={styles.heroHeading}
+              right={
+                <View style={[styles.enabledPill, !alarm?.enabled && styles.disabledPill]}>
+                  <View style={[styles.enabledDot, !alarm?.enabled && styles.disabledDot]} />
+                  <Text style={styles.enabledText}>{alarm?.enabled ? '已开启' : '已暂停'}</Text>
+                </View>
+              }
+            />
             <TimePicker
               hour={hour}
               minute={minute}
@@ -332,22 +331,9 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   loadingText: { marginTop: 12, color: COLORS.textSecondary, fontSize: 13 },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-  },
-  headerButton: { minWidth: 56, paddingVertical: 8 },
-  headerButtonText: { color: COLORS.primary, fontSize: 14, fontWeight: '700' },
-  headerTitle: { color: COLORS.textPrimary, fontSize: 17, fontWeight: '800' },
-  headerPlaceholder: { minWidth: 56 },
   content: { paddingHorizontal: 20, paddingBottom: 36 },
   hero: { paddingVertical: 12 },
-  heroTopRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
-  eyebrow: { color: COLORS.primary, fontSize: 10, fontWeight: '700', letterSpacing: 1.4 },
-  heroTitle: { marginTop: 6, marginBottom: 18, color: COLORS.textPrimary, fontSize: 27, fontWeight: '800' },
+  heroHeading: { marginBottom: 18 },
   enabledPill: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 7, borderRadius: 10, backgroundColor: '#E3F5EE' },
   disabledPill: { backgroundColor: COLORS.input },
   enabledDot: { width: 7, height: 7, marginRight: 6, borderRadius: 4, backgroundColor: COLORS.success },

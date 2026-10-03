@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { PageHeading } from '@/components/PageHeader';
 import { COLORS, DEFAULT_SNOOZE_MINUTES } from '@/constants';
 import {
   getNotificationPermissionStatus,
@@ -94,9 +95,11 @@ export default function SettingsScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.pageHeader}>
-          <Text style={styles.eyebrow}>APP PREFERENCES</Text>
-          <Text style={styles.title}>设置</Text>
-          <Text style={styles.subtitle}>管理通知、默认提醒和外观偏好</Text>
+          <PageHeading
+            eyebrow="APP PREFERENCES"
+            title="设置"
+            subtitle="管理通知、默认提醒和外观偏好"
+          />
         </View>
 
         <SettingsSection title="通知权限" description="确保提醒可以按时送达">
@@ -210,9 +213,6 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   content: { paddingHorizontal: 20, paddingBottom: 32 },
   pageHeader: { paddingTop: 12, paddingBottom: 22 },
-  eyebrow: { color: COLORS.primary, fontSize: 10, fontWeight: '700', letterSpacing: 1.4 },
-  title: { marginTop: 5, color: COLORS.textPrimary, fontSize: 30, fontWeight: '800', letterSpacing: -0.8 },
-  subtitle: { marginTop: 5, color: COLORS.textSecondary, fontSize: 13 },
   section: { marginBottom: 20 },
   sectionTitle: { color: COLORS.textPrimary, fontSize: 16, fontWeight: '800' },
   sectionDescription: { marginTop: 4, color: COLORS.textSecondary, fontSize: 12 },
