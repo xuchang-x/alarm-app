@@ -99,6 +99,7 @@ export default function RootLayout() {
           }}
         >
           <Stack.Screen name="index" />
+          <Stack.Screen name="calendar" />
           <Stack.Screen name="create" />
           <Stack.Screen name="[id]/edit" />
         </Stack>

@@ -152,6 +152,10 @@ export default function HomeScreen() {
                 <Text style={styles.headerIconText}>◷</Text>
               </View>
             </View>
+            <Pressable style={styles.calendarEntry} onPress={() => router.push('/calendar')}>
+              <View><Text style={styles.calendarEntryTitle}>查看日历</Text><Text style={styles.calendarEntryText}>按月、周或单天查看提醒分布</Text></View>
+              <Text style={styles.calendarEntryArrow}>›</Text>
+            </Pressable>
             <View style={styles.summaryCard}>
               <View style={styles.summaryIcon}>
                 <Text style={styles.summaryIconText}>✓</Text>
@@ -285,6 +289,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '800',
   },
+  calendarEntry: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 13,
+    borderRadius: 16,
+    backgroundColor: COLORS.card,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  calendarEntryTitle: { color: COLORS.primaryDark, fontSize: 13, fontWeight: '800' },
+  calendarEntryText: { marginTop: 3, color: COLORS.textSecondary, fontSize: 11 },
+  calendarEntryArrow: { color: COLORS.primary, fontSize: 26, fontWeight: '300' },
   emptyState: {
     flex: 1,
     alignItems: 'center',
