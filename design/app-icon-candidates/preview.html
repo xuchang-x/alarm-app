@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>App 图标候选 · 我的节奏</title>
+<style>
+  :root { --primary: #6C5CE7; --primary-dark: #5545C8; --soft: #EAE6FF; --bg: #F7F5FC; --text: #25223A; --muted: #9C97AC; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: -apple-system, "PingFang SC", sans-serif; }
+  header { padding: 32px 40px 8px; }
+  h1 { margin: 0 0 6px; font-size: 22px; }
+  p.desc { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.7; max-width: 720px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; padding: 24px 40px 60px; }
+  .card { background: #fff; border: 1px solid #E5E1F0; border-radius: 16px; padding: 18px; text-align: center; }
+  .tile { width: 96px; height: 96px; margin: 0 auto 10px; display: grid; place-items: center; }
+  .tile svg { width: 60px; height: 60px; }
+  .tile.purple { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); border-radius: 24px; box-shadow: 0 6px 14px rgba(81,70,138,.28); }
+  .tile.soft { background: var(--soft); border-radius: 24px; }
+  .name { font-size: 13px; font-weight: 600; margin-top: 6px; }
+  .sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .note { font-size: 11px; color: #6D6880; margin-top: 6px; line-height: 1.5; min-height: 32px; }
+  .file { font-size: 10px; color: var(--muted); font-family: ui-monospace, monospace; margin-top: 4px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>App 图标候选（基于 006「我的节奏」视觉方向）</h1>
+  <p class="desc">筛选逻辑：Eva / UI Kitten 浅色紫主色 #6C5CE7；语义覆盖「闹铃 / 时钟倒计时 / 日历循环」三方向，呼应产品叙事「我的节奏 · 每 N 天提醒一次」。每张卡上为紫渐变实底 + 白色图形（上架图标形态），下为 primarySoft 浅紫底 + 紫色图形（内页/营销形态）。全部图标来自开源图标集，可免费商用；Solar 为 CC BY 4.0 需署名，其余 MIT / ISC / Apache 2.0 无需署名。</p>
+</header>
+<div class="grid">
+<div class="card">
+  <div class="tile purple"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="#FFFFFF" d="m15.87 15.25l-3.37-2V8.72c0-.4-.32-.72-.72-.72h-.06c-.4 0-.72.32-.72.72v4.72c0 .35.18.68.49.86l3.65 2.19c.34.2.78.1.98-.24c.21-.35.1-.8-.25-1m5.31-10.24L18.1 2.45c-.42-.35-1.05-.3-1.41.13c-.35.42-.29 1.05.13 1.41l3.07 2.56c.42.35 1.05.3 1.41-.13a1 1 0 0 0-.12-1.41M4.1 6.55l3.07-2.56c.43-.36.49-.99.13-1.41a.99.99 0 0 0-1.4-.13L2.82 5.01a1 1 0 0 0-.12 1.41c.35.43.98.48 1.4.13M12 4a9 9 0 1 0 .001 18.001A9 9 0 0 0 12 4m0 16c-3.86 0-7-3.14-7-7s3.14-7 7-7s7 3.14 7 7s-3.14 7-7 7"/></svg></div>
+  <div class="tile soft"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="#6C5CE7" d="m15.87 15.25l-3.37-2V8.72c0-.4-.32-.72-.72-.72h-.06c-.4 0-.72.32-.72.72v4.72c0 .35.18.68.49.86l3.65 2.19c.34.2.78.1.98-.24c.21-.35.1-.8-.25-1m5.31-10.24L18.1 2.45c-.42-.35-1.05-.3-1.41.13c-.35.42-.29 1.05.13 1.41l3.07 2.56c.42.35 1.05.3 1.41-.13a1 1 0 0 0-.12-1.41M4.1 6.55l3.07-2.56c.43-.36.49-.99.13-1.41a.99.99 0 0 0-1.4-.13L2.82 5.01a1 1 0 0 0-.12 1.41c.35.43.98.48 1.4.13M12 4a9 9 0 1 0 .001 18.001A9 9 0 0 0 12 4m0 16c-3.86 0-7-3.14-7-7s3.14-7 7-7s7 3.14 7 7s-3.14 7-7 7"/></svg></div>
+  <div class="name">Material 圆形闹钟</div>
+  <div class="sub">Material Icons · Apache 2.0</div>
+  <div class="note">经典 Android 感</div>
+  <div class="file">ic-round-alarm.svg</div>
+</div>
+<div class="card">
+  <div class="tile purple"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M5 3L2 6m20 0l-3-3M6.38 18.7L4 21m13.64-2.33L20 21"/></g></svg></div>
+  <div class="tile soft"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#6C5CE7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M5 3L2 6m20 0l-3-3M6.38 18.7L4 21m13.64-2.33L20 21"/></g></svg></div>
+  <div class="name">Lucide 闹钟</div>
+  <div class="sub">Lucide · ISC</div>
+  <div class="note">细线优雅，精致感</div>
+  <div class="file">lucide-alarm-clock.svg</div>
+</div>
+<div class="card">
+  <div class="tile purple"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M16 14v2.2l1.6 1M16 2v3m5 2.338V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h2.338M3 9h5.859M8 2v3"/><circle cx="16" cy="16" r="6"/></g></svg></div>
+  <div class="tile soft"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#6C5CE7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M16 14v2.2l1.6 1M16 2v3m5 2.338V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h2.338M3 9h5.859M8 2v3"/><circle cx="16" cy="16" r="6"/></g></svg></div>
+  <div class="name">Lucide 日历时钟</div>
+  <div class="sub">Lucide · ISC</div>
+  <div class="note">日历+时钟双语义</div>
+  <div class="file">lucide-calendar-clock.svg</div>
+</div>
+<div class="card">
+  <div class="tile purple"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="#FFFFFF" d="M13 12.6V9q0-.425-.288-.712T12 8t-.712.288T11 9v3.975q0 .2.075.388t.225.337l2.8 2.8q.275.275.7.275t.7-.275t.275-.7t-.275-.7zm-4.512 8.688q-1.638-.713-2.85-1.925t-1.925-2.85T3 13t.713-3.512t1.924-2.85t2.85-1.925T12 4t3.513.713t2.85 1.925t1.925 2.85T21 13t-.712 3.513t-1.925 2.85t-2.85 1.925T12 22t-3.512-.712M2.05 7.3q-.275-.275-.275-.7t.275-.7L4.9 3.05q.275-.275.7-.275t.7.275t.275.7t-.275.7L3.45 7.3q-.275.275-.7.275t-.7-.275m19.9 0q-.275.275-.7.275t-.7-.275L17.7 4.45q-.275-.275-.275-.7t.275-.7t.7-.275t.7.275l2.85 2.85q.275.275.275.7t-.275.7"/></svg></div>
+  <div class="tile soft"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="#6C5CE7" d="M13 12.6V9q0-.425-.288-.712T12 8t-.712.288T11 9v3.975q0 .2.075.388t.225.337l2.8 2.8q.275.275.7.275t.7-.275t.275-.7t-.275-.7zm-4.512 8.688q-1.638-.713-2.85-1.925t-1.925-2.85T3 13t.713-3.512t1.924-2.85t2.85-1.925T12 4t3.513.713t2.85 1.925t1.925 2.85T21 13t-.712 3.513t-1.925 2.85t-2.85 1.925T12 22t-3.512-.712M2.05 7.3q-.275-.275-.275-.7t.275-.7L4.9 3.05q.275-.275.7-.275t.7.275t.275.7t-.275.7L3.45 7.3q-.275.275-.7.275t-.7-.275m19.9 0q-.275.275-.7.275t-.7-.275L17.7 4.45q-.275-.275-.275-.7t.275-.7t.7-.275t.7.275l2.85 2.85q.275.275.275.7t-.275.7"/></svg></div>
+  <div class="name">Material 圆角闹钟</div>
+  <div class="sub">Material Symbols · Apache 2.0</div>
+  <div class="note">圆润更柔和</div>
+  <div class="file">material-symbols-alarm-rounded.svg</div>
+</div>
+<div class="card">
+  <div class="tile purple"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="#FFFFFF" d="M8.488 21.288q-1.638-.713-2.85-1.925t-1.925-2.85T3 13t.713-3.512t1.924-2.85t2.85-1.925T12 4t3.513.713t2.85 1.925t1.925 2.85T21 13t-.712 3.513t-1.925 2.85t-2.85 1.925T12 22t-3.512-.712M14.8 17.2l1.4-1.4l-3.2-3.2V8h-2v5.4zM5.6 2.35L7 3.75L2.75 8l-1.4-1.4zm12.8 0l4.25 4.25l-1.4 1.4L17 3.75z"/></svg></div>
+  <div class="tile soft"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="#6C5CE7" d="M8.488 21.288q-1.638-.713-2.85-1.925t-1.925-2.85T3 13t.713-3.512t1.924-2.85t2.85-1.925T12 4t3.513.713t2.85 1.925t1.925 2.85T21 13t-.712 3.513t-1.925 2.85t-2.85 1.925T12 22t-3.512-.712M14.8 17.2l1.4-1.4l-3.2-3.2V8h-2v5.4zM5.6 2.35L7 3.75L2.75 8l-1.4-1.4zm12.8 0l4.25 4.25l-1.4 1.4L17 3.75z"/></svg></div>
+  <div class="name">Material 闹钟</div>
+  <div class="sub">Material Symbols · Apache 2.0</div>
+  <div class="note">经典系统感</div>
+  <div class="file">material-symbols-alarm.svg</div>
+</div>
+<div class="card">
+  <div class="tile purple"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="#FFFFFF" d="M5 22q-.825 0-1.412-.587T3 20V6q0-.825.588-1.412T5 4h1V2h2v2h8V2h2v2h1q.825 0 1.413.588T21 6v4.675q0 .425-.288.713t-.712.287t-.712-.288t-.288-.712V10H5v10h5.8q.425 0 .713.288T11.8 21t-.288.713T10.8 22zm9.463-.462Q13 20.075 13 18t1.463-3.537T18 13t3.538 1.463T23 18t-1.463 3.538T18 23t-3.537-1.463m5.212-1.162l.7-.7L18.5 17.8V15h-1v3.2z"/></svg></div>
+  <div class="tile soft"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="#6C5CE7" d="M5 22q-.825 0-1.412-.587T3 20V6q0-.825.588-1.412T5 4h1V2h2v2h8V2h2v2h1q.825 0 1.413.588T21 6v4.675q0 .425-.288.713t-.712.287t-.712-.288t-.288-.712V10H5v10h5.8q.425 0 .713.288T11.8 21t-.288.713T10.8 22zm9.463-.462Q13 20.075 13 18t1.463-3.537T18 13t3.538 1.463T23 18t-1.463 3.538T18 23t-3.537-1.463m5.212-1.162l.7-.7L18.5 17.8V15h-1v3.2z"/></svg></div>
+  <div class="name">Material 日历时钟</div>
+  <div class="sub">Material Symbols · Apache 2.0</div>
+  <div class="note">双语义填充版</div>
+  <div class="file">material-symbols-calendar-clock.svg</div>
+</div>
+<div class="card">
+  <div class="tile purple"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="#FFFFFF" d="M5 22q-.825 0-1.412-.587T3 20V6q0-.825.588-1.412T5 4h1V2h2v2h8V2h2v2h1q.825 0 1.413.588T21 6v6h-2v-2H5v10h7v2zm14 2q-1.825 0-3.187-1.137T14.1 20h1.55q.325 1.1 1.238 1.8t2.112.7q1.45 0 2.475-1.025T22.5 19t-1.025-2.475T19 15.5q-.725 0-1.35.262t-1.1.738H18V18h-4v-4h1.5v1.425q.675-.65 1.575-1.037T19 14q2.075 0 3.538 1.463T24 19t-1.463 3.538T19 24"/></svg></div>
+  <div class="tile soft"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="#6C5CE7" d="M5 22q-.825 0-1.412-.587T3 20V6q0-.825.588-1.412T5 4h1V2h2v2h8V2h2v2h1q.825 0 1.413.588T21 6v6h-2v-2H5v10h7v2zm14 2q-1.825 0-3.187-1.137T14.1 20h1.55q.325 1.1 1.238 1.8t2.112.7q1.45 0 2.475-1.025T22.5 19t-1.025-2.475T19 15.5q-.725 0-1.35.262t-1.1.738H18V18h-4v-4h1.5v1.425q.675-.65 1.575-1.037T19 14q2.075 0 3.538 1.463T24 19t-1.463 3.538T19 24"/></svg></div>
+  <div class="name">Material 日程循环</div>
+  <div class="sub">Material Symbols · Apache 2.0</div>
+  <div class="note">日历+循环箭头，周期语义最全</div>
+  <div class="file">material-symbols-event-repeat.svg</div>
+</div>
+<div class="card">
+  <div class="tile purple"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="#FFFFFF" d="M9.29 3.25L5.16 6.72L4 5.34l4.14-3.47zM22 5.35l-1.16 1.38l-4.14-3.48l1.16-1.38zM13 4a8 8 0 0 1 8 8a8 8 0 0 1-8 8a8 8 0 0 1-8-8a8 8 0 0 1 8-8m0 2a6 6 0 0 0-6 6a6 6 0 0 0 6 6a6 6 0 0 0 6-6a6 6 0 0 0-6-6m-1 1.5h1.5v4.53l3.22 1.47l-.62 1.36L12 13zM1 14c0-2.5 1.13-4.7 2.91-6.17A10 10 0 0 0 3 12l.06 1.13L3 14c0 2.28 1.27 4.26 3.14 5.28c1.3 1.22 2.93 2.11 4.75 2.5c-.61.14-1.24.22-1.89.22a8 8 0 0 1-8-8"/></svg></div>
+  <div class="tile soft"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="#6C5CE7" d="M9.29 3.25L5.16 6.72L4 5.34l4.14-3.47zM22 5.35l-1.16 1.38l-4.14-3.48l1.16-1.38zM13 4a8 8 0 0 1 8 8a8 8 0 0 1-8 8a8 8 0 0 1-8-8a8 8 0 0 1 8-8m0 2a6 6 0 0 0-6 6a6 6 0 0 0 6 6a6 6 0 0 0 6-6a6 6 0 0 0-6-6m-1 1.5h1.5v4.53l3.22 1.47l-.62 1.36L12 13zM1 14c0-2.5 1.13-4.7 2.91-6.17A10 10 0 0 0 3 12l.06 1.13L3 14c0 2.28 1.27 4.26 3.14 5.28c1.3 1.22 2.93 2.11 4.75 2.5c-.61.14-1.24.22-1.89.22a8 8 0 0 1-8-8"/></svg></div>
+  <div class="name">MDI 多重闹钟</div>
+  <div class="sub">MaterialDesign · Apache 2.0</div>
+  <div class="note">双表盘叠加=重复提醒</div>
+  <div class="file">mdi-alarm-multiple.svg</div>
+</div>
+<div class="card">
+  <div class="tile purple"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="#FFFFFF" d="M12 20a7 7 0 0 1-7-7a7 7 0 0 1 7-7a7 7 0 0 1 7 7a7 7 0 0 1-7 7m0-16a9 9 0 0 0-9 9a9 9 0 0 0 9 9a9 9 0 0 0 9-9a9 9 0 0 0-9-9m.5 4H11v6l4.75 2.85l.75-1.23l-4-2.37zM7.88 3.39L6.6 1.86L2 5.71l1.29 1.53zM22 5.72l-4.6-3.86l-1.29 1.53l4.6 3.86z"/></svg></div>
+  <div class="tile soft"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="#6C5CE7" d="M12 20a7 7 0 0 1-7-7a7 7 0 0 1 7-7a7 7 0 0 1 7 7a7 7 0 0 1-7 7m0-16a9 9 0 0 0-9 9a9 9 0 0 0 9 9a9 9 0 0 0 9-9a9 9 0 0 0-9-9m.5 4H11v6l4.75 2.85l.75-1.23l-4-2.37zM7.88 3.39L6.6 1.86L2 5.71l1.29 1.53zM22 5.72l-4.6-3.86l-1.29 1.53l4.6 3.86z"/></svg></div>
+  <div class="name">MDI 闹钟</div>
+  <div class="sub">MaterialDesign · Apache 2.0</div>
+  <div class="note">标准闹钟剪影</div>
+  <div class="file">mdi-alarm.svg</div>
+</div>
+<div class="card">
+  <div class="tile purple"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="#FFFFFF" d="M6 1v2H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h6.1c1.26 1.24 2.99 2 4.9 2c3.87 0 7-3.13 7-7c0-1.91-.76-3.64-2-4.9V5a2 2 0 0 0-2-2h-1V1h-2v2H8V1M5 5h14v2H5m0 2h14v.67c-.91-.43-1.93-.67-3-.67c-3.87 0-7 3.13-7 7c0 1.07.24 2.09.67 3H5m11-7.85c2.68 0 4.85 2.17 4.85 4.85s-2.17 4.85-4.85 4.85s-4.85-2.17-4.85-4.85s2.17-4.85 4.85-4.85M15 13v3.69l3.19 1.84l.75-1.3l-2.44-1.41V13Z"/></svg></div>
+  <div class="tile soft"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="#6C5CE7" d="M6 1v2H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h6.1c1.26 1.24 2.99 2 4.9 2c3.87 0 7-3.13 7-7c0-1.91-.76-3.64-2-4.9V5a2 2 0 0 0-2-2h-1V1h-2v2H8V1M5 5h14v2H5m0 2h14v.67c-.91-.43-1.93-.67-3-.67c-3.87 0-7 3.13-7 7c0 1.07.24 2.09.67 3H5m11-7.85c2.68 0 4.85 2.17 4.85 4.85s-2.17 4.85-4.85 4.85s-4.85-2.17-4.85-4.85s2.17-4.85 4.85-4.85M15 13v3.69l3.19 1.84l.75-1.3l-2.44-1.41V13Z"/></svg></div>
+  <div class="name">MDI 日历时钟</div>
+  <div class="sub">MaterialDesign · Apache 2.0</div>
+  <div class="note">描边版双语义</div>
+  <div class="file">mdi-calendar-clock-outline.svg</div>
+</div>
+<div class="card">
+  <div class="tile purple"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><g fill="#FFFFFF"><path d="M216 136a88 88 0 1 1-88-88a88 88 0 0 1 88 88" opacity=".2"/><path d="M128 40a96 96 0 1 0 96 96a96.11 96.11 0 0 0-96-96m0 176a80 80 0 1 1 80-80a80.09 80.09 0 0 1-80 80M61.66 37.66l-32 32a8 8 0 0 1-11.32-11.32l32-32a8 8 0 0 1 11.32 11.32m176 32a8 8 0 0 1-11.32 0l-32-32a8 8 0 0 1 11.32-11.32l32 32a8 8 0 0 1 0 11.32M184 128a8 8 0 0 1 0 16h-56a8 8 0 0 1-8-8V80a8 8 0 0 1 16 0v48Z"/></g></svg></div>
+  <div class="tile soft"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><g fill="#6C5CE7"><path d="M216 136a88 88 0 1 1-88-88a88 88 0 0 1 88 88" opacity=".2"/><path d="M128 40a96 96 0 1 0 96 96a96.11 96.11 0 0 0-96-96m0 176a80 80 0 1 1 80-80a80.09 80.09 0 0 1-80 80M61.66 37.66l-32 32a8 8 0 0 1-11.32-11.32l32-32a8 8 0 0 1 11.32 11.32m176 32a8 8 0 0 1-11.32 0l-32-32a8 8 0 0 1 11.32-11.32l32 32a8 8 0 0 1 0 11.32M184 128a8 8 0 0 1 0 16h-56a8 8 0 0 1-8-8V80a8 8 0 0 1 16 0v48Z"/></g></svg></div>
+  <div class="name">Phosphor 双色闹钟</div>
+  <div class="sub">Phosphor · MIT</div>
+  <div class="note">双色层次最贴合 Eva 浅色紫</div>
+  <div class="file">ph-alarm-duotone.svg</div>
+</div>
+<div class="card">
+  <div class="tile purple"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><path fill="#FFFFFF" d="m61.66 37.66l-32 32a8 8 0 0 1-11.32-11.32l32-32a8 8 0 0 1 11.32 11.32m176 20.68l-32-32a8 8 0 0 0-11.32 11.32l32 32a8 8 0 0 0 11.32-11.32M224 136a96 96 0 1 1-96-96a96.11 96.11 0 0 1 96 96m-32 0a8 8 0 0 0-8-8h-48V80a8 8 0 0 0-16 0v56a8 8 0 0 0 8 8h56a8 8 0 0 0 8-8"/></svg></div>
+  <div class="tile soft"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><path fill="#6C5CE7" d="m61.66 37.66l-32 32a8 8 0 0 1-11.32-11.32l32-32a8 8 0 0 1 11.32 11.32m176 20.68l-32-32a8 8 0 0 0-11.32 11.32l32 32a8 8 0 0 0 11.32-11.32M224 136a96 96 0 1 1-96-96a96.11 96.11 0 0 1 96 96m-32 0a8 8 0 0 0-8-8h-48V80a8 8 0 0 0-16 0v56a8 8 0 0 0 8 8h56a8 8 0 0 0 8-8"/></svg></div>
+  <div class="name">Phosphor 实心闹钟</div>
+  <div class="sub">Phosphor · MIT</div>
+  <div class="note">实心版，小尺寸下更清晰</div>
+  <div class="file">ph-alarm-fill.svg</div>
+</div>
+<div class="card">
+  <div class="tile purple"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><g fill="#FFFFFF"><path d="M208 192H48a8 8 0 0 1-6.88-12C47.71 168.6 56 147.81 56 112a72 72 0 0 1 144 0c0 35.82 8.3 56.6 14.9 68a8 8 0 0 1-6.9 12" opacity=".2"/><path d="M224 71.1a8 8 0 0 1-10.78-3.42a94.13 94.13 0 0 0-33.46-36.91a8 8 0 1 1 8.54-13.54a111.46 111.46 0 0 1 39.12 43.09A8 8 0 0 1 224 71.1M35.71 72a8 8 0 0 0 7.1-4.32a94.13 94.13 0 0 1 33.46-36.91a8 8 0 1 0-8.54-13.54a111.46 111.46 0 0 0-39.12 43.09A8 8 0 0 0 35.71 72m186.1 103.94A16 16 0 0 1 208 200h-40.8a40 40 0 0 1-78.4 0H48a16 16 0 0 1-13.79-24.06C43.22 160.39 48 138.28 48 112a80 80 0 0 1 160 0c0 26.27 4.78 48.38 13.81 63.94M150.62 200h-45.24a24 24 0 0 0 45.24 0M208 184c-10.64-18.27-16-42.49-16-72a64 64 0 0 0-128 0c0 29.52-5.38 53.74-16 72Z"/></g></svg></div>
+  <div class="tile soft"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><g fill="#6C5CE7"><path d="M208 192H48a8 8 0 0 1-6.88-12C47.71 168.6 56 147.81 56 112a72 72 0 0 1 144 0c0 35.82 8.3 56.6 14.9 68a8 8 0 0 1-6.9 12" opacity=".2"/><path d="M224 71.1a8 8 0 0 1-10.78-3.42a94.13 94.13 0 0 0-33.46-36.91a8 8 0 1 1 8.54-13.54a111.46 111.46 0 0 1 39.12 43.09A8 8 0 0 1 224 71.1M35.71 72a8 8 0 0 0 7.1-4.32a94.13 94.13 0 0 1 33.46-36.91a8 8 0 1 0-8.54-13.54a111.46 111.46 0 0 0-39.12 43.09A8 8 0 0 0 35.71 72m186.1 103.94A16 16 0 0 1 208 200h-40.8a40 40 0 0 1-78.4 0H48a16 16 0 0 1-13.79-24.06C43.22 160.39 48 138.28 48 112a80 80 0 0 1 160 0c0 26.27 4.78 48.38 13.81 63.94M150.62 200h-45.24a24 24 0 0 0 45.24 0M208 184c-10.64-18.27-16-42.49-16-72a64 64 0 0 0-128 0c0 29.52-5.38 53.74-16 72Z"/></g></svg></div>
+  <div class="name">Phosphor 响铃</div>
+  <div class="sub">Phosphor · MIT</div>
+  <div class="note">铃铛+震动线，响铃感强</div>
+  <div class="file">ph-bell-ringing-duotone.svg</div>
+</div>
+<div class="card">
+  <div class="tile purple"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><g fill="#FFFFFF"><path d="M216 48v40H40V48a8 8 0 0 1 8-8h160a8 8 0 0 1 8 8" opacity=".2"/><path d="M208 32h-24v-8a8 8 0 0 0-16 0v8H88v-8a8 8 0 0 0-16 0v8H48a16 16 0 0 0-16 16v160a16 16 0 0 0 16 16h160a16 16 0 0 0 16-16V48a16 16 0 0 0-16-16M72 48v8a8 8 0 0 0 16 0v-8h80v8a8 8 0 0 0 16 0v-8h24v32H48V48Zm136 160H48V96h160zm-38.34-85.66a8 8 0 0 1 0 11.32l-48 48a8 8 0 0 1-11.32 0l-24-24a8 8 0 0 1 11.32-11.32L116 164.69l42.34-42.35a8 8 0 0 1 11.32 0"/></g></svg></div>
+  <div class="tile soft"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><g fill="#6C5CE7"><path d="M216 48v40H40V48a8 8 0 0 1 8-8h160a8 8 0 0 1 8 8" opacity=".2"/><path d="M208 32h-24v-8a8 8 0 0 0-16 0v8H88v-8a8 8 0 0 0-16 0v8H48a16 16 0 0 0-16 16v160a16 16 0 0 0 16 16h160a16 16 0 0 0 16-16V48a16 16 0 0 0-16-16M72 48v8a8 8 0 0 0 16 0v-8h80v8a8 8 0 0 0 16 0v-8h24v32H48V48Zm136 160H48V96h160zm-38.34-85.66a8 8 0 0 1 0 11.32l-48 48a8 8 0 0 1-11.32 0l-24-24a8 8 0 0 1 11.32-11.32L116 164.69l42.34-42.35a8 8 0 0 1 11.32 0"/></g></svg></div>
+  <div class="name">Phosphor 日历对勾</div>
+  <div class="sub">Phosphor · MIT</div>
+  <div class="note">日历语义，弱化闹铃</div>
+  <div class="file">ph-calendar-check-duotone.svg</div>
+</div>
+<div class="card">
+  <div class="tile purple"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><g fill="#FFFFFF"><path d="M224 128a96 96 0 1 1-96-96a96 96 0 0 1 96 96" opacity=".2"/><path d="M128 24a104 104 0 1 0 104 104A104.11 104.11 0 0 0 128 24m0 192a88 88 0 1 1 88-88a88.1 88.1 0 0 1-88 88m64-88a8 8 0 0 1-8 8h-36.69l26.35 26.34a8 8 0 0 1-11.32 11.32l-40-40A8 8 0 0 1 128 120h56a8 8 0 0 1 8 8"/></g></svg></div>
+  <div class="tile soft"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><g fill="#6C5CE7"><path d="M224 128a96 96 0 1 1-96-96a96 96 0 0 1 96 96" opacity=".2"/><path d="M128 24a104 104 0 1 0 104 104A104.11 104.11 0 0 0 128 24m0 192a88 88 0 1 1 88-88a88.1 88.1 0 0 1-88 88m64-88a8 8 0 0 1-8 8h-36.69l26.35 26.34a8 8 0 0 1-11.32 11.32l-40-40A8 8 0 0 1 128 120h56a8 8 0 0 1 8 8"/></g></svg></div>
+  <div class="name">Phosphor 午后时钟</div>
+  <div class="sub">Phosphor · MIT</div>
+  <div class="note">指针斜切构图更动感</div>
+  <div class="file">ph-clock-afternoon-duotone.svg</div>
+</div>
+<div class="card">
+  <div class="tile purple"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><g fill="#FFFFFF"><path d="M224 128a96 96 0 1 1-96-96a96 96 0 0 1 96 96" opacity=".2"/><path d="M232 136.66A104.12 104.12 0 1 1 119.34 24a8 8 0 0 1 1.32 16A88.12 88.12 0 1 0 216 135.34a8 8 0 0 1 16 1.32M120 72v56a8 8 0 0 0 8 8h56a8 8 0 0 0 0-16h-48V72a8 8 0 0 0-16 0m40-24a12 12 0 1 0-12-12a12 12 0 0 0 12 12m36 24a12 12 0 1 0-12-12a12 12 0 0 0 12 12m24 36a12 12 0 1 0-12-12a12 12 0 0 0 12 12"/></g></svg></div>
+  <div class="tile soft"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><g fill="#6C5CE7"><path d="M224 128a96 96 0 1 1-96-96a96 96 0 0 1 96 96" opacity=".2"/><path d="M232 136.66A104.12 104.12 0 1 1 119.34 24a8 8 0 0 1 1.32 16A88.12 88.12 0 1 0 216 135.34a8 8 0 0 1 16 1.32M120 72v56a8 8 0 0 0 8 8h56a8 8 0 0 0 0-16h-48V72a8 8 0 0 0-16 0m40-24a12 12 0 1 0-12-12a12 12 0 0 0 12 12m36 24a12 12 0 1 0-12-12a12 12 0 0 0 12 12m24 36a12 12 0 1 0-12-12a12 12 0 0 0 12 12"/></g></svg></div>
+  <div class="name">Phosphor 倒计时时钟</div>
+  <div class="sub">Phosphor · MIT</div>
+  <div class="note">暗合「下一次还有多久」</div>
+  <div class="file">ph-clock-countdown-duotone.svg</div>
+</div>
+<div class="card">
+  <div class="tile purple"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><g fill="#FFFFFF"><path d="M224 128a96 96 0 1 1-96-96a96 96 0 0 1 96 96" opacity=".2"/><path d="M128 24a104 104 0 1 0 104 104A104.11 104.11 0 0 0 128 24m0 192a88 88 0 1 1 88-88a88.1 88.1 0 0 1-88 88m64-88a8 8 0 0 1-8 8h-56a8 8 0 0 1-8-8V72a8 8 0 0 1 16 0v48h48a8 8 0 0 1 8 8"/></g></svg></div>
+  <div class="tile soft"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><g fill="#6C5CE7"><path d="M224 128a96 96 0 1 1-96-96a96 96 0 0 1 96 96" opacity=".2"/><path d="M128 24a104 104 0 1 0 104 104A104.11 104.11 0 0 0 128 24m0 192a88 88 0 1 1 88-88a88.1 88.1 0 0 1-88 88m64-88a8 8 0 0 1-8 8h-56a8 8 0 0 1-8-8V72a8 8 0 0 1 16 0v48h48a8 8 0 0 1 8 8"/></g></svg></div>
+  <div class="name">Phosphor 双色时钟</div>
+  <div class="sub">Phosphor · MIT</div>
+  <div class="note">纯时钟，克制中性</div>
+  <div class="file">ph-clock-duotone.svg</div>
+</div>
+<div class="card">
+  <div class="tile purple"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="#FFFFFF"><path d="M11.9998 21.9997C16.836 21.9997 20.7565 18.1159 20.7565 13.325C20.7565 8.53417 16.836 4.65039 11.9998 4.65039C7.16366 4.65039 3.24316 8.53417 3.24316 13.325C3.24316 18.1159 7.16366 21.9997 11.9998 21.9997Z" opacity=".5"/><path d="M11.9988 8.74671C12.4018 8.74671 12.7282 9.07023 12.7283 9.46937V13.026L14.9471 15.2233C15.232 15.5056 15.232 15.9634 14.9471 16.2457C14.6621 16.5278 14.2008 16.5278 13.9158 16.2457L11.4832 13.8366C11.3464 13.701 11.2693 13.5166 11.2693 13.3248V9.46937C11.2695 9.07031 11.596 8.74684 11.9988 8.74671Z"/><path d="M7.23516 2.10999C7.57686 1.89853 8.02644 2.00107 8.24004 2.33949C8.45358 2.67795 8.35013 3.12391 8.0086 3.33558L4.11602 5.74574C3.77434 5.95693 3.32465 5.85362 3.11114 5.51527C2.89758 5.17677 3.00097 4.73081 3.34258 4.51917L7.23516 2.10999Z"/><path d="M15.7596 2.33949C15.9732 2.00107 16.4228 1.89854 16.7645 2.10999L20.657 4.51917C20.9986 4.73081 21.102 5.17677 20.8885 5.51527C20.675 5.85362 20.2253 5.95693 19.8836 5.74574L15.991 3.33558C15.6495 3.12391 15.546 2.67794 15.7596 2.33949Z"/></g></svg></div>
+  <div class="tile soft"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="#6C5CE7"><path d="M11.9998 21.9997C16.836 21.9997 20.7565 18.1159 20.7565 13.325C20.7565 8.53417 16.836 4.65039 11.9998 4.65039C7.16366 4.65039 3.24316 8.53417 3.24316 13.325C3.24316 18.1159 7.16366 21.9997 11.9998 21.9997Z" opacity=".5"/><path d="M11.9988 8.74671C12.4018 8.74671 12.7282 9.07023 12.7283 9.46937V13.026L14.9471 15.2233C15.232 15.5056 15.232 15.9634 14.9471 16.2457C14.6621 16.5278 14.2008 16.5278 13.9158 16.2457L11.4832 13.8366C11.3464 13.701 11.2693 13.5166 11.2693 13.3248V9.46937C11.2695 9.07031 11.596 8.74684 11.9988 8.74671Z"/><path d="M7.23516 2.10999C7.57686 1.89853 8.02644 2.00107 8.24004 2.33949C8.45358 2.67795 8.35013 3.12391 8.0086 3.33558L4.11602 5.74574C3.77434 5.95693 3.32465 5.85362 3.11114 5.51527C2.89758 5.17677 3.00097 4.73081 3.34258 4.51917L7.23516 2.10999Z"/><path d="M15.7596 2.33949C15.9732 2.00107 16.4228 1.89854 16.7645 2.10999L20.657 4.51917C20.9986 4.73081 21.102 5.17677 20.8885 5.51527C20.675 5.85362 20.2253 5.95693 19.8836 5.74574L15.991 3.33558C15.6495 3.12391 15.546 2.67794 15.7596 2.33949Z"/></g></svg></div>
+  <div class="name">Solar 双色闹钟</div>
+  <div class="sub">Solar · CC BY 4.0</div>
+  <div class="note">粗线条双色（需署名）</div>
+  <div class="file">solar-alarm-bold-duotone.svg</div>
+</div>
+<div class="card">
+  <div class="tile purple"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="#FFFFFF" fill-rule="evenodd" clip-rule="evenodd"><path d="M12 22C16.8362 22 20.7567 18.1162 20.7567 13.3253C20.7567 8.53446 16.8362 4.65069 12 4.65069C7.16383 4.65069 3.24334 8.53446 3.24334 13.3253C3.24334 18.1162 7.16383 22 12 22ZM12 8.74705C12.403 8.74705 12.7297 9.0707 12.7297 9.46994V13.0259L14.9484 15.2238C15.2334 15.5061 15.2334 15.9638 14.9484 16.2461C14.6634 16.5284 14.2014 16.5284 13.9164 16.2461L11.484 13.8365C11.3472 13.7009 11.2703 13.5171 11.2703 13.3253V9.46994C11.2703 9.0707 11.597 8.74705 12 8.74705Z"/><path d="M8.2405 2.33986C8.45409 2.67841 8.3502 3.1244 8.00844 3.33599L4.11657 5.74562C3.77481 5.95722 3.32461 5.8543 3.11102 5.51574C2.89742 5.17718 3.00131 4.7312 3.34307 4.5196L7.23494 2.10998C7.5767 1.89838 8.0269 2.0013 8.2405 2.33986Z"/><path d="M15.7595 2.33985C15.9731 2.0013 16.4233 1.89838 16.7651 2.10998L20.6569 4.5196C20.9987 4.7312 21.1026 5.17719 20.889 5.51574C20.6754 5.8543 20.2252 5.95722 19.8834 5.74562L15.9916 3.33599C15.6498 3.1244 15.5459 2.67841 15.7595 2.33985Z"/></g></svg></div>
+  <div class="tile soft"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="#6C5CE7" fill-rule="evenodd" clip-rule="evenodd"><path d="M12 22C16.8362 22 20.7567 18.1162 20.7567 13.3253C20.7567 8.53446 16.8362 4.65069 12 4.65069C7.16383 4.65069 3.24334 8.53446 3.24334 13.3253C3.24334 18.1162 7.16383 22 12 22ZM12 8.74705C12.403 8.74705 12.7297 9.0707 12.7297 9.46994V13.0259L14.9484 15.2238C15.2334 15.5061 15.2334 15.9638 14.9484 16.2461C14.6634 16.5284 14.2014 16.5284 13.9164 16.2461L11.484 13.8365C11.3472 13.7009 11.2703 13.5171 11.2703 13.3253V9.46994C11.2703 9.0707 11.597 8.74705 12 8.74705Z"/><path d="M8.2405 2.33986C8.45409 2.67841 8.3502 3.1244 8.00844 3.33599L4.11657 5.74562C3.77481 5.95722 3.32461 5.8543 3.11102 5.51574C2.89742 5.17718 3.00131 4.7312 3.34307 4.5196L7.23494 2.10998C7.5767 1.89838 8.0269 2.0013 8.2405 2.33986Z"/><path d="M15.7595 2.33985C15.9731 2.0013 16.4233 1.89838 16.7651 2.10998L20.6569 4.5196C20.9987 4.7312 21.1026 5.17719 20.889 5.51574C20.6754 5.8543 20.2252 5.95722 19.8834 5.74562L15.9916 3.33599C15.6498 3.1244 15.5459 2.67841 15.7595 2.33985Z"/></g></svg></div>
+  <div class="name">Solar 粗体闹钟</div>
+  <div class="sub">Solar · CC BY 4.0</div>
+  <div class="note">现代粗线条（需署名）</div>
+  <div class="file">solar-alarm-bold.svg</div>
+</div>
+<div class="card">
+  <div class="tile purple"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="#FFFFFF"><path d="M16 6.072a8 8 0 1 1-11.995 7.213L4 13l.005-.285A8 8 0 0 1 16 6.072M12 9a1 1 0 0 0-1 1v3l.007.117A1 1 0 0 0 12 14h2l.117-.007A1 1 0 0 0 15 13l-.007-.117A1 1 0 0 0 14 12h-1v-2l-.007-.117A1 1 0 0 0 12 9"/><path d="M6.412 3.191A1 1 0 0 1 7.685 4.73l-.097.08l-2.75 2a1 1 0 0 1-1.273-1.54l.097-.08zm9.779.221a1 1 0 0 1 1.291-.288l.106.067l2.75 2a1 1 0 0 1-1.07 1.685l-.106-.067l-2.75-2a1 1 0 0 1-.22-1.397z"/></g></svg></div>
+  <div class="tile soft"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="#6C5CE7"><path d="M16 6.072a8 8 0 1 1-11.995 7.213L4 13l.005-.285A8 8 0 0 1 16 6.072M12 9a1 1 0 0 0-1 1v3l.007.117A1 1 0 0 0 12 14h2l.117-.007A1 1 0 0 0 15 13l-.007-.117A1 1 0 0 0 14 12h-1v-2l-.007-.117A1 1 0 0 0 12 9"/><path d="M6.412 3.191A1 1 0 0 1 7.685 4.73l-.097.08l-2.75 2a1 1 0 0 1-1.273-1.54l.097-.08zm9.779.221a1 1 0 0 1 1.291-.288l.106.067l2.75 2a1 1 0 0 1-1.07 1.685l-.106-.067l-2.75-2a1 1 0 0 1-.22-1.397z"/></g></svg></div>
+  <div class="name">Tabler 实心闹钟</div>
+  <div class="sub">Tabler · MIT</div>
+  <div class="note">圆角亲和，轮廓友好</div>
+  <div class="file">tabler-alarm-filled.svg</div>
+</div>
+<div class="card">
+  <div class="tile purple"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="none" stroke="#FFFFFF" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12.5 21H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3m-4-7v4M8 3v4m-4 4h12m4 3l2 2h-3m1 2l2-2m-3 0a3 3 0 1 0 2 5.236"/></svg></div>
+  <div class="tile soft"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="none" stroke="#6C5CE7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12.5 21H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3m-4-7v4M8 3v4m-4 4h12m4 3l2 2h-3m1 2l2-2m-3 0a3 3 0 1 0 2 5.236"/></svg></div>
+  <div class="name">Tabler 日历循环</div>
+  <div class="sub">Tabler · MIT</div>
+  <div class="note">循环箭头=周期，差异化最强</div>
+  <div class="file">tabler-calendar-repeat.svg</div>
+</div></div>
+</body>
+</html>
