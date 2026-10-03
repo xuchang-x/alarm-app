@@ -28,3 +28,11 @@ export const COLORS = {
   border: '#E5E1F0',
   shadow: '#51468A',
 } as const;
+
+export const ALARM_CATEGORIES = [
+  { key: 'work', label: '工作', color: '#6C5CE7' },
+  { key: 'medication', label: '用药', color: '#E85D75' },
+  { key: 'life', label: '生活', color: '#E79A4D' },
+  { key: 'sport', label: '运动', color: '#45B89C' },
+  { key: 'other', label: '其他', color: '#8A839C' },
+] as const;

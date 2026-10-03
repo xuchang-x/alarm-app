@@ -23,6 +23,9 @@ interface AlarmStore {
   /** 创建闹钟 */
   createAlarm: (input: CreateAlarmInput) => Promise<Alarm>;
 
+  /** 复制闹钟 */
+  duplicateAlarm: (id: number) => Promise<Alarm>;
+
   /** 更新闹钟 */
   updateAlarm: (id: number, input: UpdateAlarmInput) => Promise<void>;
 
@@ -59,6 +62,32 @@ export const useAlarmStore = create<AlarmStore>((set, get) => ({
 
   createAlarm: async (input) => {
     const alarm = await repo.createAlarm(input);
+    const adjustments = await repo.getAdjustments(alarm.id);
+    await scheduleAlarmNotifications(alarm, adjustments);
+    await get().loadAlarms();
+    return alarm;
+  },
+
+  duplicateAlarm: async (id) => {
+    const source = await repo.getAlarmById(id);
+    if (!source) {
+      throw new Error(`闹钟 #${id} 不存在`);
+    }
+    const tomorrow = new Date();
+    tomorrow.setHours(0, 0, 0, 0);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const alarm = await repo.createAlarm({
+      type: source.type,
+      hour: source.hour,
+      minute: source.minute,
+      label: source.label ? `${source.label} 副本` : '提醒副本',
+      category: source.category,
+      onceDate: source.type === 'once' ? tomorrow.toISOString().slice(0, 10) : undefined,
+      weekdays: source.type === 'weekly' ? source.weekdays ?? undefined : undefined,
+      intervalDays: source.type === 'cycle' ? source.intervalDays ?? undefined : undefined,
+      startDate: source.type === 'cycle' ? source.startDate ?? undefined : undefined,
+      snoozeMinutes: source.snoozeMinutes,
+    });
     const adjustments = await repo.getAdjustments(alarm.id);
     await scheduleAlarmNotifications(alarm, adjustments);
     await get().loadAlarms();

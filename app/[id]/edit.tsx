@@ -19,8 +19,8 @@ import * as repo from '@/db/alarm-repository';
 import TimePicker from '@/components/TimePicker';
 import WeekdaySelector from '@/components/WeekdaySelector';
 import CycleSettings from '@/components/CycleSettings';
-import type { Alarm, AlarmType, Weekday } from '@/types/alarm';
-import { COLORS } from '@/constants';
+import type { Alarm, AlarmCategory, AlarmType, Weekday } from '@/types/alarm';
+import { ALARM_CATEGORIES, COLORS } from '@/constants';
 import { formatDate, today } from '@/utils/date';
 
 const TYPE_OPTIONS: { key: AlarmType; label: string }[] = [
@@ -40,6 +40,7 @@ export default function EditScreen() {
   const [hour, setHour] = useState(8);
   const [minute, setMinute] = useState(0);
   const [label, setLabel] = useState('');
+  const [category, setCategory] = useState<AlarmCategory>('other');
   const [snoozeMinutes, setSnoozeMinutes] = useState(10);
   const [onceDate, setOnceDate] = useState(formatDate(today()));
   const [showOnceDatePicker, setShowOnceDatePicker] = useState(false);
@@ -69,6 +70,7 @@ export default function EditScreen() {
       setHour(found.hour);
       setMinute(found.minute);
       setLabel(found.label);
+      setCategory(found.category);
       setSnoozeMinutes(found.snoozeMinutes);
       if (found.onceDate) setOnceDate(found.onceDate);
       if (found.weekdays) setWeekdays(found.weekdays);
@@ -104,6 +106,7 @@ export default function EditScreen() {
         hour,
         minute,
         label: label.trim(),
+        category,
         snoozeMinutes,
         onceDate: type === 'once' ? onceDate : undefined,
         weekdays: type === 'weekly' ? weekdays : undefined,
@@ -264,6 +267,23 @@ export default function EditScreen() {
             </View>
           </View>
 
+          <View style={styles.sectionCard}>
+            <Text style={styles.sectionTitle}>分类</Text>
+            <Text style={styles.sectionHint}>用颜色快速识别提醒用途</Text>
+            <View style={styles.categoryGrid}>
+              {ALARM_CATEGORIES.map((item) => (
+                <Pressable
+                  key={item.key}
+                  style={[styles.categoryChip, category === item.key && { borderColor: item.color, backgroundColor: `${item.color}18` }]}
+                  onPress={() => setCategory(item.key)}
+                >
+                  <View style={[styles.categoryDot, { backgroundColor: item.color }]} />
+                  <Text style={styles.categoryText}>{item.label}</Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+
           <Pressable
             style={({ pressed }) => [styles.saveButton, saving && styles.saveButtonDisabled, pressed && styles.saveButtonPressed]}
             onPress={handleSave}
@@ -336,4 +356,8 @@ const styles = StyleSheet.create({
   saveButtonPressed: { backgroundColor: COLORS.primaryDark, transform: [{ scale: 0.99 }] },
   saveButtonDisabled: { opacity: 0.55 },
   saveButtonText: { color: '#FFFFFF', fontSize: 15, fontWeight: '800' },
+  categoryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  categoryChip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 11, paddingVertical: 9, borderWidth: 1, borderColor: COLORS.border, borderRadius: 12, backgroundColor: COLORS.input },
+  categoryDot: { width: 8, height: 8, marginRight: 6, borderRadius: 4 },
+  categoryText: { color: COLORS.textSecondary, fontSize: 12, fontWeight: '700' },
 });

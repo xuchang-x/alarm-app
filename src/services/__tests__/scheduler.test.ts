@@ -18,6 +18,7 @@ function makeAlarm(overrides: Partial<Alarm> & { type: AlarmType }): Alarm {
     createdAt: '',
     updatedAt: '',
     ...overrides,
+    category: overrides.category ?? 'other',
   };
 }
 

@@ -17,7 +17,7 @@ import { formatDate } from '@/utils/date';
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { alarms, loading, loadAlarms, toggleAlarm, deleteAlarm } =
+  const { alarms, loading, loadAlarms, toggleAlarm, deleteAlarm, duplicateAlarm } =
     useAlarmStore();
   const [nextDates, setNextDates] = useState<Record<number, string | null>>({});
 
@@ -66,6 +66,11 @@ export default function HomeScreen() {
       .addAdjustment(id, 'add', formatDate(tomorrow));
   }, []);
 
+  const handleDuplicate = useCallback(async (id: number) => {
+    const duplicate = await duplicateAlarm(id);
+    router.push(`/${duplicate.id}/edit`);
+  }, [duplicateAlarm, router]);
+
   const renderItem = useCallback(
     ({ item }: { item: Alarm }) => (
       <AlarmCard
@@ -76,6 +81,7 @@ export default function HomeScreen() {
         onDelete={deleteAlarm}
         onSkip={handleSkip}
         onAddOnce={handleAddOnce}
+        onDuplicate={handleDuplicate}
       />
     ),
     [nextDates, toggleAlarm, deleteAlarm, handleSkip, handleAddOnce, router]

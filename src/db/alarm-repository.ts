@@ -2,6 +2,7 @@ import { getDatabase } from './connection';
 import type {
   Alarm,
   AlarmAdjustment,
+  AlarmCategory,
   AlarmType,
   AdjustmentType,
   CreateAlarmInput,
@@ -17,6 +18,7 @@ interface AlarmRow {
   hour: number;
   minute: number;
   label: string;
+  category: string;
   enabled: number;
   once_date: string | null;
   weekdays: string | null;
@@ -43,6 +45,7 @@ function rowToAlarm(row: AlarmRow): Alarm {
     hour: row.hour,
     minute: row.minute,
     label: row.label,
+    category: (row.category as AlarmCategory) || 'other',
     enabled: row.enabled === 1,
     onceDate: row.once_date,
     weekdays: row.weekdays ? (JSON.parse(row.weekdays) as Weekday[]) : null,
@@ -88,12 +91,13 @@ export async function getAlarmById(id: number): Promise<Alarm | null> {
 export async function createAlarm(input: CreateAlarmInput): Promise<Alarm> {
   const db = await getDatabase();
   const result = await db.runAsync(
-    `INSERT INTO alarms (type, hour, minute, label, once_date, weekdays, interval_days, start_date, snooze_minutes)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO alarms (type, hour, minute, label, category, once_date, weekdays, interval_days, start_date, snooze_minutes)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     input.type,
     input.hour,
     input.minute,
     input.label ?? '',
+    input.category ?? 'other',
     input.onceDate ?? null,
     input.weekdays ? JSON.stringify(input.weekdays) : null,
     input.intervalDays ?? null,
@@ -122,6 +126,7 @@ export async function updateAlarm(
   const hour = input.hour ?? existing.hour;
   const minute = input.minute ?? existing.minute;
   const label = input.label ?? existing.label;
+  const category = input.category ?? existing.category;
   const enabled = input.enabled ?? existing.enabled;
   const onceDate = input.onceDate ?? existing.onceDate;
   const weekdays = input.weekdays ?? existing.weekdays;
@@ -131,7 +136,7 @@ export async function updateAlarm(
 
   await db.runAsync(
     `UPDATE alarms SET
-      type = ?, hour = ?, minute = ?, label = ?, enabled = ?,
+      type = ?, hour = ?, minute = ?, label = ?, category = ?, enabled = ?,
       once_date = ?, weekdays = ?, interval_days = ?, start_date = ?,
       snooze_minutes = ?, updated_at = datetime('now')
      WHERE id = ?`,
@@ -139,6 +144,7 @@ export async function updateAlarm(
     hour,
     minute,
     label,
+    category,
     enabled ? 1 : 0,
     onceDate,
     weekdays ? JSON.stringify(weekdays) : null,

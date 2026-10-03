@@ -6,8 +6,8 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import type { Alarm } from '@/types/alarm';
-import { COLORS } from '@/constants';
-import { formatTime } from '@/utils/date';
+import { ALARM_CATEGORIES, COLORS } from '@/constants';
+import { formatTime, parseDate, today } from '@/utils/date';
 
 interface AlarmCardProps {
   alarm: Alarm;
@@ -17,6 +17,7 @@ interface AlarmCardProps {
   onDelete: (id: number) => void;
   onSkip?: (id: number) => void;
   onAddOnce?: (id: number) => void;
+  onDuplicate?: (id: number) => void;
 }
 
 function getTypeLabel(alarm: Alarm): string {
@@ -45,9 +46,10 @@ export default function AlarmCard({
   onDelete,
   onSkip,
   onAddOnce,
+  onDuplicate,
 }: AlarmCardProps) {
   const isEnabledCycle = alarm.enabled && alarm.type === 'cycle';
-  const maxSwipe = isEnabledCycle ? BUTTON_WIDTH * 3 : BUTTON_WIDTH;
+  const maxSwipe = isEnabledCycle ? BUTTON_WIDTH * 4 : BUTTON_WIDTH * 2;
   const translateX = useSharedValue(0);
   const contextX = useSharedValue(0);
 
@@ -70,6 +72,9 @@ export default function AlarmCard({
     transform: [{ translateX: translateX.value }],
   }));
 
+  const category = ALARM_CATEGORIES.find((item) => item.key === alarm.category) ?? ALARM_CATEGORIES[4];
+  const isExpiredOnce = alarm.type === 'once' && alarm.onceDate !== null && parseDate(alarm.onceDate) < today();
+
   return (
     <View style={styles.wrapper}>
       <View style={styles.actionsContainer}>
@@ -83,6 +88,9 @@ export default function AlarmCard({
             </Pressable>
           </>
         )}
+        <Pressable style={[styles.actionButton, styles.copyButton]} onPress={() => onDuplicate?.(alarm.id)}>
+          <Text style={styles.actionText}>复制</Text>
+        </Pressable>
         <Pressable style={[styles.actionButton, styles.deleteButton]} onPress={() => onDelete(alarm.id)}>
           <Text style={styles.actionText}>删除</Text>
         </Pressable>
@@ -101,12 +109,12 @@ export default function AlarmCard({
             <View style={styles.cardHeader}>
               <View style={styles.timeBlock}>
                 <View style={styles.statusRow}>
-                  <View style={[styles.statusDot, !alarm.enabled && styles.statusDotDisabled]} />
-                  <Text style={[styles.statusText, !alarm.enabled && styles.textDisabled]}>
-                    {alarm.enabled ? '已开启' : '已暂停'}
+                  <View style={[styles.statusDot, { backgroundColor: category.color }, (!alarm.enabled || isExpiredOnce) && styles.statusDotDisabled]} />
+                  <Text style={[styles.statusText, (!alarm.enabled || isExpiredOnce) && styles.textDisabled]}>
+                    {!alarm.enabled ? '已暂停' : isExpiredOnce ? '已过期' : '已开启'}
                   </Text>
                 </View>
-                <Text style={[styles.time, !alarm.enabled && styles.textDisabled]}>
+                <Text style={[styles.time, (!alarm.enabled || isExpiredOnce) && styles.textDisabled]}>
                   {formatTime(alarm.hour, alarm.minute)}
                 </Text>
               </View>
@@ -121,11 +129,13 @@ export default function AlarmCard({
 
             <View style={styles.infoRow}>
               <View style={styles.copyBlock}>
-                <Text style={[styles.label, !alarm.enabled && styles.textDisabled]} numberOfLines={1}>
+                <Text style={[styles.label, (!alarm.enabled || isExpiredOnce) && styles.textDisabled]} numberOfLines={1}>
                   {alarm.label || '未命名提醒'}
                 </Text>
                 <View style={styles.metaRow}>
                   <View style={styles.typePill}>
+                    <View style={[styles.categoryDot, { backgroundColor: category.color }]} />
+                    <Text style={styles.typeText}>{category.label} · </Text>
                     <Text style={styles.typeText}>{getTypeLabel(alarm)}</Text>
                   </View>
                 </View>
@@ -174,6 +184,9 @@ const styles = StyleSheet.create({
   },
   deleteButton: {
     backgroundColor: COLORS.danger,
+  },
+  copyButton: {
+    backgroundColor: COLORS.primary,
   },
   actionText: {
     color: '#FFFFFF',
@@ -256,10 +269,18 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   typePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 7,
     paddingVertical: 4,
     borderRadius: 7,
     backgroundColor: COLORS.primarySoft,
+  },
+  categoryDot: {
+    width: 6,
+    height: 6,
+    marginRight: 4,
+    borderRadius: 3,
   },
   typeText: {
     color: COLORS.primaryDark,
