@@ -18,7 +18,7 @@ import { useAlarmStore } from '@/store/alarm-store';
 import * as repo from '@/db/alarm-repository';
 import { findConflictingAlarms } from '@/services/conflicts';
 import TimePicker from '@/components/TimePicker';
-import { NavBar, PageHeading } from '@/components/PageHeader';
+import { NavBar, PageHeading } from '@/components/common/PageHeader';
 import WeekdaySelector from '@/components/WeekdaySelector';
 import CycleSettings from '@/components/CycleSettings';
 import type { Alarm, AlarmCategory, AlarmType, Weekday } from '@/types/alarm';

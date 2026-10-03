@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useAlarmStore, getNextRingDate } from '@/store/alarm-store';
 import AlarmCard from '@/components/AlarmCard';
-import { PageHeading } from '@/components/PageHeader';
+import { PageHeading } from '@/components/common/PageHeader';
 import type { Alarm } from '@/types/alarm';
 import type { AlarmCategory, AlarmType } from '@/types/alarm';
 import { ALARM_CATEGORIES, COLORS } from '@/constants';

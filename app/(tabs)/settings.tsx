@@ -10,7 +10,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { PageHeading } from '@/components/PageHeader';
+import { PageHeading } from '@/components/common/PageHeader';
 import { COLORS, DEFAULT_SNOOZE_MINUTES } from '@/constants';
 import {
   getNotificationPermissionStatus,

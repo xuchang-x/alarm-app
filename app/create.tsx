@@ -20,7 +20,7 @@ import { findConflictingAlarms } from '@/services/conflicts';
 import TimePicker from '@/components/TimePicker';
 import WeekdaySelector from '@/components/WeekdaySelector';
 import CycleSettings from '@/components/CycleSettings';
-import { NavBar, PageHeading } from '@/components/PageHeader';
+import { NavBar, PageHeading } from '@/components/common/PageHeader';
 import type { AlarmCategory, AlarmType, Weekday } from '@/types/alarm';
 import { ALARM_CATEGORIES, COLORS, DEFAULT_SNOOZE_MINUTES } from '@/constants';
 import { formatDate, today } from '@/utils/date';
