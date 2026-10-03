@@ -130,9 +130,6 @@ export default function HomeScreen() {
             <Text style={styles.title}>我的闹钟</Text>
             <Text style={styles.subtitle}>让重要的事情准时发生</Text>
           </View>
-          <View style={styles.headerIcon}>
-            <Text style={styles.headerIconText}>◷</Text>
-          </View>
         </View>
         <View style={styles.emptyState}>
           <View style={styles.emptyIcon}>
@@ -170,9 +167,6 @@ export default function HomeScreen() {
                 <Text style={styles.title}>我的闹钟</Text>
                 <Text style={styles.subtitle}>{enabledCount} 个提醒正在运行</Text>
               </View>
-              <View style={styles.headerIcon}>
-                <Text style={styles.headerIconText}>◷</Text>
-              </View>
             </View>
             <TextInput
               style={styles.searchInput}
@@ -199,16 +193,6 @@ export default function HomeScreen() {
               description="按月、周或单天查看提醒分布"
               onPress={() => router.replace('/calendar')}
             />
-            <View style={styles.summaryCard}>
-              <View style={styles.summaryIcon}>
-                <Text style={styles.summaryIconText}>✓</Text>
-              </View>
-              <View style={styles.summaryCopy}>
-                <Text style={styles.summaryTitle}>今天安排得很好</Text>
-                <Text style={styles.summaryText}>所有重要提醒都会准时通知你</Text>
-              </View>
-              <Text style={styles.summaryArrow}>›</Text>
-            </View>
             <Text style={styles.sectionHeading}>全部提醒</Text>
           </View>
         }
@@ -272,58 +256,6 @@ const styles = StyleSheet.create({
     marginTop: 5,
     color: COLORS.textSecondary,
     fontSize: 13,
-  },
-  headerIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLORS.primarySoft,
-  },
-  headerIconText: {
-    color: COLORS.primary,
-    fontSize: 26,
-    fontWeight: '600',
-  },
-  summaryCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 14,
-    borderRadius: 18,
-    backgroundColor: COLORS.primarySoft,
-  },
-  summaryIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLORS.primary,
-  },
-  summaryIconText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '800',
-  },
-  summaryCopy: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  summaryTitle: {
-    color: COLORS.textPrimary,
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  summaryText: {
-    marginTop: 3,
-    color: COLORS.textSecondary,
-    fontSize: 11,
-  },
-  summaryArrow: {
-    color: COLORS.primary,
-    fontSize: 26,
-    fontWeight: '300',
   },
   sectionHeading: {
     marginTop: 24,
