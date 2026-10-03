@@ -26,6 +26,21 @@ function isAvailable(): boolean {
   return Notifications !== null;
 }
 
+export type NotificationPermissionStatus =
+  | 'granted'
+  | 'denied'
+  | 'undetermined'
+  | 'unavailable';
+
+/** 获取当前通知权限，供设置页展示。 */
+export async function getNotificationPermissionStatus(): Promise<NotificationPermissionStatus> {
+  if (!isAvailable()) return 'unavailable';
+  const { status } = await Notifications!.getPermissionsAsync();
+  if (status === 'granted') return 'granted';
+  if (status === 'denied') return 'denied';
+  return 'undetermined';
+}
+
 /** 配置前台通知处理 */
 export function setupNotificationHandler(): void {
   if (!isAvailable()) return;
