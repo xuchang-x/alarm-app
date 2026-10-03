@@ -79,7 +79,6 @@ export async function setupNotificationChannel(): Promise<void> {
       name: '闹钟提醒',
       importance: Notifications!.AndroidImportance.MAX,
       vibrationPattern: [0, 250, 250, 250],
-      sound: 'default',
     });
   }
 }
@@ -139,7 +138,7 @@ export async function scheduleAlarmNotifications(
           body: description,
           categoryIdentifier: NOTIFICATION_CATEGORY,
           data: { alarmId: alarm.id },
-          sound: 'default',
+          sound: true,
         },
         trigger: {
           type: Notifications!.SchedulableTriggerInputTypes.DAILY,
@@ -161,7 +160,7 @@ export async function scheduleAlarmNotifications(
             body: description,
             categoryIdentifier: NOTIFICATION_CATEGORY,
             data: { alarmId: alarm.id },
-            sound: 'default',
+            sound: true,
           },
           trigger: {
             type: Notifications!.SchedulableTriggerInputTypes.WEEKLY,
@@ -199,7 +198,7 @@ export async function scheduleAlarmNotifications(
             body: description,
             categoryIdentifier: NOTIFICATION_CATEGORY,
             data: { alarmId: alarm.id },
-            sound: 'default',
+            sound: true,
           },
           trigger: {
             type: Notifications!.SchedulableTriggerInputTypes.DATE,
@@ -243,7 +242,7 @@ export async function scheduleSnooze(alarm: Alarm): Promise<void> {
       body: `${alarm.snoozeMinutes} 分钟后再次提醒`,
       categoryIdentifier: NOTIFICATION_CATEGORY,
       data: { alarmId: alarm.id },
-      sound: 'default',
+      sound: true,
     },
     trigger: {
       type: Notifications!.SchedulableTriggerInputTypes.DATE,
