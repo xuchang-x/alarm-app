@@ -1,4 +1,4 @@
-import { addDays, getDay, startOfDay } from 'date-fns';
+import { addDays, differenceInCalendarDays, getDay, startOfDay } from 'date-fns';
 import type { Alarm, AlarmAdjustment, Weekday } from '@/types/alarm';
 import {
   today,
@@ -154,8 +154,7 @@ function computeCycleDates(
   let current: Date;
   if (!isDateBefore(rangeStart, cycleStart)) {
     // rangeStart >= cycleStart
-    const diffMs = rangeStart.getTime() - cycleStart.getTime();
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const diffDays = differenceInCalendarDays(startOfDay(rangeStart), cycleStart);
     const skipCycles = Math.floor(diffDays / interval);
     current = addDays(cycleStart, skipCycles * interval);
     if (isDateBefore(current, rangeStart)) {

@@ -1,6 +1,9 @@
 /** 闹钟类型 */
 export type AlarmType = 'once' | 'daily' | 'weekly' | 'cycle';
 
+/** 预设提醒分类 */
+export type AlarmCategory = 'work' | 'medication' | 'life' | 'sport' | 'other';
+
 /** 闹钟调整类型 */
 export type AdjustmentType = 'skip' | 'add';
 
@@ -14,6 +17,7 @@ export interface Alarm {
   hour: number;
   minute: number;
   label: string;
+  category: AlarmCategory;
   enabled: boolean;
 
   /** once 专用：响铃日期 'YYYY-MM-DD' */
@@ -51,6 +55,7 @@ export interface CreateAlarmInput {
   hour: number;
   minute: number;
   label?: string;
+  category?: AlarmCategory;
   onceDate?: string;
   weekdays?: Weekday[];
   intervalDays?: number;
@@ -64,6 +69,7 @@ export interface UpdateAlarmInput {
   hour?: number;
   minute?: number;
   label?: string;
+  category?: AlarmCategory;
   enabled?: boolean;
   onceDate?: string;
   weekdays?: Weekday[];

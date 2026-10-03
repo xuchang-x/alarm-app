@@ -14,11 +14,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useAlarmStore } from '@/store/alarm-store';
+import * as repo from '@/db/alarm-repository';
+import { findConflictingAlarms } from '@/services/conflicts';
 import TimePicker from '@/components/TimePicker';
 import WeekdaySelector from '@/components/WeekdaySelector';
 import CycleSettings from '@/components/CycleSettings';
-import type { AlarmType, Weekday } from '@/types/alarm';
-import { COLORS, DEFAULT_SNOOZE_MINUTES } from '@/constants';
+import type { AlarmCategory, AlarmType, Weekday } from '@/types/alarm';
+import { ALARM_CATEGORIES, COLORS, DEFAULT_SNOOZE_MINUTES } from '@/constants';
 import { formatDate, today } from '@/utils/date';
 
 const TYPE_OPTIONS: { key: AlarmType; label: string }[] = [
@@ -28,6 +30,19 @@ const TYPE_OPTIONS: { key: AlarmType; label: string }[] = [
   { key: 'cycle', label: '周期' },
 ];
 
+function confirmConflicts(labels: string[]): Promise<boolean> {
+  return new Promise((resolve) => {
+    Alert.alert(
+      '发现时间冲突',
+      `未来 30 天内有 ${labels.length} 个提醒会在同一时间响铃：${labels.join('、')}`,
+      [
+        { text: '返回修改', style: 'cancel', onPress: () => resolve(false) },
+        { text: '仍然保存', onPress: () => resolve(true) },
+      ]
+    );
+  });
+}
+
 export default function CreateScreen() {
   const router = useRouter();
   const createAlarm = useAlarmStore((state) => state.createAlarm);
@@ -35,6 +50,7 @@ export default function CreateScreen() {
   const [hour, setHour] = useState(8);
   const [minute, setMinute] = useState(0);
   const [label, setLabel] = useState('');
+  const [category, setCategory] = useState<AlarmCategory>('other');
   const [snoozeMinutes, setSnoozeMinutes] = useState(DEFAULT_SNOOZE_MINUTES);
   const [onceDate, setOnceDate] = useState(formatDate(today()));
   const [showOnceDatePicker, setShowOnceDatePicker] = useState(false);
@@ -59,6 +75,25 @@ export default function CreateScreen() {
       return;
     }
 
+    const draft = {
+      id: -1,
+      type,
+      hour,
+      minute,
+      label: label.trim(),
+      category,
+      enabled: true,
+      onceDate: type === 'once' ? onceDate : null,
+      weekdays: type === 'weekly' ? weekdays : null,
+      intervalDays: type === 'cycle' ? intervalDays : null,
+      startDate: type === 'cycle' ? startDate : null,
+      snoozeMinutes,
+      createdAt: '',
+      updatedAt: '',
+    };
+    const conflicts = await findConflictingAlarms(draft, useAlarmStore.getState().alarms, repo.getAdjustments);
+    if (conflicts.length > 0 && !(await confirmConflicts(conflicts.map((alarm) => alarm.label || '未命名提醒')))) return;
+
     setSaving(true);
     try {
       await createAlarm({
@@ -66,6 +101,7 @@ export default function CreateScreen() {
         hour,
         minute,
         label: label.trim() || undefined,
+        category,
         snoozeMinutes,
         onceDate: type === 'once' ? onceDate : undefined,
         weekdays: type === 'weekly' ? weekdays : undefined,
@@ -208,6 +244,23 @@ export default function CreateScreen() {
             </View>
           </View>
 
+          <View style={styles.sectionCard}>
+            <Text style={styles.sectionTitle}>分类</Text>
+            <Text style={styles.sectionHint}>用颜色快速识别提醒用途</Text>
+            <View style={styles.categoryGrid}>
+              {ALARM_CATEGORIES.map((item) => (
+                <Pressable
+                  key={item.key}
+                  style={[styles.categoryChip, category === item.key && { borderColor: item.color, backgroundColor: `${item.color}18` }]}
+                  onPress={() => setCategory(item.key)}
+                >
+                  <View style={[styles.categoryDot, { backgroundColor: item.color }]} />
+                  <Text style={styles.categoryText}>{item.label}</Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+
           <Pressable
             style={({ pressed }) => [styles.saveButton, saving && styles.saveButtonDisabled, pressed && styles.saveButtonPressed]}
             onPress={handleSave}
@@ -310,4 +363,8 @@ const styles = StyleSheet.create({
   saveButtonPressed: { backgroundColor: COLORS.primaryDark, transform: [{ scale: 0.99 }] },
   saveButtonDisabled: { opacity: 0.55 },
   saveButtonText: { color: '#FFFFFF', fontSize: 15, fontWeight: '800' },
+  categoryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  categoryChip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 11, paddingVertical: 9, borderWidth: 1, borderColor: COLORS.border, borderRadius: 12, backgroundColor: COLORS.input },
+  categoryDot: { width: 8, height: 8, marginRight: 6, borderRadius: 4 },
+  categoryText: { color: COLORS.textSecondary, fontSize: 12, fontWeight: '700' },
 });

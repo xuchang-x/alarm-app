@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   StyleSheet,
   Text,
@@ -6,20 +6,27 @@ import {
   FlatList,
   Pressable,
   ActivityIndicator,
+  TextInput,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useAlarmStore, getNextRingDate } from '@/store/alarm-store';
 import AlarmCard from '@/components/AlarmCard';
 import type { Alarm } from '@/types/alarm';
-import { COLORS } from '@/constants';
+import type { AlarmCategory, AlarmType } from '@/types/alarm';
+import { ALARM_CATEGORIES, COLORS } from '@/constants';
 import { formatDate } from '@/utils/date';
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { alarms, loading, loadAlarms, toggleAlarm, deleteAlarm } =
+  const { alarms, loading, loadAlarms, toggleAlarm, deleteAlarm, duplicateAlarm } =
     useAlarmStore();
   const [nextDates, setNextDates] = useState<Record<number, string | null>>({});
+  const [search, setSearch] = useState('');
+  const [typeFilter, setTypeFilter] = useState<AlarmType | 'all'>('all');
+  const [categoryFilter, setCategoryFilter] = useState<AlarmCategory | 'all'>('all');
+  const [sortMode, setSortMode] = useState<'next' | 'label' | 'created'>('next');
 
   useEffect(() => {
     loadAlarms();
@@ -66,6 +73,24 @@ export default function HomeScreen() {
       .addAdjustment(id, 'add', formatDate(tomorrow));
   }, []);
 
+  const handleDuplicate = useCallback(async (id: number) => {
+    const duplicate = await duplicateAlarm(id);
+    router.push(`/${duplicate.id}/edit`);
+  }, [duplicateAlarm, router]);
+
+  const filteredAlarms = useMemo(() => {
+    const normalized = search.trim().toLowerCase();
+    return [...alarms]
+      .filter((alarm) => !normalized || alarm.label.toLowerCase().includes(normalized))
+      .filter((alarm) => typeFilter === 'all' || alarm.type === typeFilter)
+      .filter((alarm) => categoryFilter === 'all' || alarm.category === categoryFilter)
+      .sort((a, b) => {
+        if (sortMode === 'label') return a.label.localeCompare(b.label);
+        if (sortMode === 'created') return b.createdAt.localeCompare(a.createdAt);
+        return (nextDates[a.id] ?? '9999-99-99').localeCompare(nextDates[b.id] ?? '9999-99-99');
+      });
+  }, [alarms, categoryFilter, nextDates, search, sortMode, typeFilter]);
+
   const renderItem = useCallback(
     ({ item }: { item: Alarm }) => (
       <AlarmCard
@@ -76,6 +101,7 @@ export default function HomeScreen() {
         onDelete={deleteAlarm}
         onSkip={handleSkip}
         onAddOnce={handleAddOnce}
+        onDuplicate={handleDuplicate}
       />
     ),
     [nextDates, toggleAlarm, deleteAlarm, handleSkip, handleAddOnce, router]
@@ -129,9 +155,10 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <FlatList
-        data={alarms}
+        data={filteredAlarms}
         keyExtractor={(item) => String(item.id)}
         renderItem={renderItem}
+        ListEmptyComponent={<View style={styles.filteredEmpty}><Text style={styles.filteredEmptyTitle}>没有匹配的提醒</Text><Text style={styles.filteredEmptyText}>调整搜索词或筛选条件后再试</Text></View>}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={
@@ -146,6 +173,30 @@ export default function HomeScreen() {
                 <Text style={styles.headerIconText}>◷</Text>
               </View>
             </View>
+            <TextInput
+              style={styles.searchInput}
+              value={search}
+              onChangeText={setSearch}
+              placeholder="搜索提醒名称"
+              placeholderTextColor={COLORS.textMuted}
+              selectionColor={COLORS.primary}
+            />
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterChips}>
+              <Pressable style={[styles.filterChip, typeFilter === 'all' && styles.filterChipActive]} onPress={() => setTypeFilter('all')}><Text style={[styles.filterChipText, typeFilter === 'all' && styles.filterChipTextActive]}>全部类型</Text></Pressable>
+              {(['once', 'daily', 'weekly', 'cycle'] as AlarmType[]).map((type) => <Pressable key={type} style={[styles.filterChip, typeFilter === type && styles.filterChipActive]} onPress={() => setTypeFilter(type)}><Text style={[styles.filterChipText, typeFilter === type && styles.filterChipTextActive]}>{type === 'once' ? '一次' : type === 'daily' ? '每天' : type === 'weekly' ? '每周' : '周期'}</Text></Pressable>)}
+            </ScrollView>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterChips}>
+              <Pressable style={[styles.filterChip, categoryFilter === 'all' && styles.filterChipActive]} onPress={() => setCategoryFilter('all')}><Text style={[styles.filterChipText, categoryFilter === 'all' && styles.filterChipTextActive]}>全部分类</Text></Pressable>
+              {ALARM_CATEGORIES.map((item) => <Pressable key={item.key} style={[styles.filterChip, categoryFilter === item.key && { backgroundColor: `${item.color}20`, borderColor: item.color }]} onPress={() => setCategoryFilter(item.key)}><View style={[styles.filterChipDot, { backgroundColor: item.color }]} /><Text style={styles.filterChipText}>{item.label}</Text></Pressable>)}
+            </ScrollView>
+            <View style={styles.sortRow}>
+              <Text style={styles.resultCount}>共 {filteredAlarms.length} 个提醒</Text>
+              <Pressable onPress={() => setSortMode((current) => current === 'next' ? 'label' : current === 'label' ? 'created' : 'next')}><Text style={styles.sortText}>排序：{sortMode === 'next' ? '下次' : sortMode === 'label' ? '名称' : '创建时间'} ↻</Text></Pressable>
+            </View>
+            <Pressable style={styles.calendarEntry} onPress={() => router.push('/calendar')}>
+              <View><Text style={styles.calendarEntryTitle}>查看日历</Text><Text style={styles.calendarEntryText}>按月、周或单天查看提醒分布</Text></View>
+              <Text style={styles.calendarEntryArrow}>›</Text>
+            </Pressable>
             <View style={styles.summaryCard}>
               <View style={styles.summaryIcon}>
                 <Text style={styles.summaryIconText}>✓</Text>
@@ -279,6 +330,34 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '800',
   },
+  searchInput: { marginTop: 2, paddingHorizontal: 14, paddingVertical: 12, borderRadius: 14, backgroundColor: COLORS.input, color: COLORS.textPrimary, fontSize: 13 },
+  filterChips: { gap: 7, paddingVertical: 9 },
+  filterChip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 7, borderRadius: 10, borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.card },
+  filterChipActive: { borderColor: COLORS.primary, backgroundColor: COLORS.primarySoft },
+  filterChipText: { color: COLORS.textSecondary, fontSize: 11, fontWeight: '700' },
+  filterChipTextActive: { color: COLORS.primaryDark },
+  filterChipDot: { width: 6, height: 6, marginRight: 5, borderRadius: 3 },
+  sortRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 2, marginBottom: 5 },
+  resultCount: { color: COLORS.textSecondary, fontSize: 11 },
+  sortText: { color: COLORS.primary, fontSize: 11, fontWeight: '700' },
+  filteredEmpty: { alignItems: 'center', paddingVertical: 42 },
+  filteredEmptyTitle: { color: COLORS.textPrimary, fontSize: 15, fontWeight: '800' },
+  filteredEmptyText: { marginTop: 6, color: COLORS.textMuted, fontSize: 12 },
+  calendarEntry: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 13,
+    borderRadius: 16,
+    backgroundColor: COLORS.card,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  calendarEntryTitle: { color: COLORS.primaryDark, fontSize: 13, fontWeight: '800' },
+  calendarEntryText: { marginTop: 3, color: COLORS.textSecondary, fontSize: 11 },
+  calendarEntryArrow: { color: COLORS.primary, fontSize: 26, fontWeight: '300' },
   emptyState: {
     flex: 1,
     alignItems: 'center',
