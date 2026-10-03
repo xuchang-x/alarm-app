@@ -38,10 +38,18 @@ const CREATE_ADJUSTMENTS_TABLE = `
   );
 `;
 
+const CREATE_APP_SETTINGS_TABLE = `
+  CREATE TABLE IF NOT EXISTS app_settings (
+    key   TEXT PRIMARY KEY NOT NULL,
+    value TEXT NOT NULL
+  );
+`;
+
 /** 初始化数据库表结构 */
 export async function initDatabase(): Promise<void> {
   const db = await getDatabase();
   await db.execAsync(CREATE_ALARMS_TABLE);
   await ensureAlarmCategoryColumn(db);
   await db.execAsync(CREATE_ADJUSTMENTS_TABLE);
+  await db.execAsync(CREATE_APP_SETTINGS_TABLE);
 }

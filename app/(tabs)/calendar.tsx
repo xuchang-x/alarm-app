@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -10,12 +11,12 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import ViewNavigationLink from '@/components/ViewNavigationLink';
 import { addDays, format, isSameDay, isSameMonth } from 'date-fns';
 import { useAlarmStore } from '@/store/alarm-store';
 import * as repo from '@/db/alarm-repository';
 import { ALARM_CATEGORIES, COLORS } from '@/constants';
 import { formatTime, today } from '@/utils/date';
+import type { AlarmType } from '@/types/alarm';
 import {
   getCalendarInstances,
   getCalendarRange,
@@ -31,6 +32,12 @@ const VIEW_OPTIONS: { key: CalendarViewMode; label: string }[] = [
   { key: 'threeDays', label: '3天' },
   { key: 'day', label: '日' },
 ];
+const HOUR_HEIGHT = 58;
+const HOUR_LABEL_WIDTH = 34;
+const TIMELINE_HOURS = 24;
+const TIMELINE_HEIGHT = HOUR_HEIGHT * TIMELINE_HOURS;
+const MARKER_HEIGHT = 24;
+const MARKER_GAP = 3;
 
 function getCategoryColor(instance: CalendarInstance): string {
   return ALARM_CATEGORIES.find((item) => item.key === instance.alarm.category)?.color ?? COLORS.textMuted;
@@ -49,6 +56,134 @@ function CalendarInstanceCard({ instance, onPress }: { instance: CalendarInstanc
         <Text style={styles.instanceType}>{instance.alarm.type === 'once' ? '一次' : instance.alarm.type === 'daily' ? '每天' : instance.alarm.type === 'weekly' ? '每周' : '周期'}</Text>
       </View>
     </Pressable>
+  );
+}
+
+interface TimelineMarkerLayout {
+  instance: CalendarInstance;
+  top: number;
+  lane: number;
+  laneCount: number;
+}
+
+function getTimelineMarkerLayouts(instances: CalendarInstance[]): TimelineMarkerLayout[] {
+  const layouts = [...instances]
+    .sort((a, b) => a.date.getTime() - b.date.getTime())
+    .map((instance) => {
+      const minuteOffset = instance.alarm.hour * 60 + instance.alarm.minute;
+      const rawTop = (minuteOffset / 60) * HOUR_HEIGHT;
+      const top = Math.min(rawTop, TIMELINE_HEIGHT - MARKER_HEIGHT);
+      return { instance, top, lane: 0, laneCount: 1 };
+    });
+
+  const clusters: TimelineMarkerLayout[][] = [];
+  layouts.forEach((layout) => {
+    const currentCluster = clusters[clusters.length - 1];
+    const clusterBottom = currentCluster
+      ? Math.max(...currentCluster.map((item) => item.top + MARKER_HEIGHT + MARKER_GAP))
+      : -1;
+    if (!currentCluster || layout.top > clusterBottom) {
+      clusters.push([layout]);
+    } else {
+      currentCluster.push(layout);
+    }
+  });
+
+  clusters.forEach((cluster) => {
+    const laneBottoms: number[] = [];
+    cluster.forEach((layout) => {
+      let lane = laneBottoms.findIndex((bottom) => bottom <= layout.top);
+      if (lane === -1) {
+        lane = laneBottoms.length;
+        laneBottoms.push(0);
+      }
+      laneBottoms[lane] = layout.top + MARKER_HEIGHT + MARKER_GAP;
+      layout.lane = lane;
+    });
+    const laneCount = Math.max(laneBottoms.length, 1);
+    cluster.forEach((layout) => { layout.laneCount = laneCount; });
+  });
+
+  return layouts;
+}
+
+function CalendarInstanceMarker({
+  layout,
+  onPress,
+}: {
+  layout: TimelineMarkerLayout;
+  onPress: (instance: CalendarInstance) => void;
+}) {
+  const color = getCategoryColor(layout.instance);
+  return (
+    <Pressable
+      style={({ pressed }) => [
+        styles.timelineMarker,
+        {
+          top: layout.top,
+          left: `${(layout.lane / layout.laneCount) * 100}%`,
+          width: `${100 / layout.laneCount}%`,
+          borderLeftColor: color,
+        },
+        pressed && styles.instanceCardPressed,
+      ]}
+      onPress={() => onPress(layout.instance)}
+    >
+      <Text style={styles.timelineMarkerLabel} numberOfLines={1} ellipsizeMode="tail">
+        {layout.instance.alarm.label || '未命名提醒'}
+      </Text>
+    </Pressable>
+  );
+}
+
+function getAlarmTypeLabel(type: AlarmType): string {
+  if (type === 'once') return '一次性';
+  if (type === 'daily') return '每天';
+  if (type === 'weekly') return '每周';
+  return '周期';
+}
+
+function AlarmDetailSheet({
+  instance,
+  onClose,
+  onEdit,
+}: {
+  instance: CalendarInstance | null;
+  onClose: () => void;
+  onEdit: (id: number) => void;
+}) {
+  if (!instance) return null;
+  const color = getCategoryColor(instance);
+  return (
+    <Modal visible transparent animationType="slide" onRequestClose={onClose}>
+      <View style={styles.modalOverlay}>
+        <Pressable style={styles.modalBackdrop} onPress={onClose} />
+        <View style={styles.detailSheet}>
+          <View style={styles.detailHandle} />
+          <View style={styles.detailHeader}>
+            <View style={[styles.detailCategoryDot, { backgroundColor: color }]} />
+            <Text style={styles.detailTitle} numberOfLines={2}>{instance.alarm.label || '未命名提醒'}</Text>
+            <Pressable style={styles.detailCloseButton} onPress={onClose}>
+              <Text style={styles.detailCloseText}>×</Text>
+            </Pressable>
+          </View>
+          <Text style={styles.detailTime}>{formatTime(instance.alarm.hour, instance.alarm.minute)}</Text>
+          <Text style={styles.detailDate}>{format(instance.date, 'M月d日')} · {getAlarmTypeLabel(instance.alarm.type)}</Text>
+          <View style={styles.detailStatusRow}>
+            <Text style={styles.detailStatusLabel}>状态</Text>
+            <Text style={styles.detailStatusValue}>{instance.alarm.enabled ? '已开启' : '已暂停'}</Text>
+          </View>
+          <View style={styles.detailActions}>
+            <Pressable style={styles.detailSecondaryButton} onPress={onClose}>
+              <Text style={styles.detailSecondaryText}>关闭</Text>
+            </Pressable>
+            <Pressable style={styles.detailPrimaryButton} onPress={() => onEdit(instance.alarm.id)}>
+              <Text style={styles.detailPrimaryText}>编辑闹钟</Text>
+            </Pressable>
+          </View>
+        </View>
+      </View>
+    </Modal>
   );
 }
 
@@ -113,19 +248,22 @@ function MonthView({
   );
 }
 
-function TimelineView({ mode, anchor, instances, onPress }: { mode: 'week' | 'threeDays' | 'day'; anchor: Date; instances: CalendarInstance[]; onPress: (id: number) => void }) {
+function TimelineView({ mode, anchor, instances, onPress }: { mode: 'week' | 'threeDays' | 'day'; anchor: Date; instances: CalendarInstance[]; onPress: (instance: CalendarInstance) => void }) {
   const range = getCalendarRange(anchor, mode);
   const dayCount = mode === 'week' ? 7 : mode === 'threeDays' ? 3 : 1;
   const days = Array.from({ length: dayCount }, (_, index) => addDays(range.start, index));
   return (
     <View style={styles.timelineCard}>
       <View style={styles.timelineHeader}>
-        {days.map((date) => (
-          <View key={format(date, 'yyyy-MM-dd')} style={styles.timelineDayHeader}>
-            <Text style={styles.timelineWeekday}>{WEEKDAY_LABELS[(date.getDay() + 6) % 7]}</Text>
-            <Text style={[styles.timelineDate, isSameDay(date, today()) && styles.timelineDateToday]}>{format(date, 'M/d')}</Text>
-          </View>
-        ))}
+        <View style={styles.timelineHeaderSpacer} />
+        <View style={styles.timelineHeaderDays}>
+          {days.map((date) => (
+            <View key={format(date, 'yyyy-MM-dd')} style={styles.timelineDayHeader}>
+              <Text style={styles.timelineWeekday}>{WEEKDAY_LABELS[(date.getDay() + 6) % 7]}</Text>
+              <Text style={[styles.timelineDate, isSameDay(date, today()) && styles.timelineDateToday]}>{format(date, 'M/d')}</Text>
+            </View>
+          ))}
+        </View>
       </View>
       <View style={styles.timelineBody}>
         <View style={styles.hourLabels}>
@@ -135,12 +273,18 @@ function TimelineView({ mode, anchor, instances, onPress }: { mode: 'week' | 'th
           {days.map((date) => {
             const dateKey = format(date, 'yyyy-MM-dd');
             const dayInstances = instances.filter((instance) => instance.dateKey === dateKey);
+            const markerLayouts = getTimelineMarkerLayouts(dayInstances);
             return (
               <View key={dateKey} style={styles.timelineColumn}>
-                {Array.from({ length: 24 }, (_, hour) => (
-                  <View key={hour} style={styles.hourCell}>
-                    {dayInstances.filter((instance) => instance.alarm.hour === hour).map((instance) => <CalendarInstanceCard key={`${instance.alarm.id}-${instance.dateKey}`} instance={instance} onPress={onPress} />)}
-                  </View>
+                <View style={styles.timelineGrid}>
+                  {Array.from({ length: TIMELINE_HOURS }, (_, hour) => <View key={hour} style={styles.hourCell} />)}
+                </View>
+                {markerLayouts.map((layout) => (
+                  <CalendarInstanceMarker
+                    key={`${layout.instance.alarm.id}-${layout.instance.dateKey}`}
+                    layout={layout}
+                    onPress={onPress}
+                  />
                 ))}
               </View>
             );
@@ -160,6 +304,7 @@ export default function CalendarScreen() {
   const [selectedDate, setSelectedDate] = useState(today());
   const [includeDisabled, setIncludeDisabled] = useState(false);
   const [instances, setInstances] = useState<CalendarInstance[]>([]);
+  const [selectedInstance, setSelectedInstance] = useState<CalendarInstance | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => { void loadAlarms(); }, [loadAlarms]);
@@ -189,7 +334,7 @@ export default function CalendarScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <View style={styles.header}>
-        <ViewNavigationLink label="列表" compact onPress={() => router.replace('/')} />
+        <View style={styles.headerPlaceholder} />
         <Text style={styles.headerTitle}>日历</Text>
         <Pressable style={styles.headerButton} onPress={() => { setAnchor(today()); setSelectedDate(today()); }}><Text style={styles.headerButtonText}>今天</Text></Pressable>
       </View>
@@ -208,8 +353,16 @@ export default function CalendarScreen() {
           <Text style={styles.filterLabel}>显示已暂停提醒</Text>
           <Switch value={includeDisabled} onValueChange={setIncludeDisabled} trackColor={{ false: COLORS.border, true: COLORS.primary }} thumbColor="#FFFFFF" />
         </View>
-        {loading ? <View style={styles.loading}><ActivityIndicator color={COLORS.primary} /><Text style={styles.loadingText}>正在计算提醒</Text></View> : mode === 'month' ? <MonthView anchor={anchor} instances={instances} selectedDate={selectedDate} onSelectDate={setSelectedDate} onPress={(id) => router.push(`/${id}/edit`)} /> : <TimelineView mode={mode} anchor={anchor} instances={instances} onPress={(id) => router.push(`/${id}/edit`)} />}
+        {loading ? <View style={styles.loading}><ActivityIndicator color={COLORS.primary} /><Text style={styles.loadingText}>正在计算提醒</Text></View> : mode === 'month' ? <MonthView anchor={anchor} instances={instances} selectedDate={selectedDate} onSelectDate={setSelectedDate} onPress={(id) => router.push(`/${id}/edit`)} /> : <TimelineView mode={mode} anchor={anchor} instances={instances} onPress={setSelectedInstance} />}
       </ScrollView>
+      <AlarmDetailSheet
+        instance={selectedInstance}
+        onClose={() => setSelectedInstance(null)}
+        onEdit={(id) => {
+          setSelectedInstance(null);
+          router.push(`/${id}/edit`);
+        }}
+      />
     </SafeAreaView>
   );
 }
@@ -217,6 +370,7 @@ export default function CalendarScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 12 },
+  headerPlaceholder: { minWidth: 72, minHeight: 40 },
   headerButton: { minWidth: 72, minHeight: 40, alignItems: 'center', justifyContent: 'center', paddingVertical: 8 },
   headerButtonText: { color: COLORS.primary, fontSize: 14, fontWeight: '700' },
   headerTitle: { color: COLORS.textPrimary, fontSize: 17, fontWeight: '800' },
@@ -256,17 +410,22 @@ const styles = StyleSheet.create({
   monthDetailCount: { color: COLORS.textSecondary, fontSize: 11 },
   emptyText: { paddingVertical: 18, textAlign: 'center', color: COLORS.textMuted, fontSize: 12 },
   timelineCard: { borderRadius: 20, backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.border, overflow: 'hidden' },
-  timelineHeader: { flexDirection: 'row', padding: 10, borderBottomWidth: 1, borderBottomColor: COLORS.border },
+  timelineHeader: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: COLORS.border },
+  timelineHeaderSpacer: { width: HOUR_LABEL_WIDTH },
+  timelineHeaderDays: { flex: 1, flexDirection: 'row', paddingVertical: 10 },
   timelineDayHeader: { flex: 1, alignItems: 'center' },
   timelineWeekday: { color: COLORS.textSecondary, fontSize: 11, fontWeight: '700' },
   timelineDate: { marginTop: 3, color: COLORS.textPrimary, fontSize: 14, fontWeight: '800' },
   timelineDateToday: { color: COLORS.primary },
   timelineBody: { flexDirection: 'row' },
-  hourLabels: { width: 34, paddingTop: 1 },
-  hourLabel: { height: 58, paddingTop: 5, paddingRight: 5, color: COLORS.textMuted, fontSize: 9, textAlign: 'right' },
-  timelineColumns: { flex: 1, flexDirection: 'row' },
-  timelineColumn: { flex: 1, borderRightWidth: 1, borderRightColor: COLORS.border },
-  hourCell: { minHeight: 58, paddingHorizontal: 3, borderTopWidth: 1, borderTopColor: COLORS.border },
+  hourLabels: { width: HOUR_LABEL_WIDTH, paddingTop: 1 },
+  hourLabel: { height: HOUR_HEIGHT, paddingTop: 5, paddingRight: 5, color: COLORS.textMuted, fontSize: 9, textAlign: 'right' },
+  timelineColumns: { flex: 1, height: TIMELINE_HEIGHT, flexDirection: 'row' },
+  timelineColumn: { position: 'relative', flex: 1, height: TIMELINE_HEIGHT, borderRightWidth: 1, borderRightColor: COLORS.border },
+  timelineGrid: { height: TIMELINE_HEIGHT },
+  hourCell: { height: HOUR_HEIGHT, borderTopWidth: 1, borderTopColor: COLORS.border },
+  timelineMarker: { position: 'absolute', height: MARKER_HEIGHT, justifyContent: 'center', paddingHorizontal: 5, borderLeftWidth: 3, borderRadius: 8, backgroundColor: COLORS.input, overflow: 'hidden' },
+  timelineMarkerLabel: { color: COLORS.textPrimary, fontSize: 10, fontWeight: '700' },
   instanceCard: { flexDirection: 'row', minHeight: 64, marginVertical: 4, borderRadius: 12, backgroundColor: COLORS.input, overflow: 'hidden' },
   instanceCardPressed: { opacity: 0.75 },
   instanceBar: { width: 4 },
@@ -274,4 +433,23 @@ const styles = StyleSheet.create({
   instanceTime: { color: COLORS.primaryDark, fontSize: 12, fontWeight: '800' },
   instanceLabel: { marginTop: 3, color: COLORS.textPrimary, fontSize: 11, fontWeight: '700' },
   instanceType: { marginTop: 3, color: COLORS.textSecondary, fontSize: 9 },
+  modalOverlay: { flex: 1, justifyContent: 'flex-end' },
+  modalBackdrop: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(37, 34, 58, 0.24)' },
+  detailSheet: { paddingHorizontal: 20, paddingTop: 10, paddingBottom: 28, borderTopLeftRadius: 24, borderTopRightRadius: 24, backgroundColor: COLORS.card },
+  detailHandle: { alignSelf: 'center', width: 38, height: 4, marginBottom: 16, borderRadius: 2, backgroundColor: COLORS.border },
+  detailHeader: { flexDirection: 'row', alignItems: 'center' },
+  detailCategoryDot: { width: 10, height: 10, marginRight: 8, borderRadius: 5 },
+  detailTitle: { flex: 1, color: COLORS.textPrimary, fontSize: 18, fontWeight: '800' },
+  detailCloseButton: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center', marginLeft: 8, borderRadius: 16, backgroundColor: COLORS.input },
+  detailCloseText: { color: COLORS.textSecondary, fontSize: 22, lineHeight: 24 },
+  detailTime: { marginTop: 18, color: COLORS.primaryDark, fontSize: 32, fontWeight: '800' },
+  detailDate: { marginTop: 4, color: COLORS.textSecondary, fontSize: 13 },
+  detailStatusRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 20, paddingVertical: 12, borderTopWidth: 1, borderBottomWidth: 1, borderColor: COLORS.border },
+  detailStatusLabel: { color: COLORS.textSecondary, fontSize: 13 },
+  detailStatusValue: { color: COLORS.textPrimary, fontSize: 13, fontWeight: '700' },
+  detailActions: { flexDirection: 'row', gap: 10, marginTop: 18 },
+  detailSecondaryButton: { flex: 1, alignItems: 'center', paddingVertical: 13, borderRadius: 13, backgroundColor: COLORS.input },
+  detailSecondaryText: { color: COLORS.textSecondary, fontSize: 14, fontWeight: '700' },
+  detailPrimaryButton: { flex: 1, alignItems: 'center', paddingVertical: 13, borderRadius: 13, backgroundColor: COLORS.primary },
+  detailPrimaryText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700' },
 });

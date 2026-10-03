@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   StyleSheet,
   Text,
@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useAlarmStore } from '@/store/alarm-store';
+import { useSettingsStore } from '@/store/settings-store';
 import * as repo from '@/db/alarm-repository';
 import { findConflictingAlarms } from '@/services/conflicts';
 import TimePicker from '@/components/TimePicker';
@@ -46,6 +47,8 @@ function confirmConflicts(labels: string[]): Promise<boolean> {
 export default function CreateScreen() {
   const router = useRouter();
   const createAlarm = useAlarmStore((state) => state.createAlarm);
+  const defaultSnoozeMinutes = useSettingsStore((state) => state.settings.defaultSnoozeMinutes);
+  const loadSettings = useSettingsStore((state) => state.loadSettings);
   const [type, setType] = useState<AlarmType>('once');
   const [hour, setHour] = useState(8);
   const [minute, setMinute] = useState(0);
@@ -58,6 +61,14 @@ export default function CreateScreen() {
   const [intervalDays, setIntervalDays] = useState(2);
   const [startDate, setStartDate] = useState(formatDate(today()));
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    void loadSettings();
+  }, [loadSettings]);
+
+  useEffect(() => {
+    setSnoozeMinutes(defaultSnoozeMinutes);
+  }, [defaultSnoozeMinutes]);
 
   const handleOnceDateChange = (_event: DateTimePickerEvent, selectedDate?: Date) => {
     if (Platform.OS === 'android') setShowOnceDatePicker(false);

@@ -98,8 +98,7 @@ export default function RootLayout() {
             contentStyle: { backgroundColor: COLORS.background },
           }}
         >
-          <Stack.Screen name="index" />
-          <Stack.Screen name="calendar" />
+          <Stack.Screen name="(tabs)" />
           <Stack.Screen name="create" />
           <Stack.Screen name="[id]/edit" />
         </Stack>
