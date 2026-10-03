@@ -18,7 +18,7 @@ function TabIcon({ glyph, focused }: TabIconProps) {
 export default function TabsLayout() {
   return (
     <Tabs
-      initialRouteName="index"
+      initialRouteName="today"
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: COLORS.primary,
@@ -29,19 +29,27 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen
-        name="index"
+        name="today"
         options={{
-          title: '列表',
-          tabBarAccessibilityLabel: '闹钟列表',
-          tabBarIcon: ({ focused }) => <TabIcon glyph="☷" focused={focused} />,
+          title: '今日',
+          tabBarAccessibilityLabel: '今日',
+          tabBarIcon: ({ focused }) => <TabIcon glyph="◷" focused={focused} />,
         }}
       />
       <Tabs.Screen
-        name="calendar"
+        name="plan"
         options={{
-          title: '日历',
-          tabBarAccessibilityLabel: '日历',
-          tabBarIcon: ({ focused }) => <TabIcon glyph="◷" focused={focused} />,
+          title: '计划',
+          tabBarAccessibilityLabel: '计划日历',
+          tabBarIcon: ({ focused }) => <TabIcon glyph="▦" focused={focused} />,
+        }}
+      />
+      <Tabs.Screen
+        name="all"
+        options={{
+          title: '全部',
+          tabBarAccessibilityLabel: '全部提醒',
+          tabBarIcon: ({ focused }) => <TabIcon glyph="☷" focused={focused} />,
         }}
       />
       <Tabs.Screen
