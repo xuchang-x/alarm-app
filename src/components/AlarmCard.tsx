@@ -19,19 +19,17 @@ interface AlarmCardProps {
   onAddOnce?: (id: number) => void;
 }
 
-function getRepeatLabel(alarm: Alarm): string {
+function getTypeLabel(alarm: Alarm): string {
   switch (alarm.type) {
     case 'once':
-      return alarm.onceDate ?? '一次性提醒';
+      return '一次';
     case 'daily':
       return '每天';
     case 'weekly': {
-      if (!alarm.weekdays || alarm.weekdays.length === 0) return '每周';
-      const dayNames = ['', '周一', '周二', '周三', '周四', '周五', '周六', '周日'];
-      return alarm.weekdays.map((day) => dayNames[day]).join(' ');
+      return '每周';
     }
     case 'cycle':
-      return `每 ${alarm.intervalDays} 天`;
+      return '周期';
     default:
       return '';
   }
@@ -126,13 +124,20 @@ export default function AlarmCard({
                 <Text style={[styles.label, !alarm.enabled && styles.textDisabled]} numberOfLines={1}>
                   {alarm.label || '未命名提醒'}
                 </Text>
-                <Text style={[styles.repeat, !alarm.enabled && styles.textDisabled]} numberOfLines={1}>
-                  {getRepeatLabel(alarm)}
-                </Text>
+                <View style={styles.metaRow}>
+                  <View style={styles.typePill}>
+                    <Text style={styles.typeText}>{getTypeLabel(alarm)}</Text>
+                  </View>
+                </View>
               </View>
-              {nextRingDate && alarm.enabled && (
+              {alarm.enabled && (nextRingDate || alarm.onceDate) && (
                 <View style={styles.nextDatePill}>
-                  <Text style={styles.nextDate}>下次 {nextRingDate}</Text>
+                  <Text style={styles.nextDateLabel}>
+                    {alarm.type === 'once' ? '提醒日期' : '下次'}
+                  </Text>
+                  <Text style={styles.nextDate}>
+                    {alarm.type === 'once' ? alarm.onceDate : nextRingDate}
+                  </Text>
                 </View>
               )}
             </View>
@@ -245,20 +250,38 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
   },
-  repeat: {
-    marginTop: 4,
-    color: COLORS.textSecondary,
-    fontSize: 12,
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 6,
+  },
+  typePill: {
+    paddingHorizontal: 7,
+    paddingVertical: 4,
+    borderRadius: 7,
+    backgroundColor: COLORS.primarySoft,
+  },
+  typeText: {
+    color: COLORS.primaryDark,
+    fontSize: 10,
+    fontWeight: '800',
   },
   nextDatePill: {
-    paddingHorizontal: 9,
+    alignItems: 'flex-end',
+    paddingHorizontal: 10,
     paddingVertical: 7,
     borderRadius: 10,
     backgroundColor: COLORS.primarySoft,
   },
+  nextDateLabel: {
+    color: COLORS.textSecondary,
+    fontSize: 9,
+    fontWeight: '600',
+  },
   nextDate: {
     color: COLORS.primaryDark,
-    fontSize: 10,
+    marginTop: 2,
+    fontSize: 11,
     fontWeight: '700',
   },
   textDisabled: {

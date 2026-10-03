@@ -29,7 +29,7 @@ export default function HomeScreen() {
     async function loadNextDates() {
       const dates: Record<number, string | null> = {};
       for (const alarm of alarms) {
-        if (alarm.enabled && (alarm.type === 'cycle' || alarm.type === 'once')) {
+        if (alarm.enabled) {
           const nextDate = await getNextRingDate(alarm);
           dates[alarm.id] = nextDate ? formatDate(nextDate) : null;
         } else {
