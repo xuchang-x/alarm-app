@@ -4,30 +4,31 @@ import {
   Text,
   View,
   FlatList,
-  Pressable,
   ActivityIndicator,
-  TextInput,
-  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useAlarmStore, getNextRingDate } from '@/store/alarm-store';
-import AlarmCard from '@/components/AlarmCard';
+import AlarmCard from '@/components/alarm-list/AlarmCard';
 import { PageHeading } from '@/components/common/PageHeader';
+import Fab from '@/components/common/Fab';
+import EmptyState from '@/components/common/EmptyState';
+import FilterBar, { type FilterValues } from '@/components/alarm-list/FilterBar';
 import type { Alarm } from '@/types/alarm';
-import type { AlarmCategory, AlarmType } from '@/types/alarm';
-import { ALARM_CATEGORIES, COLORS } from '@/constants';
+import { COLORS } from '@/constants';
 import { formatDate } from '@/utils/date';
 
-export default function HomeScreen() {
+export default function AllScreen() {
   const router = useRouter();
   const { alarms, loading, loadAlarms, toggleAlarm, deleteAlarm, duplicateAlarm } =
     useAlarmStore();
   const [nextDates, setNextDates] = useState<Record<number, string | null>>({});
-  const [search, setSearch] = useState('');
-  const [typeFilter, setTypeFilter] = useState<AlarmType | 'all'>('all');
-  const [categoryFilter, setCategoryFilter] = useState<AlarmCategory | 'all'>('all');
-  const [sortMode, setSortMode] = useState<'next' | 'label' | 'created'>('next');
+  const [filters, setFilters] = useState<FilterValues>({
+    search: '',
+    typeFilter: 'all',
+    categoryFilter: 'all',
+    sortMode: 'next',
+  });
 
   useEffect(() => {
     loadAlarms();
@@ -79,18 +80,27 @@ export default function HomeScreen() {
     router.push(`/${duplicate.id}/edit`);
   }, [duplicateAlarm, router]);
 
+  // 默认视图：下次响铃升序，已暂停/已过期的沉底
   const filteredAlarms = useMemo(() => {
-    const normalized = search.trim().toLowerCase();
+    const normalized = filters.search.trim().toLowerCase();
+    const rank = (alarm: Alarm): number => {
+      // 0 = 正常启用，1 = 暂停或一次性已过期
+      const expiredOnce =
+        alarm.type === 'once' && alarm.onceDate !== null && alarm.onceDate < formatDate(new Date());
+      return alarm.enabled && !expiredOnce ? 0 : 1;
+    };
     return [...alarms]
       .filter((alarm) => !normalized || alarm.label.toLowerCase().includes(normalized))
-      .filter((alarm) => typeFilter === 'all' || alarm.type === typeFilter)
-      .filter((alarm) => categoryFilter === 'all' || alarm.category === categoryFilter)
+      .filter((alarm) => filters.typeFilter === 'all' || alarm.type === filters.typeFilter)
+      .filter((alarm) => filters.categoryFilter === 'all' || alarm.category === filters.categoryFilter)
       .sort((a, b) => {
-        if (sortMode === 'label') return a.label.localeCompare(b.label);
-        if (sortMode === 'created') return b.createdAt.localeCompare(a.createdAt);
+        const rankDiff = rank(a) - rank(b);
+        if (rankDiff !== 0) return rankDiff;
+        if (filters.sortMode === 'label') return a.label.localeCompare(b.label);
+        if (filters.sortMode === 'created') return b.createdAt.localeCompare(a.createdAt);
         return (nextDates[a.id] ?? '9999-99-99').localeCompare(nextDates[b.id] ?? '9999-99-99');
       });
-  }, [alarms, categoryFilter, nextDates, search, sortMode, typeFilter]);
+  }, [alarms, filters, nextDates]);
 
   const renderItem = useCallback(
     ({ item }: { item: Alarm }) => (
@@ -105,7 +115,7 @@ export default function HomeScreen() {
         onDuplicate={handleDuplicate}
       />
     ),
-    [nextDates, toggleAlarm, deleteAlarm, handleSkip, handleAddOnce, router]
+    [nextDates, toggleAlarm, deleteAlarm, handleSkip, handleAddOnce, handleDuplicate, router]
   );
 
   const enabledCount = alarms.filter((alarm) => alarm.enabled).length;
@@ -126,25 +136,17 @@ export default function HomeScreen() {
       <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
         <View style={styles.pageHeader}>
           <PageHeading
-            eyebrow="DAILY REMINDERS"
-            title="我的闹钟"
-            subtitle="让重要的事情准时发生"
+            eyebrow="ALL REMINDERS"
+            title="全部"
+            subtitle="管理你的所有提醒"
           />
         </View>
-        <View style={styles.emptyState}>
-          <View style={styles.emptyIcon}>
-            <Text style={styles.emptyIconText}>◷</Text>
-          </View>
-          <Text style={styles.emptyTitle}>还没有闹钟</Text>
-          <Text style={styles.emptySubtitle}>
-            创建一个提醒，开始安排你的节奏
-          </Text>
-          <Pressable
-            style={styles.emptyButton}
-            onPress={() => router.push('/create')}
-          >
-            <Text style={styles.emptyButtonText}>创建第一个闹钟</Text>
-          </Pressable>
+        <View style={styles.emptyWrap}>
+          <EmptyState
+            title="还没有提醒"
+            subtitle="创建一个提醒，开始安排你的节奏"
+            actionLabel="创建第一个提醒"
+          />
         </View>
       </SafeAreaView>
     );
@@ -156,50 +158,33 @@ export default function HomeScreen() {
         data={filteredAlarms}
         keyExtractor={(item) => String(item.id)}
         renderItem={renderItem}
-        ListEmptyComponent={<View style={styles.filteredEmpty}><Text style={styles.filteredEmptyTitle}>没有匹配的提醒</Text><Text style={styles.filteredEmptyText}>调整搜索词或筛选条件后再试</Text></View>}
+        ListEmptyComponent={
+          <View style={styles.filteredEmpty}>
+            <Text style={styles.filteredEmptyTitle}>没有匹配的提醒</Text>
+            <Text style={styles.filteredEmptyText}>调整搜索词或筛选条件后再试</Text>
+          </View>
+        }
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={
           <View style={styles.listHeader}>
             <View style={styles.pageHeader}>
               <PageHeading
-                eyebrow="DAILY REMINDERS"
-                title="我的闹钟"
+                eyebrow="ALL REMINDERS"
+                title="全部"
                 subtitle={`${enabledCount} 个提醒正在运行`}
               />
             </View>
-            <TextInput
-              style={styles.searchInput}
-              value={search}
-              onChangeText={setSearch}
-              placeholder="搜索提醒名称"
-              placeholderTextColor={COLORS.textMuted}
-              selectionColor={COLORS.primary}
+            <FilterBar
+              values={filters}
+              onChange={setFilters}
+              resultCount={filteredAlarms.length}
             />
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterChips}>
-              <Pressable style={[styles.filterChip, typeFilter === 'all' && styles.filterChipActive]} onPress={() => setTypeFilter('all')}><Text style={[styles.filterChipText, typeFilter === 'all' && styles.filterChipTextActive]}>全部类型</Text></Pressable>
-              {(['once', 'daily', 'weekly', 'cycle'] as AlarmType[]).map((type) => <Pressable key={type} style={[styles.filterChip, typeFilter === type && styles.filterChipActive]} onPress={() => setTypeFilter(type)}><Text style={[styles.filterChipText, typeFilter === type && styles.filterChipTextActive]}>{type === 'once' ? '一次' : type === 'daily' ? '每天' : type === 'weekly' ? '每周' : '周期'}</Text></Pressable>)}
-            </ScrollView>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterChips}>
-              <Pressable style={[styles.filterChip, categoryFilter === 'all' && styles.filterChipActive]} onPress={() => setCategoryFilter('all')}><Text style={[styles.filterChipText, categoryFilter === 'all' && styles.filterChipTextActive]}>全部分类</Text></Pressable>
-              {ALARM_CATEGORIES.map((item) => <Pressable key={item.key} style={[styles.filterChip, categoryFilter === item.key && { backgroundColor: `${item.color}20`, borderColor: item.color }]} onPress={() => setCategoryFilter(item.key)}><View style={[styles.filterChipDot, { backgroundColor: item.color }]} /><Text style={styles.filterChipText}>{item.label}</Text></Pressable>)}
-            </ScrollView>
-            <View style={styles.sortRow}>
-              <Text style={styles.resultCount}>共 {filteredAlarms.length} 个提醒</Text>
-              <Pressable onPress={() => setSortMode((current) => current === 'next' ? 'label' : current === 'label' ? 'created' : 'next')}><Text style={styles.sortText}>排序：{sortMode === 'next' ? '下次' : sortMode === 'label' ? '名称' : '创建时间'} ↻</Text></Pressable>
-            </View>
-            <Text style={styles.sectionHeading}>全部提醒</Text>
           </View>
         }
       />
 
-      <Pressable
-        style={({ pressed }) => [styles.fab, pressed && styles.fabPressed]}
-        onPress={() => router.push('/create')}
-      >
-        <Text style={styles.fabText}>＋</Text>
-        <Text style={styles.fabLabel}>新建</Text>
-      </Pressable>
+      <Fab />
     </SafeAreaView>
   );
 }
@@ -231,102 +216,11 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingBottom: 20,
   },
-  sectionHeading: {
-    marginTop: 24,
-    marginBottom: 4,
-    color: COLORS.textPrimary,
-    fontSize: 16,
-    fontWeight: '800',
+  emptyWrap: {
+    flex: 1,
+    justifyContent: 'center',
   },
-  searchInput: { marginTop: 2, paddingHorizontal: 14, paddingVertical: 12, borderRadius: 14, backgroundColor: COLORS.input, color: COLORS.textPrimary, fontSize: 13 },
-  filterChips: { gap: 7, paddingVertical: 9 },
-  filterChip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 7, borderRadius: 10, borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.card },
-  filterChipActive: { borderColor: COLORS.primary, backgroundColor: COLORS.primarySoft },
-  filterChipText: { color: COLORS.textSecondary, fontSize: 11, fontWeight: '700' },
-  filterChipTextActive: { color: COLORS.primaryDark },
-  filterChipDot: { width: 6, height: 6, marginRight: 5, borderRadius: 3 },
-  sortRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 2, marginBottom: 5 },
-  resultCount: { color: COLORS.textSecondary, fontSize: 11 },
-  sortText: { color: COLORS.primary, fontSize: 11, fontWeight: '700' },
   filteredEmpty: { alignItems: 'center', paddingVertical: 42 },
   filteredEmptyTitle: { color: COLORS.textPrimary, fontSize: 15, fontWeight: '800' },
   filteredEmptyText: { marginTop: 6, color: COLORS.textMuted, fontSize: 12 },
-  emptyState: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 36,
-    paddingBottom: 80,
-  },
-  emptyIcon: {
-    width: 88,
-    height: 88,
-    borderRadius: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLORS.primarySoft,
-  },
-  emptyIconText: {
-    color: COLORS.primary,
-    fontSize: 44,
-  },
-  emptyTitle: {
-    marginTop: 20,
-    color: COLORS.textPrimary,
-    fontSize: 22,
-    fontWeight: '800',
-  },
-  emptySubtitle: {
-    marginTop: 8,
-    color: COLORS.textSecondary,
-    fontSize: 14,
-  },
-  emptyButton: {
-    marginTop: 24,
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    borderRadius: 15,
-    backgroundColor: COLORS.primary,
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.18,
-    shadowRadius: 14,
-    elevation: 4,
-  },
-  emptyButtonText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  fab: {
-    position: 'absolute',
-    right: 20,
-    bottom: 24,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 18,
-    height: 54,
-    borderRadius: 18,
-    backgroundColor: COLORS.primary,
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 7 },
-    shadowOpacity: 0.22,
-    shadowRadius: 12,
-    elevation: 5,
-  },
-  fabPressed: {
-    backgroundColor: COLORS.primaryDark,
-    transform: [{ scale: 0.97 }],
-  },
-  fabText: {
-    color: '#FFFFFF',
-    fontSize: 22,
-    lineHeight: 24,
-  },
-  fabLabel: {
-    marginLeft: 6,
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '700',
-  },
 });
