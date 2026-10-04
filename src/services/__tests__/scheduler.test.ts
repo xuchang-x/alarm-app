@@ -91,6 +91,16 @@ describe('computeRingDatesInRange — daily 类型', () => {
     const dates = computeRingDatesInRange(alarm, date, date);
     expect(dates.map(formatDate)).toEqual(['2025-06-20']);
   });
+
+  it('skip 调整正确跳过指定日期（跳过一次）', () => {
+    const alarm = makeAlarm({ type: 'daily' });
+    const start = parseDate('2025-06-20');
+    const end = parseDate('2025-06-22');
+    const dates = computeRingDatesInRange(alarm, start, end, [
+      makeAdjustment({ type: 'skip', date: '2025-06-21' }),
+    ]);
+    expect(dates.map(formatDate)).toEqual(['2025-06-20', '2025-06-22']);
+  });
 });
 
 describe('computeRingDatesInRange — weekly 类型', () => {
@@ -126,6 +136,19 @@ describe('computeRingDatesInRange — weekly 类型', () => {
     const end = parseDate('2025-06-22');
     const dates = computeRingDatesInRange(alarm, start, end);
     expect(dates).toEqual([]);
+  });
+
+  it('skip 调整正确跳过指定日期（跳过一次）', () => {
+    const alarm = makeAlarm({
+      type: 'weekly',
+      weekdays: [1, 5] as Weekday[], // 周一、周五
+    });
+    const start = parseDate('2025-06-16');
+    const end = parseDate('2025-06-22');
+    const dates = computeRingDatesInRange(alarm, start, end, [
+      makeAdjustment({ type: 'skip', date: '2025-06-20' }), // 跳过周五
+    ]);
+    expect(dates.map(formatDate)).toEqual(['2025-06-16']);
   });
 });
 

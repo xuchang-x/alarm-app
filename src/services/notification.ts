@@ -166,55 +166,13 @@ export async function scheduleAlarmNotifications(
   let failed = false;
 
   switch (alarm.type) {
-    case 'daily': {
-      try {
-        await Notifications!.scheduleNotificationAsync({
-          identifier: `${NOTIFICATION_ID_PREFIX}-${alarm.id}-daily`,
-          content,
-          trigger: {
-            type: Notifications!.SchedulableTriggerInputTypes.DAILY,
-            channelId: 'alarm-channel',
-            hour: alarm.hour,
-            minute: alarm.minute,
-          },
-        });
-        scheduled = 1;
-      } catch (error) {
-        failed = true;
-        console.warn(`[notification] 调度 daily 闹钟 #${alarm.id} 失败:`, error);
-      }
-      break;
-    }
-
-    case 'weekly': {
-      if (!alarm.weekdays) break;
-      for (const weekday of alarm.weekdays) {
-        try {
-          await Notifications!.scheduleNotificationAsync({
-            identifier: `${NOTIFICATION_ID_PREFIX}-${alarm.id}-weekly-${weekday}`,
-            content,
-            trigger: {
-              type: Notifications!.SchedulableTriggerInputTypes.WEEKLY,
-              channelId: 'alarm-channel',
-              weekday: weekday === 7 ? 1 : weekday + 1,
-              hour: alarm.hour,
-              minute: alarm.minute,
-            },
-          });
-          scheduled += 1;
-        } catch (error) {
-          failed = true;
-          console.warn(
-            `[notification] 调度 weekly 闹钟 #${alarm.id} 星期${weekday} 失败:`,
-            error
-          );
-        }
-      }
-      break;
-    }
-
     case 'once':
+    case 'daily':
+    case 'weekly':
     case 'cycle': {
+      // 四类闹钟统一逐日物化（daily/weekly 不再用系统 DAILY/WEEKLY repeating
+      // trigger）：与原生响铃层 computeTriggerTimestamps 同源，skip 调整对四类
+      // 闹钟语义一致（对齐 ring-scheduler.ts 的原生调度策略）。
       const rangeStart = today();
       const rangeEnd = addDaysToDate(rangeStart, SCHEDULE_DAYS_AHEAD);
       const dates = computeRingDatesInRange(

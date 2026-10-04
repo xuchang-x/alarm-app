@@ -43,9 +43,9 @@ type TimelineRowProps = {
 
 function TimelineRow({ item, onPress, onSkip }: TimelineRowProps) {
   const { alarm, passed } = item;
-  const isCycle = alarm.type === 'cycle';
-  /** 已响过的行不可再「跳过」，否则 skip 会错位到下一轮日期 */
-  const maxSwipe = isCycle && !passed ? -SKIP_BUTTON_WIDTH : 0;
+  /** 每天/每周/周期均可左滑跳过，一次性无「轮次」语义不开放；已响过禁用避免 skip 错位到下一轮 */
+  const swipeable = alarm.type !== 'once' && !passed;
+  const maxSwipe = swipeable ? -SKIP_BUTTON_WIDTH : 0;
   const translateX = useSharedValue(0);
   const contextX = useSharedValue(0);
 
@@ -79,7 +79,7 @@ function TimelineRow({ item, onPress, onSkip }: TimelineRowProps) {
 
   return (
     <View style={styles.wrapper}>
-      {isCycle ? (
+      {swipeable ? (
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={`跳过 ${alarm.label || '未命名提醒'} 今天一次`}

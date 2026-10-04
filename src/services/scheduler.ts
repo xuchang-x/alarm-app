@@ -33,14 +33,21 @@ export function computeRingDatesInRange(
     case 'once':
       return computeOnceDates(alarm, start, rangeEnd);
     case 'daily':
-      return computeDailyDates(start, rangeEnd);
+      return computeDailyDates(start, rangeEnd, adjustments);
     case 'weekly':
-      return computeWeeklyDates(alarm, start, rangeEnd);
+      return computeWeeklyDates(alarm, start, rangeEnd, adjustments);
     case 'cycle':
       return computeCycleDates(alarm, start, rangeEnd, adjustments);
     default:
       return [];
   }
+}
+
+/** 收集 skip 日期集合（四类闹钟统一过滤规则） */
+function collectSkipDates(adjustments: AlarmAdjustment[]): Set<string> {
+  return new Set(
+    adjustments.filter((a) => a.type === 'skip').map((a) => a.date)
+  );
 }
 
 /**
@@ -92,23 +99,31 @@ function computeOnceDates(
   return [];
 }
 
-/** 每天重复：范围内每天 */
-function computeDailyDates(rangeStart: Date, rangeEnd: Date): Date[] {
+/** 每天重复：范围内每天，过滤 skip */
+function computeDailyDates(
+  rangeStart: Date,
+  rangeEnd: Date,
+  adjustments: AlarmAdjustment[]
+): Date[] {
+  const skipDates = collectSkipDates(adjustments);
   const dates: Date[] = [];
   let current = startOfDay(rangeStart);
   const end = startOfDay(rangeEnd);
   while (!isDateAfter(current, end)) {
-    dates.push(current);
+    if (!skipDates.has(formatDate(current))) {
+      dates.push(current);
+    }
     current = addDays(current, 1);
   }
   return dates;
 }
 
-/** 按星期重复：范围内匹配的星期几 */
+/** 按星期重复：范围内匹配的星期几，过滤 skip */
 function computeWeeklyDates(
   alarm: Alarm,
   rangeStart: Date,
-  rangeEnd: Date
+  rangeEnd: Date,
+  adjustments: AlarmAdjustment[]
 ): Date[] {
   if (!alarm.weekdays || alarm.weekdays.length === 0) return [];
 
@@ -116,12 +131,13 @@ function computeWeeklyDates(
   const jsWeekdays = new Set(
     alarm.weekdays.map((wd: Weekday) => (wd % 7))
   );
+  const skipDates = collectSkipDates(adjustments);
 
   const dates: Date[] = [];
   let current = startOfDay(rangeStart);
   const end = startOfDay(rangeEnd);
   while (!isDateAfter(current, end)) {
-    if (jsWeekdays.has(getDay(current))) {
+    if (jsWeekdays.has(getDay(current)) && !skipDates.has(formatDate(current))) {
       dates.push(current);
     }
     current = addDays(current, 1);
@@ -144,9 +160,7 @@ function computeCycleDates(
   const interval = alarm.intervalDays;
 
   // 收集 skip 和 add 日期
-  const skipDates = new Set(
-    adjustments.filter((a) => a.type === 'skip').map((a) => a.date)
-  );
+  const skipDates = collectSkipDates(adjustments);
   const addDates = adjustments
     .filter((a) => a.type === 'add')
     .map((a) => startOfDay(parseDate(a.date)))
