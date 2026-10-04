@@ -25,7 +25,7 @@ export const SOUND_PRESETS: readonly SoundPreset[] = [
   { id: 'radar-ping', name: '雷达', group: 'sharp', rawName: 'ars_radar_ping' },
   { id: 'radar-soft', name: '轻雷达', group: 'sharp', rawName: 'ars_radar_soft' },
   // —— 温和组（渐进唤醒）——
-  { id: 'marimba', name: '马林巴', group: 'gentle', rawName: 'ars_marimba' },
+  { id: 'marimba', name: '木琴', group: 'gentle', rawName: 'ars_marimba' },
   { id: 'piano-arpeggio', name: '钢琴琶音', group: 'gentle', rawName: 'ars_piano_arpeggio' },
   { id: 'music-box', name: '八音盒', group: 'gentle', rawName: 'ars_music_box' },
   { id: 'chime', name: '风铃', group: 'gentle', rawName: 'ars_chime' },

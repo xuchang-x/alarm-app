@@ -7,7 +7,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import { COLORS } from '@/constants';
+import { COLORS, SKIN } from '@/constants';
 import { formatTime } from '@/utils/date';
 
 interface TimePickerProps {
@@ -19,7 +19,7 @@ interface TimePickerProps {
 interface WheelColumnProps {
   items: string[];
   selectedIndex: number;
-  onChange: (index: number, direction: -1 | 1, wrapped: boolean) => void;
+  onChange: (index: number) => void;
   accessibilityLabel: string;
   cyclic?: boolean;
 }
@@ -28,10 +28,6 @@ const ITEM_HEIGHT = 48;
 const WHEEL_HEIGHT = ITEM_HEIGHT * 3;
 const HOURS = Array.from({ length: 24 }, (_, index) => String(index).padStart(2, '0'));
 const MINUTES = Array.from({ length: 60 }, (_, index) => String(index).padStart(2, '0'));
-
-function clampHour(hour: number): number {
-  return Math.max(0, Math.min(23, hour));
-}
 
 function WheelColumn({
   items,
@@ -75,7 +71,6 @@ function WheelColumn({
       ? (nextVirtualIndex - middleStart + items.length) % items.length
       : nextVirtualIndex;
     const moved = nextVirtualIndex !== previousVirtualIndex;
-    const direction: -1 | 1 = nextVirtualIndex < previousVirtualIndex ? -1 : 1;
     const wrapped = cyclic && (
       nextVirtualIndex < middleStart || nextVirtualIndex >= middleStart + items.length
     );
@@ -83,7 +78,7 @@ function WheelColumn({
     currentVirtualIndexRef.current = nextVirtualIndex;
     if (moved) {
       ignoredVirtualIndexRef.current = null;
-      onChange(nextIndex, direction, wrapped);
+      onChange(nextIndex);
     }
 
     if (wrapped) {
@@ -120,13 +115,8 @@ function WheelColumn({
               style={styles.wheelItem}
               onPress={() => {
                 const nextIndex = cyclic ? index % items.length : index;
-                const previousVirtualIndex = currentVirtualIndexRef.current;
-                const direction: -1 | 1 = index < previousVirtualIndex ? -1 : 1;
-                const wrapped = cyclic && (
-                  index < middleStart || index >= middleStart + items.length
-                );
                 currentVirtualIndexRef.current = index;
-                onChange(nextIndex, direction, wrapped);
+                onChange(nextIndex);
                 const centeredIndex = cyclic ? middleStart + nextIndex : nextIndex;
                 currentVirtualIndexRef.current = centeredIndex;
                 scrollRef.current?.scrollTo({ y: centeredIndex * ITEM_HEIGHT, animated: true });
@@ -150,14 +140,6 @@ export default function TimePicker({ hour, minute, onChange }: TimePickerProps) 
   const draftHourRef = useRef(0);
   const draftMinuteRef = useRef(0);
 
-  const setDraftTime = (nextHour: number, nextMinute: number) => {
-    const normalizedHour = clampHour(nextHour);
-    draftHourRef.current = normalizedHour;
-    draftMinuteRef.current = nextMinute;
-    setDraftHour(normalizedHour);
-    setDraftMinute(nextMinute);
-  };
-
   const openPicker = () => {
     draftHourRef.current = hour;
     draftMinuteRef.current = minute;
@@ -176,10 +158,9 @@ export default function TimePicker({ hour, minute, onChange }: TimePickerProps) 
     setDraftHour(index);
   };
 
-  const handleMinuteChange = (index: number, direction: -1 | 1, wrapped: boolean) => {
-    const currentHour = draftHourRef.current;
-    const nextHour = wrapped ? clampHour(currentHour + direction) : currentHour;
-    setDraftTime(nextHour, index);
+  const handleMinuteChange = (index: number) => {
+    draftMinuteRef.current = index;
+    setDraftMinute(index);
   };
 
   return (
@@ -267,7 +248,7 @@ const styles = StyleSheet.create({
   timeText: { color: COLORS.primary, fontSize: 30, fontWeight: '800', letterSpacing: -0.6 },
   chevron: { marginLeft: 10, color: COLORS.textMuted, fontSize: 25 },
   modalRoot: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 },
-  backdrop: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, backgroundColor: 'rgba(37, 34, 58, 0.38)' },
+  backdrop: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, backgroundColor: SKIN.misc.backdrop },
   modalCard: { width: '100%', maxWidth: 390, paddingTop: 22, borderRadius: 26, backgroundColor: COLORS.card, shadowColor: COLORS.shadow, shadowOffset: { width: 0, height: 14 }, shadowOpacity: 0.22, shadowRadius: 26, elevation: 12 },
   modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 22 },
   modalEyebrow: { color: COLORS.primary, fontSize: 10, fontWeight: '800', letterSpacing: 1.5 },

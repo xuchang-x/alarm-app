@@ -7,9 +7,10 @@ import {
   Pressable,
   Platform,
   KeyboardAvoidingView,
-  Alert,
 } from 'react-native';
-import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import SkinDatePicker from '@/components/common/SkinDatePicker';
+import { SkinAlert } from '@/components/common/SkinAlert';
+import { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useAlarmStore } from '@/store/alarm-store';
 import { useSettingsStore } from '@/store/settings-store';
 import * as repo from '@/db/alarm-repository';
@@ -28,7 +29,7 @@ import { DEFAULT_SOUND_ID } from '@/constants/sounds';
 
 function confirmConflicts(labels: string[]): Promise<boolean> {
   return new Promise((resolve) => {
-    Alert.alert(
+    SkinAlert.alert(
       '发现时间冲突',
       `未来 30 天内有 ${labels.length} 个提醒会在同一时间响铃：${labels.join('、')}`,
       [
@@ -46,6 +47,8 @@ interface AlarmFormProps {
   onDirtyChange?: (dirty: boolean) => void;
   /** 保存成功后的回调（一般是 router.back()） */
   onSaved: () => void;
+  /** 编辑态传入删除回调；传入时底部渲染「删除这个提醒」小字链接（创建态不传） */
+  onDelete?: () => void;
 }
 
 /**
@@ -55,7 +58,7 @@ interface AlarmFormProps {
  * 名称、分类、稍后提醒收纳为附加信息。内部标识符（snooze 等）不变，
  * 仅用户可见文案用「稍后提醒」。
  */
-export default function AlarmForm({ initialAlarm, onDirtyChange, onSaved }: AlarmFormProps) {
+export default function AlarmForm({ initialAlarm, onDirtyChange, onSaved, onDelete }: AlarmFormProps) {
   const createAlarm = useAlarmStore((state) => state.createAlarm);
   const updateAlarm = useAlarmStore((state) => state.updateAlarm);
   const defaultSnoozeMinutes = useSettingsStore((state) => state.settings.defaultSnoozeMinutes);
@@ -84,14 +87,12 @@ export default function AlarmForm({ initialAlarm, onDirtyChange, onSaved }: Alar
     initialAlarm?.customSoundTitle ?? null
   );
   const [saving, setSaving] = useState(false);
-  const [dirty, setDirty] = useState(false);
 
-  /** 标记表单已编辑（供外部「取消时未保存确认」） */
+  /** 标记表单已编辑（供外部「取消时未保存确认」）。
+   * 注意：不能在 setDirty 的 updater 里调用 onDirtyChange，
+   * updater 属于渲染阶段，会触发「render 期间更新其他组件」报错 */
   const markDirty = useCallback(() => {
-    setDirty((prev) => {
-      if (!prev) onDirtyChange?.(true);
-      return true;
-    });
+    onDirtyChange?.(true);
   }, [onDirtyChange]);
 
   // 原初值快照：用于回填、重置 dirty 标记
@@ -126,7 +127,7 @@ export default function AlarmForm({ initialAlarm, onDirtyChange, onSaved }: Alar
 
   const handleSave = async () => {
     if (type === 'weekly' && weekdays.length === 0) {
-      Alert.alert('提示', '请至少选择一个星期');
+      SkinAlert.alert('提示', '请至少选择一个星期');
       return;
     }
 
@@ -197,12 +198,11 @@ export default function AlarmForm({ initialAlarm, onDirtyChange, onSaved }: Alar
           customSoundTitle,
         });
       }
-      setDirty(false);
       onDirtyChange?.(false);
       // 落库成功但通知调度失败时如实提示（数据已在，不报「创建失败」误导重试）
       const failure = useAlarmStore.getState().lastScheduleFailure;
       if (failure) {
-        Alert.alert('提醒已保存', failure, [
+        SkinAlert.alert('提醒已保存', failure, [
           { text: '知道了', onPress: onSaved },
         ]);
         return;
@@ -210,11 +210,13 @@ export default function AlarmForm({ initialAlarm, onDirtyChange, onSaved }: Alar
       onSaved();
     } catch (error) {
       console.warn('[AlarmForm] 保存提醒失败:', error);
-      Alert.alert('错误', initialAlarm ? '保存失败，请重试' : '创建闹钟失败，请重试');
+      SkinAlert.alert('错误', initialAlarm ? '保存失败，请重试' : '创建闹钟失败，请重试');
     } finally {
       setSaving(false);
     }
   };
+
+  const savingText = saving ? '保存中...' : initialAlarm ? '保存修改' : '保存提醒';
 
   return (
     <KeyboardAvoidingView
@@ -222,6 +224,7 @@ export default function AlarmForm({ initialAlarm, onDirtyChange, onSaved }: Alar
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView
+        style={styles.flex}
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
@@ -256,12 +259,11 @@ export default function AlarmForm({ initialAlarm, onDirtyChange, onSaved }: Alar
               <Text style={styles.chevron}>›</Text>
             </Pressable>
             {showOnceDatePicker ? (
-              <DateTimePicker
+              <SkinDatePicker
                 value={new Date(onceDate + 'T00:00:00')}
                 mode="date"
                 display="default"
                 onChange={handleOnceDateChange}
-                themeVariant="light"
                 minimumDate={today()}
               />
             ) : null}
@@ -305,6 +307,10 @@ export default function AlarmForm({ initialAlarm, onDirtyChange, onSaved }: Alar
           </View>
         </View>
 
+      </ScrollView>
+
+      {/* 固定底部操作区：保存（主操作）常驻；删除弱化为小字链接，仅编辑态渲染 */}
+      <View style={styles.footer}>
         <Pressable
           accessibilityRole="button"
           style={({ pressed }) => [
@@ -315,18 +321,33 @@ export default function AlarmForm({ initialAlarm, onDirtyChange, onSaved }: Alar
           onPress={handleSave}
           disabled={saving}
         >
-          <Text style={styles.saveButtonText}>
-            {saving ? '保存中...' : initialAlarm ? '保存修改' : '保存提醒'}
-          </Text>
+          <Text style={styles.saveButtonText}>{savingText}</Text>
         </Pressable>
-      </ScrollView>
+        {onDelete ? (
+          <Pressable
+            accessibilityRole="button"
+            style={({ pressed }) => [styles.deleteLink, pressed && styles.deleteLinkPressed]}
+            onPress={onDelete}
+          >
+            <Text style={styles.deleteLinkText}>删除这个提醒</Text>
+          </Pressable>
+        ) : null}
+      </View>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  content: { paddingHorizontal: 20, paddingBottom: 36 },
+  content: { paddingHorizontal: 20, paddingBottom: 24 },
+  footer: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 8,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: COLORS.border,
+    backgroundColor: COLORS.background,
+  },
   hero: { paddingVertical: 12 },
   sectionCard: {
     padding: 17,
@@ -358,7 +379,6 @@ const styles = StyleSheet.create({
   chevron: { color: COLORS.textMuted, fontSize: 25 },
   saveButton: {
     alignItems: 'center',
-    marginTop: 22,
     paddingVertical: 15,
     borderRadius: 16,
     backgroundColor: COLORS.primary,
@@ -371,4 +391,17 @@ const styles = StyleSheet.create({
   saveButtonPressed: { backgroundColor: COLORS.primaryDark, transform: [{ scale: 0.99 }] },
   saveButtonDisabled: { opacity: 0.55 },
   saveButtonText: { color: '#FFFFFF', fontSize: 15, fontWeight: '800' },
+  deleteLink: {
+    alignSelf: 'center',
+    marginTop: 10,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+  },
+  deleteLinkPressed: { backgroundColor: '#FDECEF' },
+  deleteLinkText: {
+    color: COLORS.danger,
+    fontSize: 12,
+    fontWeight: '600',
+  },
 });

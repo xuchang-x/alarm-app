@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { StyleSheet, Text, View, Pressable } from 'react-native';
-import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import SkinDatePicker from '@/components/common/SkinDatePicker';
+import { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { COLORS } from '@/constants';
 import { formatDate, parseDate, today } from '@/utils/date';
 
@@ -94,12 +95,11 @@ export default function CycleFields({
       </View>
 
       {showDatePicker ? (
-        <DateTimePicker
+        <SkinDatePicker
           value={parseDate(startDate)}
           mode="date"
           display="default"
           onChange={handleDateChange}
-          themeVariant="light"
         />
       ) : null}
     </View>

@@ -5,8 +5,8 @@ import {
   View,
   FlatList,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
+import { SkinAlert } from '@/components/common/SkinAlert';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useAlarmStore, getNextRingDate } from '@/store/alarm-store';
@@ -91,21 +91,21 @@ export default function AllScreen() {
       const duplicate = await duplicateAlarm(id);
       router.push(`/${duplicate.id}/edit`);
     } catch {
-      Alert.alert('错误', '复制失败，请重试');
+      SkinAlert.alert('错误', '复制失败，请重试');
     }
   }, [duplicateAlarm, router]);
 
   // 滑动删除与其他入口保持一致：二次确认
   const handleDelete = useCallback(
     (id: number) => {
-      Alert.alert('删除提醒', '确定删除这个提醒吗？删除后无法恢复。', [
+      SkinAlert.alert('删除提醒', '确定删除这个提醒吗？删除后无法恢复。', [
         { text: '取消', style: 'cancel' },
         {
           text: '删除',
           style: 'destructive',
           onPress: () => {
             deleteAlarm(id).catch(() => {
-              Alert.alert('错误', '删除失败，请重试');
+              SkinAlert.alert('错误', '删除失败，请重试');
             });
           },
         },
@@ -118,7 +118,7 @@ export default function AllScreen() {
   const handleToggle = useCallback(
     (id: number) => {
       toggleAlarm(id).catch(() => {
-        Alert.alert('错误', '切换开关失败，请重试');
+        SkinAlert.alert('错误', '切换开关失败，请重试');
       });
     },
     [toggleAlarm]
@@ -178,7 +178,7 @@ export default function AllScreen() {
   if (alarms.length === 0) {
     return (
       <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-        <View style={styles.pageHeader}>
+        <View style={styles.emptyPageHeader}>
           <PageHeading
             eyebrow="ALL REMINDERS"
             title="全部"
@@ -256,8 +256,13 @@ const styles = StyleSheet.create({
     paddingBottom: 6,
   },
   pageHeader: {
-    paddingHorizontal: 2,
-    paddingTop: 10,
+    paddingTop: 12,
+    paddingBottom: 20,
+  },
+  // 空状态没有列表容器的 20px 水平内边距，需自行补齐，与其他 Tab 页头对齐
+  emptyPageHeader: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
     paddingBottom: 20,
   },
   emptyWrap: {

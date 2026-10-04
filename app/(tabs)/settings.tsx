@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Linking,
   Pressable,
   ScrollView,
@@ -11,6 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PageHeading } from '@/components/common/PageHeader';
+import { SkinAlert } from '@/components/common/SkinAlert';
 import { COLORS, DEFAULT_SNOOZE_MINUTES } from '@/constants';
 import {
   getNotificationPermissionStatus,
@@ -73,7 +73,7 @@ export default function SettingsScreen() {
   const handleThemeChange = async (theme: ThemePreference) => {
     await updateSettings({ theme });
     if (theme === 'system') {
-      Alert.alert('主题设置', '已保存为跟随系统。完整深色主题将在视觉规范确定后启用。');
+      SkinAlert.alert('主题设置', '已保存为跟随系统。完整深色主题将在视觉规范确定后启用。');
     }
   };
 
