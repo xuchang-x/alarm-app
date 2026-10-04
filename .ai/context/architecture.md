@@ -27,7 +27,12 @@ alarm-app/
 │   ├── types/                  # TypeScript 类型定义
 │   └── constants/              # 常量（COLORS token 单一来源）
 ├── assets/                     # 静态资源（图标、启动图等）
-├── docs/dev-knowledge/         # 给人看的开发知识（构建环境等）
+├── android/                   # Android 原生工程（dev build，通知功能所需；已 gitignore，不入库）
+├── design/                    # 设计资产（App 图标候选等）
+├── dist/                      # 构建产物（已 gitignore，不入库）
+├── docs/
+│   ├── dev-knowledge/         # 给人看的开发知识（构建环境、dev build）
+│   └── iteration/              # 迭代记录（release/ 版本日志 + weekly/ 周报）
 ├── .ai/                        # AI 知识体系
 │   ├── context/                # 项目上下文（项目是什么）
 │   ├── rules/                  # 编码规范（代码怎么写）
