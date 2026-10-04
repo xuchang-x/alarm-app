@@ -7,7 +7,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import { COLORS } from '@/constants';
+import { COLORS, SKIN } from '@/constants';
 import { formatTime } from '@/utils/date';
 
 interface TimePickerProps {
@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
   timeText: { color: COLORS.primary, fontSize: 30, fontWeight: '800', letterSpacing: -0.6 },
   chevron: { marginLeft: 10, color: COLORS.textMuted, fontSize: 25 },
   modalRoot: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 },
-  backdrop: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, backgroundColor: 'rgba(37, 34, 58, 0.38)' },
+  backdrop: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, backgroundColor: SKIN.misc.backdrop },
   modalCard: { width: '100%', maxWidth: 390, paddingTop: 22, borderRadius: 26, backgroundColor: COLORS.card, shadowColor: COLORS.shadow, shadowOffset: { width: 0, height: 14 }, shadowOpacity: 0.22, shadowRadius: 26, elevation: 12 },
   modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 22 },
   modalEyebrow: { color: COLORS.primary, fontSize: 10, fontWeight: '800', letterSpacing: 1.5 },
