@@ -8,7 +8,8 @@
 alarm-app/
 ├── app/                        # expo-router 路由页面
 │   ├── _layout.tsx             # 根布局（Stack 导航）
-│   ├── (tabs)/                 # 底部 4 Tab（006 目标态：today 初始/plan/all/settings）
+│   ├── index.tsx               # 根路径重定向 → /today（启动进今日 Tab）
+│   ├── (tabs)/                 # 底部 4 Tab（006 已落地：today 初始/plan/all/settings）
 │   │   ├── _layout.tsx
 │   │   ├── today.tsx           # 今日（下一次响铃 + 时间轴）
 │   │   ├── plan.tsx            # 计划（日历视图）
@@ -27,7 +28,12 @@ alarm-app/
 │   ├── types/                  # TypeScript 类型定义
 │   └── constants/              # 常量（COLORS token 单一来源）
 ├── assets/                     # 静态资源（图标、启动图等）
-├── docs/dev-knowledge/         # 给人看的开发知识（构建环境等）
+├── android/                   # Android 原生工程（dev build，通知功能所需；已 gitignore，不入库）
+├── design/                    # 设计资产（App 图标候选等）
+├── dist/                      # 构建产物（已 gitignore，不入库）
+├── docs/
+│   ├── dev-knowledge/         # 给人看的开发知识（构建环境、dev build）
+│   └── iteration/              # 迭代记录（release/ 版本日志 + weekly/ 周报）
 ├── .ai/                        # AI 知识体系
 │   ├── context/                # 项目上下文（项目是什么）
 │   ├── rules/                  # 编码规范（代码怎么写）
@@ -36,7 +42,7 @@ alarm-app/
 └── .github/                    # GitHub 协作模板
 ```
 
-> 注：以上为 006 重构目标态；当前实施进度以 [006 design.md](../specs/006-product-redesign/design.md) 为准。
+> 注：以上为 006 重构落地后的现状结构（T1~T9 已完成，版本收口于 0.0.3）。
 
 ## 数据存储方案
 
@@ -55,4 +61,4 @@ alarm-app/
 | date-fns | ^4.4.0 | 日期计算 |
 | react-native-gesture-handler | ~2.31.1 | 手势交互 |
 | react-native-reanimated | ~4.3.1 | 动画 |
-| react-native-screens / safe-area-context / worklets | SDK 56 | 导航与布局配套 |
+| react-native-screens / safe-area-context / worklets | 4.25.2 / ~5.7.0 / 0.8.3 | 导航与布局配套 |
