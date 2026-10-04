@@ -1,6 +1,9 @@
 /** 批量预调度天数 */
 export const SCHEDULE_DAYS_AHEAD = 90;
 
+/** 单个闹钟一次性预调度的最大条数（iOS 系统上限 64 条，超限会被静默丢弃） */
+export const SCHEDULE_MAX_PER_ALARM = 60;
+
 /** 默认贪睡分钟数 */
 export const DEFAULT_SNOOZE_MINUTES = 10;
 
