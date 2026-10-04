@@ -1,6 +1,6 @@
 # 007 - 提示音与自定义铃声 技术设计
 
-对应需求：[requirements.md](./requirements.md)。前置调研：`docs/dev-knowledge/alarm-sound-research.md`、`docs/dev-knowledge/alarm-ring-duration-research.md`。
+对应需求：[requirements.md](./requirements.md)。前置调研：`docs/dev-knowledge/2026-10-4-提示音调研.md`、`docs/dev-knowledge/2026-10-4-响铃时长调研.md`。
 
 ## 技术选型总览
 

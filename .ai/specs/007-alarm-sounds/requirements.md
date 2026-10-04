@@ -15,7 +15,7 @@
 ### 1. 内置提示音库（10 个）
 
 - **功能说明**：App 打包 10 个免版权（CC0 / Apache 2.0 / Pixabay 许可）提示音，按「刺耳 / 温和 / 自然」三档分组，每个闹钟独立配置。
-- **内置清单**（来自 `docs/dev-knowledge/alarm-sound-research.md` 调研结论）：
+- **内置清单**（来自 `docs/dev-knowledge/2026-10-4-提示音调研.md` 调研结论）：
   - 刺耳：Classic Alarm（经典双铃，默认音）、Buzzer（电子蜂鸣）、Radar Ping（尖锐脉冲）
   - 温和：Radar Soft、Marimba（马林巴）、Piano Arpeggio（钢琴琶音）、Music Box（八音盒）、Chime（风铃）
   - 自然：Birds Morning（清晨鸟鸣）、Ocean Waves（海浪）

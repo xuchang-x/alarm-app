@@ -18,5 +18,5 @@
 
 - 不做原生闹钟（iOS 系统限制 + 原生开发成本高），定位为**定时提醒工具**
 - 使用 `expo-notifications` 实现本地通知推送
-- 通知功能在 Expo Go 中不可用（代码 try-catch 静默降级），需 dev build 验证 → `android/` 原生工程已落地，构建环境见 [android-build-env.md](../../docs/dev-knowledge/android-build-env.md)
+- 通知功能在 Expo Go 中不可用（代码 try-catch 静默降级），需 dev build 验证 → `android/` 原生工程已落地，构建环境见 [2026-10-3-Android构建环境.md](../../docs/dev-knowledge/2026-10-3-Android构建环境.md)
 - 日常开发仍走 Expo 工作流，原生目录仅在构建 dev build 时使用
