@@ -11,16 +11,16 @@
 import type { AudioSource } from 'expo-audio';
 
 export const SOUND_ASSETS: Readonly<Record<string, AudioSource>> = {
-  'classic-alarm': require('../../../assets/sounds/ars_classic_alarm.ogg'),
-  buzzer: require('../../../assets/sounds/ars_buzzer.ogg'),
-  'radar-ping': require('../../../assets/sounds/ars_radar_ping.ogg'),
-  'radar-soft': require('../../../assets/sounds/ars_radar_soft.ogg'),
-  marimba: require('../../../assets/sounds/ars_marimba.ogg'),
-  'piano-arpeggio': require('../../../assets/sounds/ars_piano_arpeggio.ogg'),
-  'music-box': require('../../../assets/sounds/ars_music_box.ogg'),
-  chime: require('../../../assets/sounds/ars_chime.ogg'),
-  'birds-morning': require('../../../assets/sounds/ars_birds_morning.ogg'),
-  'ocean-waves': require('../../../assets/sounds/ars_ocean_waves.ogg'),
+  'classic-alarm': require('../../assets/sounds/ars_classic_alarm.ogg'),
+  buzzer: require('../../assets/sounds/ars_buzzer.ogg'),
+  'radar-ping': require('../../assets/sounds/ars_radar_ping.ogg'),
+  'radar-soft': require('../../assets/sounds/ars_radar_soft.ogg'),
+  marimba: require('../../assets/sounds/ars_marimba.ogg'),
+  'piano-arpeggio': require('../../assets/sounds/ars_piano_arpeggio.ogg'),
+  'music-box': require('../../assets/sounds/ars_music_box.ogg'),
+  chime: require('../../assets/sounds/ars_chime.ogg'),
+  'birds-morning': require('../../assets/sounds/ars_birds_morning.ogg'),
+  'ocean-waves': require('../../assets/sounds/ars_ocean_waves.ogg'),
 };
 
 /** 按 id 取试听源（未知 id 返回 null，调用方静默跳过试听）。 */
@@ -28,3 +28,4 @@ export function getSoundAsset(id: string | null | undefined): AudioSource | null
   if (!id) return null;
   return SOUND_ASSETS[id] ?? null;
 }
+
