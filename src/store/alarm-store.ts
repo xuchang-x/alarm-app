@@ -11,14 +11,24 @@ import {
   scheduleAlarmNotifications,
   cancelAlarmNotifications,
   scheduleSnooze as scheduleSnoozeNotification,
+  type ScheduleResult,
 } from '@/services/notification';
+
+/** 调度失败时给用户的一致提示文案（Expo Go 环境下不会出现此分支） */
+const SCHEDULE_FAILED_MESSAGE =
+  '提醒已保存，但通知调度失败（可能是系统通知权限被拒绝）。开启后请在系统设置中允许通知。';
 
 interface AlarmStore {
   alarms: Alarm[];
   loading: boolean;
+  /** 最近一次调度失败信息（供页面提示「已落库但调度失败」） */
+  lastScheduleFailure: string | null;
 
   /** 从数据库加载所有闹钟 */
   loadAlarms: () => Promise<void>;
+
+  /** 调度后统一处理：失败时记录提示文案（数据已落库，不回滚不重试） */
+  _applyScheduleResult: (result: ScheduleResult) => void;
 
   /** 创建闹钟 */
   createAlarm: (input: CreateAlarmInput) => Promise<Alarm>;
@@ -49,6 +59,7 @@ interface AlarmStore {
 export const useAlarmStore = create<AlarmStore>((set, get) => ({
   alarms: [],
   loading: false,
+  lastScheduleFailure: null,
 
   loadAlarms: async () => {
     set({ loading: true });
@@ -60,10 +71,17 @@ export const useAlarmStore = create<AlarmStore>((set, get) => ({
     }
   },
 
+  /** 调度后统一处理：失败时记录提示文案（数据已落库，不回滚不重试） */
+  _applyScheduleResult(result: ScheduleResult): void {
+    set({ lastScheduleFailure: result.ok ? null : SCHEDULE_FAILED_MESSAGE });
+  },
+
   createAlarm: async (input) => {
     const alarm = await repo.createAlarm(input);
     const adjustments = await repo.getAdjustments(alarm.id);
-    await scheduleAlarmNotifications(alarm, adjustments);
+    get()._applyScheduleResult(
+      await scheduleAlarmNotifications(alarm, adjustments)
+    );
     await get().loadAlarms();
     return alarm;
   },
@@ -89,7 +107,9 @@ export const useAlarmStore = create<AlarmStore>((set, get) => ({
       snoozeMinutes: source.snoozeMinutes,
     });
     const adjustments = await repo.getAdjustments(alarm.id);
-    await scheduleAlarmNotifications(alarm, adjustments);
+    get()._applyScheduleResult(
+      await scheduleAlarmNotifications(alarm, adjustments)
+    );
     await get().loadAlarms();
     return alarm;
   },
@@ -99,21 +119,35 @@ export const useAlarmStore = create<AlarmStore>((set, get) => ({
     const updated = await repo.getAlarmById(id);
     if (updated) {
       const adjustments = await repo.getAdjustments(id);
-      await scheduleAlarmNotifications(updated, adjustments);
+      get()._applyScheduleResult(
+        await scheduleAlarmNotifications(updated, adjustments)
+      );
     }
     await get().loadAlarms();
   },
 
   deleteAlarm: async (id) => {
-    await cancelAlarmNotifications(id);
+    try {
+      await cancelAlarmNotifications(id);
+    } catch (error) {
+      // 通知取消失败不阻断删除（数据库是唯一真相，孤儿通知到期自然消亡）
+      console.warn(`[alarm-store] 取消闹钟 #${id} 通知失败:`, error);
+    }
     await repo.deleteAlarm(id);
     await get().loadAlarms();
   },
 
   toggleAlarm: async (id) => {
-    const toggled = await repo.toggleAlarm(id);
+    // 读当前库内状态并按目标值置位，避免快速连点时「读-改-写」竞态
+    const current = await repo.getAlarmById(id);
+    if (!current) {
+      throw new Error(`闹钟 #${id} 不存在`);
+    }
+    const toggled = await repo.setAlarmEnabled(id, !current.enabled);
     const adjustments = await repo.getAdjustments(id);
-    await scheduleAlarmNotifications(toggled, adjustments);
+    get()._applyScheduleResult(
+      await scheduleAlarmNotifications(toggled, adjustments)
+    );
     await get().loadAlarms();
   },
 
@@ -122,7 +156,9 @@ export const useAlarmStore = create<AlarmStore>((set, get) => ({
     const alarm = await repo.getAlarmById(id);
     if (alarm) {
       const adjustments = await repo.getAdjustments(id);
-      await scheduleAlarmNotifications(alarm, adjustments);
+      get()._applyScheduleResult(
+        await scheduleAlarmNotifications(alarm, adjustments)
+      );
     }
     await get().loadAlarms();
   },
@@ -130,7 +166,11 @@ export const useAlarmStore = create<AlarmStore>((set, get) => ({
   snooze: async (id) => {
     const alarm = await repo.getAlarmById(id);
     if (alarm) {
-      await scheduleSnoozeNotification(alarm);
+      try {
+        await scheduleSnoozeNotification(alarm);
+      } catch (error) {
+        console.warn(`[alarm-store] 调度贪睡通知失败（闹钟 #${id}）:`, error);
+      }
     }
   },
 }));
