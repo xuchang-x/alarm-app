@@ -9,7 +9,8 @@ import {
   KeyboardAvoidingView,
   Alert,
 } from 'react-native';
-import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import SkinDatePicker from '@/components/common/SkinDatePicker';
+import { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useAlarmStore } from '@/store/alarm-store';
 import { useSettingsStore } from '@/store/settings-store';
 import * as repo from '@/db/alarm-repository';
@@ -258,13 +259,11 @@ export default function AlarmForm({ initialAlarm, onDirtyChange, onSaved, onDele
               <Text style={styles.chevron}>›</Text>
             </Pressable>
             {showOnceDatePicker ? (
-              <DateTimePicker
+              <SkinDatePicker
                 value={new Date(onceDate + 'T00:00:00')}
                 mode="date"
                 display="default"
-                design="material"
                 onChange={handleOnceDateChange}
-                themeVariant="light"
                 minimumDate={today()}
               />
             ) : null}

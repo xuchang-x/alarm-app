@@ -7,9 +7,8 @@ import {
   Pressable,
   Platform,
 } from 'react-native';
-import DateTimePicker, {
-  DateTimePickerEvent,
-} from '@react-native-community/datetimepicker';
+import SkinDatePicker from '@/components/common/SkinDatePicker';
+import { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { COLORS } from '@/constants';
 import { parseDate, formatDate } from '@/utils/date';
 
@@ -87,13 +86,11 @@ export default function CycleSettings({
       </View>
 
       {showDatePicker && (
-        <DateTimePicker
+        <SkinDatePicker
           value={parseDate(startDate)}
           mode="date"
           display="default"
-          design="material"
           onChange={handleDateChange}
-          themeVariant="light"
         />
       )}
     </View>
