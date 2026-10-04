@@ -44,7 +44,8 @@ type TimelineRowProps = {
 function TimelineRow({ item, onPress, onSkip }: TimelineRowProps) {
   const { alarm, passed } = item;
   const isCycle = alarm.type === 'cycle';
-  const maxSwipe = isCycle ? -SKIP_BUTTON_WIDTH : 0;
+  /** 已响过的行不可再「跳过」，否则 skip 会错位到下一轮日期 */
+  const maxSwipe = isCycle && !passed ? -SKIP_BUTTON_WIDTH : 0;
   const translateX = useSharedValue(0);
   const contextX = useSharedValue(0);
 
