@@ -39,6 +39,9 @@ yarn-error.*
 # local env files
 .env*.local
 
+# AI 临时验证产物（模拟数据/截图等）
+.tmp-db/
+
 # typescript
 *.tsbuildinfo
 
