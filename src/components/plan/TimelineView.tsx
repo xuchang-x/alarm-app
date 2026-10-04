@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
   timelineBody: { flexDirection: 'row' },
   hourLabels: { width: HOUR_LABEL_WIDTH, paddingTop: 1 },
   hourLabel: { height: HOUR_HEIGHT, paddingTop: 5, paddingRight: 5, color: COLORS.textMuted, fontSize: 9, textAlign: 'right' },
-  timelineColumns: { flex: 1, height: TIMELINE_HEIGHT, flexDirection: 'row' },
+  timelineColumns: { flex: 1, height: TIMELINE_HEIGHT, flexDirection: 'row', borderLeftWidth: 1, borderLeftColor: COLORS.border },
   timelineColumn: { position: 'relative', flex: 1, height: TIMELINE_HEIGHT, borderRightWidth: 1, borderRightColor: COLORS.border },
   timelineGrid: { height: TIMELINE_HEIGHT },
   hourCell: { height: HOUR_HEIGHT, borderTopWidth: 1, borderTopColor: COLORS.border },
