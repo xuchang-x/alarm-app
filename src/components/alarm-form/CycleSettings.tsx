@@ -91,6 +91,7 @@ export default function CycleSettings({
           value={parseDate(startDate)}
           mode="date"
           display="default"
+          design="material"
           onChange={handleDateChange}
           themeVariant="light"
         />

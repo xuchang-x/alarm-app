@@ -98,6 +98,7 @@ export default function CycleFields({
           value={parseDate(startDate)}
           mode="date"
           display="default"
+          design="material"
           onChange={handleDateChange}
           themeVariant="light"
         />

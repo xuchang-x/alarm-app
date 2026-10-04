@@ -13,28 +13,8 @@ export const NOTIFICATION_ID_PREFIX = 'alarm';
 /** 通知 category 标识 */
 export const NOTIFICATION_CATEGORY = 'alarm';
 
-/** Eva / UI Kitten 风格颜色：浅色暖灰背景 + 紫蓝主色 */
-export const COLORS = {
-  background: '#F7F5FC',
-  card: '#FFFFFF',
-  input: '#F3F1F8',
-  primary: '#6C5CE7',
-  primaryDark: '#5545C8',
-  primarySoft: '#EAE6FF',
-  danger: '#E85D75',
-  warning: '#E79A4D',
-  success: '#45B89C',
-  textPrimary: '#25223A',
-  textSecondary: '#6D6880',
-  textMuted: '#9C97AC',
-  textDisabled: '#B9B5C4',
-  border: '#E5E1F0',
-  shadow: '#51468A',
-  /** 今日页 hero 卡分隔线（primaryDark 低透明度） */
-  heroDivider: 'rgba(85, 69, 200, 0.18)',
-  /** 今日页节奏点阵未点亮色 */
-  heroDotOff: '#D9D2F5',
-} as const;
+/** App 皮肤色与原生弹窗文案统一定义在 theme.ts，这里 re-export 保持兼容 */
+export { COLORS, NATIVE_DIALOG_LABELS } from './theme';
 
 export const ALARM_CATEGORIES = [
   { key: 'work', label: '工作', color: '#6C5CE7' },
