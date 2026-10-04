@@ -1,5 +1,6 @@
 import { useCallback, useEffect } from 'react';
-import { StyleSheet, Text, View, Alert } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import { SkinAlert } from '@/components/common/SkinAlert';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -48,7 +49,7 @@ export default function TodayScreen() {
           await addAdjustment(id, 'skip', formatDate(nextDate));
         }
       } catch {
-        Alert.alert('错误', '跳过失败，请重试');
+        SkinAlert.alert('错误', '跳过失败，请重试');
       }
     },
     [addAdjustment, alarms]

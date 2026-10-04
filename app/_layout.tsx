@@ -15,6 +15,7 @@ import {
   addNotificationResponseListener,
 } from '@/services/notification';
 import { replenishAlarmRinging } from '@/services/ring-scheduler';
+import { SkinAlertHost } from '@/components/common/SkinAlert';
 import { COLORS } from '@/constants';
 
 // 在模块加载时立即配置前台通知处理（Expo Go 中安全跳过）
@@ -141,6 +142,8 @@ export default function RootLayout() {
           <Stack.Screen name="create" />
           <Stack.Screen name="[id]/edit" />
         </Stack>
+        {/* 皮肤化系统弹窗宿主，业务代码统一走 SkinAlert.alert */}
+        <SkinAlertHost />
       </GestureHandlerRootView>
     </SafeAreaProvider>
   );

@@ -14,11 +14,13 @@ export const NOTIFICATION_ID_PREFIX = 'alarm';
 export const NOTIFICATION_CATEGORY = 'alarm';
 
 /** App 皮肤色与原生弹窗文案统一定义在 theme.ts，这里 re-export 保持兼容 */
-export { COLORS, NATIVE_DIALOG_LABELS } from './theme';
+export { COLORS, SKIN, NATIVE_DIALOG_LABELS } from './theme';
+
+import { SKIN } from './theme';
 
 export const ALARM_CATEGORIES = [
-  { key: 'work', label: '工作', color: '#6C5CE7' },
-  { key: 'life', label: '生活', color: '#E79A4D' },
-  { key: 'sport', label: '运动', color: '#45B89C' },
-  { key: 'other', label: '其他', color: '#8A839C' },
+  { key: 'work', label: '工作', color: SKIN.brand.primary },
+  { key: 'life', label: '生活', color: SKIN.status.warning },
+  { key: 'sport', label: '运动', color: SKIN.status.success },
+  { key: 'other', label: '其他', color: SKIN.misc.categoryNeutral },
 ] as const;

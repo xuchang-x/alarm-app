@@ -7,9 +7,9 @@ import {
   Pressable,
   Platform,
   KeyboardAvoidingView,
-  Alert,
 } from 'react-native';
 import SkinDatePicker from '@/components/common/SkinDatePicker';
+import { SkinAlert } from '@/components/common/SkinAlert';
 import { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useAlarmStore } from '@/store/alarm-store';
 import { useSettingsStore } from '@/store/settings-store';
@@ -29,7 +29,7 @@ import { DEFAULT_SOUND_ID } from '@/constants/sounds';
 
 function confirmConflicts(labels: string[]): Promise<boolean> {
   return new Promise((resolve) => {
-    Alert.alert(
+    SkinAlert.alert(
       '发现时间冲突',
       `未来 30 天内有 ${labels.length} 个提醒会在同一时间响铃：${labels.join('、')}`,
       [
@@ -127,7 +127,7 @@ export default function AlarmForm({ initialAlarm, onDirtyChange, onSaved, onDele
 
   const handleSave = async () => {
     if (type === 'weekly' && weekdays.length === 0) {
-      Alert.alert('提示', '请至少选择一个星期');
+      SkinAlert.alert('提示', '请至少选择一个星期');
       return;
     }
 
@@ -202,7 +202,7 @@ export default function AlarmForm({ initialAlarm, onDirtyChange, onSaved, onDele
       // 落库成功但通知调度失败时如实提示（数据已在，不报「创建失败」误导重试）
       const failure = useAlarmStore.getState().lastScheduleFailure;
       if (failure) {
-        Alert.alert('提醒已保存', failure, [
+        SkinAlert.alert('提醒已保存', failure, [
           { text: '知道了', onPress: onSaved },
         ]);
         return;
@@ -210,7 +210,7 @@ export default function AlarmForm({ initialAlarm, onDirtyChange, onSaved, onDele
       onSaved();
     } catch (error) {
       console.warn('[AlarmForm] 保存提醒失败:', error);
-      Alert.alert('错误', initialAlarm ? '保存失败，请重试' : '创建闹钟失败，请重试');
+      SkinAlert.alert('错误', initialAlarm ? '保存失败，请重试' : '创建闹钟失败，请重试');
     } finally {
       setSaving(false);
     }

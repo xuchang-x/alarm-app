@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, ActivityIndicator, Alert } from 'react-native';
+import { StyleSheet, Text, View, ActivityIndicator } from 'react-native';
+import { SkinAlert } from '@/components/common/SkinAlert';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { NavBar } from '@/components/common/PageHeader';
@@ -25,14 +26,14 @@ export default function EditScreen() {
     async function loadAlarm() {
       const alarmId = parseInt(id, 10);
       if (isNaN(alarmId)) {
-        Alert.alert('错误', '无效的闹钟 ID');
+        SkinAlert.alert('错误', '无效的闹钟 ID');
         router.back();
         return;
       }
 
       const found = await repo.getAlarmById(alarmId);
       if (!found) {
-        Alert.alert('错误', '闹钟不存在');
+        SkinAlert.alert('错误', '闹钟不存在');
         router.back();
         return;
       }
@@ -50,7 +51,7 @@ export default function EditScreen() {
       router.back();
       return;
     }
-    Alert.alert('放弃修改', '当前编辑内容尚未保存，确定要退出吗？', [
+    SkinAlert.alert('放弃修改', '当前编辑内容尚未保存，确定要退出吗？', [
       { text: '继续编辑', style: 'cancel' },
       { text: '放弃修改', style: 'destructive', onPress: () => router.back() },
     ]);
@@ -58,7 +59,7 @@ export default function EditScreen() {
 
   const handleDelete = () => {
     if (!alarm) return;
-    Alert.alert('删除提醒', '确定删除这个提醒吗？删除后无法恢复。', [
+    SkinAlert.alert('删除提醒', '确定删除这个提醒吗？删除后无法恢复。', [
       { text: '取消', style: 'cancel' },
       {
         text: '删除',
