@@ -1,4 +1,4 @@
-import { NativeModules } from 'react-native';
+import { requireOptionalNativeModule } from 'expo-modules-core';
 
 /**
  * alarm-ring 原生模块的 JS 侧入口。
@@ -26,6 +26,7 @@ interface AlarmRingNativeModule {
   canScheduleExactAlarms(): boolean;
 }
 
-export const AlarmRing = (NativeModules.AlarmRing as AlarmRingNativeModule | undefined) ?? null;
+export const AlarmRing =
+  requireOptionalNativeModule<AlarmRingNativeModule>('AlarmRing') ?? null;
 
 export default AlarmRing;
