@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, ActivityIndicator, Pressable, Alert } from 'react-native';
+import { StyleSheet, Text, View, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { NavBar } from '@/components/common/PageHeader';
@@ -10,7 +10,8 @@ import type { Alarm } from '@/types/alarm';
 import { COLORS } from '@/constants';
 
 /**
- * 编辑页：薄壳 + 加载原闹钟 + 删除入口，表单逻辑全部在 AlarmForm。
+ * 编辑页：薄壳 + 加载原闹钟，表单逻辑全部在 AlarmForm。
+ * 删除入口通过 onDelete 交给 AlarmForm，弱化为底部保存按钮下的小字链接。
  */
 export default function EditScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -91,18 +92,8 @@ export default function EditScreen() {
           initialAlarm={alarm}
           onDirtyChange={setDirty}
           onSaved={() => router.back()}
+          onDelete={handleDelete}
         />
-      ) : null}
-      {alarm ? (
-        <View style={styles.dangerWrapper}>
-          <Pressable
-            accessibilityRole="button"
-            style={({ pressed }) => [styles.dangerButton, pressed && styles.dangerButtonPressed]}
-            onPress={handleDelete}
-          >
-            <Text style={styles.dangerButtonText}>删除这个提醒</Text>
-          </Pressable>
-        </View>
       ) : null}
     </SafeAreaView>
   );
@@ -112,22 +103,4 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   loadingText: { marginTop: 12, color: COLORS.textSecondary, fontSize: 13 },
-  dangerWrapper: { paddingHorizontal: 20, paddingBottom: 24 },
-  dangerButton: {
-    alignItems: 'center',
-    paddingVertical: 15,
-    borderRadius: 16,
-    backgroundColor: '#FDECEF',
-    borderWidth: 1,
-    borderColor: '#F5C6CF',
-  },
-  dangerButtonPressed: {
-    backgroundColor: '#FAD6DC',
-    transform: [{ scale: 0.99 }],
-  },
-  dangerButtonText: {
-    color: COLORS.danger,
-    fontSize: 14,
-    fontWeight: '800',
-  },
 });

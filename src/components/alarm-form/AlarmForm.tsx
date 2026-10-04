@@ -46,6 +46,8 @@ interface AlarmFormProps {
   onDirtyChange?: (dirty: boolean) => void;
   /** 保存成功后的回调（一般是 router.back()） */
   onSaved: () => void;
+  /** 编辑态传入删除回调；传入时底部渲染「删除这个提醒」小字链接（创建态不传） */
+  onDelete?: () => void;
 }
 
 /**
@@ -55,7 +57,7 @@ interface AlarmFormProps {
  * 名称、分类、稍后提醒收纳为附加信息。内部标识符（snooze 等）不变，
  * 仅用户可见文案用「稍后提醒」。
  */
-export default function AlarmForm({ initialAlarm, onDirtyChange, onSaved }: AlarmFormProps) {
+export default function AlarmForm({ initialAlarm, onDirtyChange, onSaved, onDelete }: AlarmFormProps) {
   const createAlarm = useAlarmStore((state) => state.createAlarm);
   const updateAlarm = useAlarmStore((state) => state.updateAlarm);
   const defaultSnoozeMinutes = useSettingsStore((state) => state.settings.defaultSnoozeMinutes);
@@ -213,12 +215,15 @@ export default function AlarmForm({ initialAlarm, onDirtyChange, onSaved }: Alar
     }
   };
 
+  const savingText = saving ? '保存中...' : initialAlarm ? '保存修改' : '保存提醒';
+
   return (
     <KeyboardAvoidingView
       style={styles.flex}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView
+        style={styles.flex}
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
@@ -257,6 +262,7 @@ export default function AlarmForm({ initialAlarm, onDirtyChange, onSaved }: Alar
                 value={new Date(onceDate + 'T00:00:00')}
                 mode="date"
                 display="default"
+                design="material"
                 onChange={handleOnceDateChange}
                 themeVariant="light"
                 minimumDate={today()}
@@ -302,6 +308,10 @@ export default function AlarmForm({ initialAlarm, onDirtyChange, onSaved }: Alar
           </View>
         </View>
 
+      </ScrollView>
+
+      {/* 固定底部操作区：保存（主操作）常驻；删除弱化为小字链接，仅编辑态渲染 */}
+      <View style={styles.footer}>
         <Pressable
           accessibilityRole="button"
           style={({ pressed }) => [
@@ -312,18 +322,33 @@ export default function AlarmForm({ initialAlarm, onDirtyChange, onSaved }: Alar
           onPress={handleSave}
           disabled={saving}
         >
-          <Text style={styles.saveButtonText}>
-            {saving ? '保存中...' : initialAlarm ? '保存修改' : '保存提醒'}
-          </Text>
+          <Text style={styles.saveButtonText}>{savingText}</Text>
         </Pressable>
-      </ScrollView>
+        {onDelete ? (
+          <Pressable
+            accessibilityRole="button"
+            style={({ pressed }) => [styles.deleteLink, pressed && styles.deleteLinkPressed]}
+            onPress={onDelete}
+          >
+            <Text style={styles.deleteLinkText}>删除这个提醒</Text>
+          </Pressable>
+        ) : null}
+      </View>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  content: { paddingHorizontal: 20, paddingBottom: 36 },
+  content: { paddingHorizontal: 20, paddingBottom: 24 },
+  footer: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 8,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: COLORS.border,
+    backgroundColor: COLORS.background,
+  },
   hero: { paddingVertical: 12 },
   sectionCard: {
     padding: 17,
@@ -355,7 +380,6 @@ const styles = StyleSheet.create({
   chevron: { color: COLORS.textMuted, fontSize: 25 },
   saveButton: {
     alignItems: 'center',
-    marginTop: 22,
     paddingVertical: 15,
     borderRadius: 16,
     backgroundColor: COLORS.primary,
@@ -368,4 +392,17 @@ const styles = StyleSheet.create({
   saveButtonPressed: { backgroundColor: COLORS.primaryDark, transform: [{ scale: 0.99 }] },
   saveButtonDisabled: { opacity: 0.55 },
   saveButtonText: { color: '#FFFFFF', fontSize: 15, fontWeight: '800' },
+  deleteLink: {
+    alignSelf: 'center',
+    marginTop: 10,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+  },
+  deleteLinkPressed: { backgroundColor: '#FDECEF' },
+  deleteLinkText: {
+    color: COLORS.danger,
+    fontSize: 12,
+    fontWeight: '600',
+  },
 });
