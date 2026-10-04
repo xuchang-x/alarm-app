@@ -184,17 +184,30 @@ describe('scheduleAlarmRinging — 铃声字段透传（007）', () => {
 
     await svc.scheduleAlarmRinging(alarm, []);
 
-    expect(getPlan(native)).toEqual({ soundId: 'chime', soundUri: null });
+    expect(getPlan(native)).toEqual({ soundId: 'ars_chime', soundUri: null });
   });
 
-  it('老数据（soundId/customSoundUri 均为 NULL）兑底默认音 classic-alarm', async () => {
+  it('老数据（soundId/customSoundUri 均为 NULL）兑底默认音 classic-alarm 的 raw 资源名', async () => {
     const native = makeNativeStub();
     const svc = loadRingScheduler(native);
     const alarm = makeAlarm({ type: 'cycle', intervalDays: 1, startDate: FAKE_TODAY });
 
     await svc.scheduleAlarmRinging(alarm, []);
 
-    expect(getPlan(native)).toEqual({ soundId: 'classic-alarm', soundUri: null });
+    expect(getPlan(native)).toEqual({ soundId: 'ars_classic_alarm', soundUri: null });
+  });
+
+  it('未知 soundId（资源已下线等）兑底默认音 raw 资源名', async () => {
+    const native = makeNativeStub();
+    const svc = loadRingScheduler(native);
+    const alarm = makeAlarm({
+      type: 'cycle', intervalDays: 1, startDate: FAKE_TODAY,
+      soundId: 'removed-sound',
+    });
+
+    await svc.scheduleAlarmRinging(alarm, []);
+
+    expect(getPlan(native)).toEqual({ soundId: 'ars_classic_alarm', soundUri: null });
   });
 
   it('replenishAlarmRinging 批量补排同样透传铃声字段', async () => {

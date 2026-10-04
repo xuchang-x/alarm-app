@@ -9,6 +9,7 @@ import android.content.Intent
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.media.RingtoneManager
+import android.net.Uri
 import android.os.Build
 import android.os.Handler
 import android.os.IBinder
@@ -17,7 +18,7 @@ import androidx.core.app.NotificationCompat
 
 /**
  * 响铃前台服务：
- * - MediaPlayer 以 USAGE_ALARM + isLooping 循环播放系统默认闹钟铃声
+ * - MediaPlayer 以 USAGE_ALARM + isLooping 循环播放选定的铃声（三级回退）
  * - 到 ringDurationSeconds 自动停止（时长感知：短音循环补齐、长音截断）
  * - 通知带「关闭 / 稍后提醒」action，贪睡由 RingStore 原生重排
  */
@@ -55,9 +56,11 @@ class RingService : Service() {
         val title = intent?.getStringExtra("title") ?: "闹钟"
         val body = intent?.getStringExtra("body") ?: ""
         val durationSeconds = intent?.getIntExtra("ringDurationSeconds", 30) ?: 30
+        val soundId = intent?.getStringExtra("soundId")
+        val soundUri = intent?.getStringExtra("soundUri")
 
         startForeground(NOTIFICATION_ID, buildNotification(title, body))
-        startPlaying()
+        startPlaying(soundId, soundUri)
 
         // 到时自动停（真正的时长控制点，改 30s→50s 只改 JS 常量）
         stopHandler.removeCallbacksAndMessages(null)
@@ -71,10 +74,13 @@ class RingService : Service() {
         super.onDestroy()
     }
 
-    private fun startPlaying() {
+    private fun startPlaying(soundId: String?, soundUri: String?) {
         stopPlaying()
-        val uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
-            ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
+        val uri = resolveSoundUri(soundId, soundUri)
+        if (uri == null) {
+            android.util.Log.w("RingService", "三级回退后仍无可用铃声，仅展示通知")
+            return
+        }
         try {
             player = MediaPlayer().apply {
                 setDataSource(this@RingService, uri)
@@ -92,6 +98,38 @@ class RingService : Service() {
             android.util.Log.w("RingService", "播放闹钟铃声失败，仅展示通知", e)
             player = null
         }
+    }
+
+    /**
+     * 铃声三级回退（007）：任何一层失效都不中断响铃。
+     *
+     * 1. soundUri（本地音乐 content:// URI）：ContentResolver openInputStream 探测可解析
+     * 2. soundId（内置音 raw 资源名）：resources.getIdentifier 命中模块 res/raw 资源
+     * 3. 系统默认闹钟铃声：RingtoneManager TYPE_ALARM，再退 TYPE_RINGTONE
+     */
+    private fun resolveSoundUri(soundId: String?, soundUri: String?): Uri? {
+        // 1. 本地音乐 URI：探测可解析才用（App 重装/文件删除后 URI 会失效）
+        if (!soundUri.isNullOrBlank()) {
+            try {
+                contentResolver.openInputStream(Uri.parse(soundUri))?.use { /* 探测可读 */ }
+                return Uri.parse(soundUri)
+            } catch (e: Exception) {
+                android.util.Log.w("RingService", "本地音乐 URI 已失效，回退内置音", e)
+            }
+        }
+
+        // 2. 内置音 raw 资源（模块资源名与 soundId 一致，`ars_` 前缀）
+        if (!soundId.isNullOrBlank()) {
+            val resId = resources.getIdentifier(soundId, "raw", packageName)
+            if (resId != 0) {
+                return Uri.parse("android.resource://$packageName/$resId")
+            }
+            android.util.Log.w("RingService", "内置音资源未命中：$soundId，回退系统默认")
+        }
+
+        // 3. 系统默认闹钟铃声
+        return RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+            ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
     }
 
     private fun stopPlaying() {

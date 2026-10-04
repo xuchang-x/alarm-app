@@ -23,7 +23,7 @@ data class RingPlan(
     val triggers: List<Long>,
     val snoozeMinutes: Int,
     val ringDurationSeconds: Int,
-    /** 内置提示音标识（res/raw 资源名，如 'classic-alarm'），null = 系统默认闹钟铃声 */
+    /** 内置提示音 raw 资源名（res/raw，如 'ars_classic_alarm'，JS 层已从语义 id 映射），null = 系统默认闹钟铃声 */
     val soundId: String?,
     /** 本地音乐 content:// URI，优先级高于 soundId；失效时回退到系统默认 */
     val soundUri: String?,

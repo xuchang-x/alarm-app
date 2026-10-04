@@ -5,7 +5,7 @@ import {
   SCHEDULE_DAYS_AHEAD,
   SCHEDULE_MAX_PER_ALARM,
 } from '@/constants';
-import { DEFAULT_SOUND_ID } from '@/constants/sounds';
+import { DEFAULT_SOUND_ID, findSoundPreset } from '@/constants/sounds';
 import {
   scheduleAlarmNotifications,
   cancelAlarmNotifications,
@@ -87,7 +87,9 @@ function computeTriggerTimestamps(
 
 /**
  * 铃声字段透传（007）：本地音乐 URI 优先；选了本地音乐时 soundId 置 null
- * （避免 URI 失效后回退到已不相关的内置音）；否则用 soundId，老数据 NULL 兑底默认音。
+ * （避免 URI 失效后回退到已不相关的内置音）；否则用内置音，老数据/未知 id
+ * 兑底默认音。soundId 传的是 raw 资源名（`ars_` 前缀），映射在此完成，
+ * 原生层直接 getIdentifier 查 res/raw。
  */
 function computeSoundFields(
   alarm: Alarm
@@ -95,7 +97,9 @@ function computeSoundFields(
   if (alarm.customSoundUri) {
     return { soundId: null, soundUri: alarm.customSoundUri };
   }
-  return { soundId: alarm.soundId ?? DEFAULT_SOUND_ID, soundUri: null };
+  const preset =
+    findSoundPreset(alarm.soundId) ?? findSoundPreset(DEFAULT_SOUND_ID);
+  return { soundId: preset?.rawName ?? null, soundUri: null };
 }
 
 /**
