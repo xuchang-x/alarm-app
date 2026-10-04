@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import {
   StyleSheet,
   Text,
@@ -39,6 +39,8 @@ function confirmConflicts(labels: string[]): Promise<boolean> {
 interface AlarmFormProps {
   /** 编辑态传入原闹钟；创建态不传 */
   initialAlarm?: Alarm;
+  /** 表单内容变化回调（用于「取消时未保存确认」） */
+  onDirtyChange?: (dirty: boolean) => void;
   /** 保存成功后的回调（一般是 router.back()） */
   onSaved: () => void;
 }
@@ -50,7 +52,7 @@ interface AlarmFormProps {
  * 名称、分类、稍后提醒收纳为附加信息。内部标识符（snooze 等）不变，
  * 仅用户可见文案用「稍后提醒」。
  */
-export default function AlarmForm({ initialAlarm, onSaved }: AlarmFormProps) {
+export default function AlarmForm({ initialAlarm, onDirtyChange, onSaved }: AlarmFormProps) {
   const createAlarm = useAlarmStore((state) => state.createAlarm);
   const updateAlarm = useAlarmStore((state) => state.updateAlarm);
   const defaultSnoozeMinutes = useSettingsStore((state) => state.settings.defaultSnoozeMinutes);
@@ -70,6 +72,21 @@ export default function AlarmForm({ initialAlarm, onSaved }: AlarmFormProps) {
   const [intervalDays, setIntervalDays] = useState(initialAlarm?.intervalDays ?? 2);
   const [startDate, setStartDate] = useState(initialAlarm?.startDate ?? formatDate(today()));
   const [saving, setSaving] = useState(false);
+  const [dirty, setDirty] = useState(false);
+
+  /** 标记表单已编辑（供外部「取消时未保存确认」） */
+  const markDirty = useCallback(() => {
+    setDirty((prev) => {
+      if (!prev) onDirtyChange?.(true);
+      return true;
+    });
+  }, [onDirtyChange]);
+
+  // 原初值快照：用于回填、重置 dirty 标记
+  useEffect(() => {
+    onDirtyChange?.(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialAlarm]);
 
   useEffect(() => {
     void loadSettings();
@@ -82,7 +99,10 @@ export default function AlarmForm({ initialAlarm, onSaved }: AlarmFormProps) {
 
   const handleOnceDateChange = (_event: DateTimePickerEvent, selectedDate?: Date) => {
     if (Platform.OS === 'android') setShowOnceDatePicker(false);
-    if (selectedDate) setOnceDate(formatDate(selectedDate));
+    if (selectedDate) {
+      setOnceDate(formatDate(selectedDate));
+      markDirty();
+    }
   };
 
   const handleSave = async () => {
@@ -148,8 +168,19 @@ export default function AlarmForm({ initialAlarm, onSaved }: AlarmFormProps) {
           startDate: type === 'cycle' ? startDate : undefined,
         });
       }
+      setDirty(false);
+      onDirtyChange?.(false);
+      // 落库成功但通知调度失败时如实提示（数据已在，不报「创建失败」误导重试）
+      const failure = useAlarmStore.getState().lastScheduleFailure;
+      if (failure) {
+        Alert.alert('提醒已保存', failure, [
+          { text: '知道了', onPress: onSaved },
+        ]);
+        return;
+      }
       onSaved();
-    } catch (_error) {
+    } catch (error) {
+      console.warn('[AlarmForm] 保存提醒失败:', error);
       Alert.alert('错误', initialAlarm ? '保存失败，请重试' : '创建闹钟失败，请重试');
     } finally {
       setSaving(false);
@@ -173,6 +204,7 @@ export default function AlarmForm({ initialAlarm, onSaved }: AlarmFormProps) {
             onChange={(nextHour, nextMinute) => {
               setHour(nextHour);
               setMinute(nextMinute);
+              markDirty();
             }}
           />
         </View>
@@ -180,7 +212,7 @@ export default function AlarmForm({ initialAlarm, onSaved }: AlarmFormProps) {
         <View style={styles.sectionCard}>
           <Text style={styles.sectionTitle}>这个提醒多久响一次</Text>
           <Text style={styles.sectionHint}>选择提醒发生的规律</Text>
-          <FrequencySelector value={type} onChange={setType} />
+          <FrequencySelector value={type} onChange={(next) => { setType(next); markDirty(); }} />
         </View>
 
         {type === 'once' ? (
@@ -201,7 +233,7 @@ export default function AlarmForm({ initialAlarm, onSaved }: AlarmFormProps) {
                 display="default"
                 onChange={handleOnceDateChange}
                 themeVariant="light"
-                minimumDate={initialAlarm ? undefined : today()}
+                minimumDate={today()}
               />
             ) : null}
           </View>
@@ -211,7 +243,7 @@ export default function AlarmForm({ initialAlarm, onSaved }: AlarmFormProps) {
           <View style={styles.sectionCard}>
             <Text style={styles.sectionTitle}>每周哪几天</Text>
             <Text style={styles.sectionHint}>每周在选中的日期提醒</Text>
-            <WeekdaySelector selected={weekdays} onChange={setWeekdays} />
+            <WeekdaySelector selected={weekdays} onChange={(next) => { setWeekdays(next); markDirty(); }} />
           </View>
         ) : null}
 
@@ -220,8 +252,8 @@ export default function AlarmForm({ initialAlarm, onSaved }: AlarmFormProps) {
             <CycleFields
               intervalDays={intervalDays}
               startDate={startDate}
-              onIntervalChange={setIntervalDays}
-              onStartDateChange={setStartDate}
+              onIntervalChange={(next) => { setIntervalDays(next); markDirty(); }}
+              onStartDateChange={(next) => { setStartDate(next); markDirty(); }}
             />
           </View>
         ) : null}
@@ -231,11 +263,11 @@ export default function AlarmForm({ initialAlarm, onSaved }: AlarmFormProps) {
           <View style={styles.optionalGap}>
             <OptionalFields
               label={label}
-              onLabelChange={setLabel}
+              onLabelChange={(next) => { setLabel(next); markDirty(); }}
               category={category}
-              onCategoryChange={setCategory}
+              onCategoryChange={(next) => { setCategory(next); markDirty(); }}
               snoozeMinutes={snoozeMinutes}
-              onSnoozeChange={setSnoozeMinutes}
+              onSnoozeChange={(next) => { setSnoozeMinutes(next); markDirty(); }}
             />
           </View>
         </View>

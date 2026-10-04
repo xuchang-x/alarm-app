@@ -1,5 +1,5 @@
 import { useCallback, useEffect } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -19,7 +19,8 @@ const WEEKDAY_LABELS = ['周一', '周二', '周三', '周四', '周五', '周�
 
 export default function TodayScreen() {
   const router = useRouter();
-  const now = useNow(60_000);
+  // 倒计时按分钟精度刷新，与文案粒度一致
+  const now = useNow(30_000);
   const alarms = useAlarmStore((state) => state.alarms);
   const loadAlarms = useAlarmStore((state) => state.loadAlarms);
   const addAdjustment = useAlarmStore((state) => state.addAdjustment);
@@ -39,11 +40,15 @@ export default function TodayScreen() {
   /** 周期项跳过今天一次（复用现有 skip 调整逻辑） */
   const handleSkip = useCallback(
     async (id: number) => {
-      const alarm = alarms.find((item) => item.id === id);
-      if (!alarm) return;
-      const nextDate = await getNextRingDate(alarm);
-      if (nextDate) {
-        await addAdjustment(id, 'skip', formatDate(nextDate));
+      try {
+        const alarm = alarms.find((item) => item.id === id);
+        if (!alarm) return;
+        const nextDate = await getNextRingDate(alarm);
+        if (nextDate) {
+          await addAdjustment(id, 'skip', formatDate(nextDate));
+        }
+      } catch {
+        Alert.alert('错误', '跳过失败，请重试');
       }
     },
     [addAdjustment, alarms]

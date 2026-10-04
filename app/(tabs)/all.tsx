@@ -5,6 +5,7 @@ import {
   View,
   FlatList,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -35,6 +36,7 @@ export default function AllScreen() {
   }, [loadAlarms]);
 
   useEffect(() => {
+    let cancelled = false;
     async function loadNextDates() {
       const dates: Record<number, string | null> = {};
       for (const alarm of alarms) {
@@ -45,12 +47,21 @@ export default function AllScreen() {
           dates[alarm.id] = null;
         }
       }
-      setNextDates(dates);
+      // 闹钟列表已变化时丢弃本次结果，避免旧数据覆盖新状态
+      if (!cancelled) {
+        setNextDates(dates);
+      }
     }
 
     if (alarms.length > 0) {
-      loadNextDates();
+      void loadNextDates();
+    } else {
+      setNextDates({});
     }
+
+    return () => {
+      cancelled = true;
+    };
   }, [alarms]);
 
   const handleSkip = useCallback(
@@ -76,9 +87,42 @@ export default function AllScreen() {
   }, []);
 
   const handleDuplicate = useCallback(async (id: number) => {
-    const duplicate = await duplicateAlarm(id);
-    router.push(`/${duplicate.id}/edit`);
+    try {
+      const duplicate = await duplicateAlarm(id);
+      router.push(`/${duplicate.id}/edit`);
+    } catch {
+      Alert.alert('错误', '复制失败，请重试');
+    }
   }, [duplicateAlarm, router]);
+
+  // 滑动删除与其他入口保持一致：二次确认
+  const handleDelete = useCallback(
+    (id: number) => {
+      Alert.alert('删除提醒', '确定删除这个提醒吗？删除后无法恢复。', [
+        { text: '取消', style: 'cancel' },
+        {
+          text: '删除',
+          style: 'destructive',
+          onPress: () => {
+            deleteAlarm(id).catch(() => {
+              Alert.alert('错误', '删除失败，请重试');
+            });
+          },
+        },
+      ]);
+    },
+    [deleteAlarm]
+  );
+
+  // 开关切换失败时提示（默认静默）
+  const handleToggle = useCallback(
+    (id: number) => {
+      toggleAlarm(id).catch(() => {
+        Alert.alert('错误', '切换开关失败，请重试');
+      });
+    },
+    [toggleAlarm]
+  );
 
   // 默认视图：下次响铃升序，已暂停/已过期的沉底
   const filteredAlarms = useMemo(() => {
@@ -107,15 +151,15 @@ export default function AllScreen() {
       <AlarmCard
         alarm={item}
         nextRingDate={nextDates[item.id] ?? null}
-        onToggle={toggleAlarm}
+        onToggle={handleToggle}
         onPress={(id) => router.push(`/${id}/edit`)}
-        onDelete={deleteAlarm}
+        onDelete={handleDelete}
         onSkip={handleSkip}
         onAddOnce={handleAddOnce}
         onDuplicate={handleDuplicate}
       />
     ),
-    [nextDates, toggleAlarm, deleteAlarm, handleSkip, handleAddOnce, handleDuplicate, router]
+    [nextDates, handleToggle, handleDelete, handleSkip, handleAddOnce, handleDuplicate, router]
   );
 
   const enabledCount = alarms.filter((alarm) => alarm.enabled).length;

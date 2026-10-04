@@ -1,4 +1,5 @@
 import { getDatabase } from './connection';
+import { formatDate, today } from '@/utils/date';
 import type {
   Alarm,
   AlarmAdjustment,
@@ -167,22 +168,26 @@ export async function deleteAlarm(id: number): Promise<void> {
   await db.runAsync('DELETE FROM alarms WHERE id = ?', id);
 }
 
-/** 切换闹钟开关 */
+/** 切换闹钟开关（读-改-写语义，保留向后兼容） */
 export async function toggleAlarm(id: number): Promise<Alarm> {
-  const db = await getDatabase();
   const existing = await getAlarmById(id);
   if (!existing) {
     throw new Error(`闹钟 #${id} 不存在`);
   }
-  const newEnabled = existing.enabled ? 0 : 1;
+  return setAlarmEnabled(id, !existing.enabled);
+}
+
+/** 按目标值置位开关（原子语义，避免快速连点竞态） */
+export async function setAlarmEnabled(id: number, enabled: boolean): Promise<Alarm> {
+  const db = await getDatabase();
   await db.runAsync(
     "UPDATE alarms SET enabled = ?, updated_at = datetime('now') WHERE id = ?",
-    newEnabled,
+    enabled ? 1 : 0,
     id
   );
   const updated = await getAlarmById(id);
   if (!updated) {
-    throw new Error(`切换闹钟 #${id} 后无法读取`);
+    throw new Error(`更新闹钟 #${id} 后无法读取`);
   }
   return updated;
 }
@@ -229,4 +234,19 @@ export async function clearAdjustments(alarmId: number): Promise<void> {
     'DELETE FROM alarm_adjustments WHERE alarm_id = ?',
     alarmId
   );
+}
+
+/**
+ * 关闭所有「日期已过去的 enabled 一次性闹钟」。
+ *
+ * 响完未被处理的 once 闹钟若永远保持 enabled，会在列表/今日页持续误导展示；
+ * 在启动与回前台时调用，把过期项归位为关闭态（用户可重新编辑启用）。
+ */
+export async function expirePastOnceAlarms(): Promise<number> {
+  const db = await getDatabase();
+  const result = await db.runAsync(
+    "UPDATE alarms SET enabled = 0, updated_at = datetime('now') WHERE type = 'once' AND enabled = 1 AND once_date IS NOT NULL AND once_date < ?",
+    formatDate(today())
+  );
+  return result.changes;
 }

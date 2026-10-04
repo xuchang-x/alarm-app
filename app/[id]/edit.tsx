@@ -18,6 +18,7 @@ export default function EditScreen() {
   const deleteAlarm = useAlarmStore((state) => state.deleteAlarm);
   const [loading, setLoading] = useState(true);
   const [alarm, setAlarm] = useState<Alarm | null>(null);
+  const [dirty, setDirty] = useState(false);
 
   useEffect(() => {
     async function loadAlarm() {
@@ -41,6 +42,18 @@ export default function EditScreen() {
 
     loadAlarm();
   }, [id, router]);
+
+  /** 有未保存改动时二次确认，避免误触丢失 */
+  const handleCancel = () => {
+    if (!dirty) {
+      router.back();
+      return;
+    }
+    Alert.alert('放弃修改', '当前编辑内容尚未保存，确定要退出吗？', [
+      { text: '继续编辑', style: 'cancel' },
+      { text: '放弃修改', style: 'destructive', onPress: () => router.back() },
+    ]);
+  };
 
   const handleDelete = () => {
     if (!alarm) return;
@@ -71,10 +84,14 @@ export default function EditScreen() {
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <NavBar
         title="编辑提醒"
-        leftAction={{ label: '取消', onPress: () => router.back() }}
+        leftAction={{ label: '取消', onPress: handleCancel }}
       />
       {alarm ? (
-        <AlarmForm initialAlarm={alarm} onSaved={() => router.back()} />
+        <AlarmForm
+          initialAlarm={alarm}
+          onDirtyChange={setDirty}
+          onSaved={() => router.back()}
+        />
       ) : null}
       {alarm ? (
         <View style={styles.dangerWrapper}>
