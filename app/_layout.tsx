@@ -12,9 +12,9 @@ import {
   setupNotificationCategory,
   setupNotificationChannel,
   requestPermissions,
-  replenishNotifications,
   addNotificationResponseListener,
 } from '@/services/notification';
+import { replenishAlarmRinging } from '@/services/ring-scheduler';
 import { COLORS } from '@/constants';
 
 // 在模块加载时立即配置前台通知处理（Expo Go 中安全跳过）
@@ -23,13 +23,13 @@ setupNotificationHandler();
 /**
  * 启动/回前台的统一维护任务：
  * 1. 关闭日期已过去的一次性闹钟（响完未处理的归位为关闭态）
- * 2. 补排 once/cycle 通知（兜住设备重启/系统清理调度、以及截断后续期）
+ * 2. 补排响铃调度（Android 原生层自身可靠，主要兜截断续期；iOS 兜系统清理）
  */
 async function maintainSchedules(): Promise<void> {
   try {
     await repo.expirePastOnceAlarms();
     const alarms = useAlarmStore.getState().alarms;
-    await replenishNotifications(alarms, repo.getAdjustments);
+    await replenishAlarmRinging(alarms, repo.getAdjustments);
   } catch (error) {
     // 维护任务失败不阻断启动（App 本身仍可用），记录日志便于排查
     console.warn('[layout] 维护调度任务失败:', error);

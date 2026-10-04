@@ -8,11 +8,11 @@ import type {
 import * as repo from '@/db/alarm-repository';
 import { computeNextRingDate } from '@/services/scheduler';
 import {
-  scheduleAlarmNotifications,
-  cancelAlarmNotifications,
-  scheduleSnooze as scheduleSnoozeNotification,
+  scheduleAlarmRinging,
+  cancelAlarmRinging,
+  scheduleAlarmSnooze,
   type ScheduleResult,
-} from '@/services/notification';
+} from '@/services/ring-scheduler';
 
 /** 调度失败时给用户的一致提示文案（Expo Go 环境下不会出现此分支） */
 const SCHEDULE_FAILED_MESSAGE =
@@ -80,7 +80,7 @@ export const useAlarmStore = create<AlarmStore>((set, get) => ({
     const alarm = await repo.createAlarm(input);
     const adjustments = await repo.getAdjustments(alarm.id);
     get()._applyScheduleResult(
-      await scheduleAlarmNotifications(alarm, adjustments)
+      await scheduleAlarmRinging(alarm, adjustments)
     );
     await get().loadAlarms();
     return alarm;
@@ -108,7 +108,7 @@ export const useAlarmStore = create<AlarmStore>((set, get) => ({
     });
     const adjustments = await repo.getAdjustments(alarm.id);
     get()._applyScheduleResult(
-      await scheduleAlarmNotifications(alarm, adjustments)
+      await scheduleAlarmRinging(alarm, adjustments)
     );
     await get().loadAlarms();
     return alarm;
@@ -120,7 +120,7 @@ export const useAlarmStore = create<AlarmStore>((set, get) => ({
     if (updated) {
       const adjustments = await repo.getAdjustments(id);
       get()._applyScheduleResult(
-        await scheduleAlarmNotifications(updated, adjustments)
+        await scheduleAlarmRinging(updated, adjustments)
       );
     }
     await get().loadAlarms();
@@ -128,7 +128,7 @@ export const useAlarmStore = create<AlarmStore>((set, get) => ({
 
   deleteAlarm: async (id) => {
     try {
-      await cancelAlarmNotifications(id);
+      await cancelAlarmRinging(id);
     } catch (error) {
       // 通知取消失败不阻断删除（数据库是唯一真相，孤儿通知到期自然消亡）
       console.warn(`[alarm-store] 取消闹钟 #${id} 通知失败:`, error);
@@ -146,7 +146,7 @@ export const useAlarmStore = create<AlarmStore>((set, get) => ({
     const toggled = await repo.setAlarmEnabled(id, !current.enabled);
     const adjustments = await repo.getAdjustments(id);
     get()._applyScheduleResult(
-      await scheduleAlarmNotifications(toggled, adjustments)
+      await scheduleAlarmRinging(toggled, adjustments)
     );
     await get().loadAlarms();
   },
@@ -157,7 +157,7 @@ export const useAlarmStore = create<AlarmStore>((set, get) => ({
     if (alarm) {
       const adjustments = await repo.getAdjustments(id);
       get()._applyScheduleResult(
-        await scheduleAlarmNotifications(alarm, adjustments)
+        await scheduleAlarmRinging(alarm, adjustments)
       );
     }
     await get().loadAlarms();
@@ -167,9 +167,9 @@ export const useAlarmStore = create<AlarmStore>((set, get) => ({
     const alarm = await repo.getAlarmById(id);
     if (alarm) {
       try {
-        await scheduleSnoozeNotification(alarm);
+        await scheduleAlarmSnooze(alarm);
       } catch (error) {
-        console.warn(`[alarm-store] 调度贪睡通知失败（闹钟 #${id}）:`, error);
+        console.warn(`[alarm-store] 调度贪睡响铃失败（闹钟 #${id}）:`, error);
       }
     }
   },
