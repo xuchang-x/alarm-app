@@ -124,6 +124,9 @@ export default function AlarmForm({ initialAlarm, onDirtyChange, onSaved }: Alar
       intervalDays: type === 'cycle' ? intervalDays : null,
       startDate: type === 'cycle' ? startDate : null,
       snoozeMinutes,
+      soundId: initialAlarm?.soundId ?? null,
+      customSoundUri: initialAlarm?.customSoundUri ?? null,
+      customSoundTitle: initialAlarm?.customSoundTitle ?? null,
       createdAt: initialAlarm?.createdAt ?? '',
       updatedAt: initialAlarm?.updatedAt ?? '',
     };
