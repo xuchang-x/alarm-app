@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, ActivityIndicator } from 'react-native';
+import { BackHandler, StyleSheet, Text, View, ActivityIndicator } from 'react-native';
 import { SkinAlert } from '@/components/common/SkinAlert';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -46,16 +46,31 @@ export default function EditScreen() {
   }, [id, router]);
 
   /** 有未保存改动时二次确认，避免误触丢失 */
-  const handleCancel = () => {
-    if (!dirty) {
-      router.back();
-      return;
-    }
+  const confirmDiscard = () => {
     SkinAlert.alert('放弃修改', '当前编辑内容尚未保存，确定要退出吗？', [
       { text: '继续编辑', style: 'cancel' },
       { text: '放弃修改', style: 'destructive', onPress: () => router.back() },
     ]);
   };
+
+  const handleCancel = () => {
+    if (!dirty) {
+      router.back();
+      return;
+    }
+    confirmDiscard();
+  };
+
+  // 硬件/手势返回键同样走二次确认，避免绕过皮肤弹窗直接丢改动
+  useEffect(() => {
+    if (!dirty) return;
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      confirmDiscard();
+      return true;
+    });
+    return () => subscription.remove();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dirty, router]);
 
   const handleDelete = () => {
     if (!alarm) return;
