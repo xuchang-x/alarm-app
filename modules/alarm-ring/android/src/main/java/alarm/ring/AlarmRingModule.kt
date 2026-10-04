@@ -44,17 +44,20 @@ class AlarmRingModule : Module() {
         }
 
         AsyncFunction("cancelAlarm") { alarmId: Double ->
-            val context = appContext.reactContext ?: return@AsyncFunction
+            val context = appContext.reactContext
+                ?: return@AsyncFunction Unit
             RingStore.removePlan(context, alarmId.toInt())
         }
 
         AsyncFunction("scheduleSnooze") { alarmId: Double ->
-            val context = appContext.reactContext ?: return@AsyncFunction
+            val context = appContext.reactContext
+                ?: return@AsyncFunction Unit
             RingStore.scheduleSnooze(context, alarmId.toInt())
         }
 
         AsyncFunction("stopRinging") {
-            val context = appContext.reactContext ?: return@AsyncFunction
+            val context = appContext.reactContext
+                ?: return@AsyncFunction Unit
             context.stopService(Intent(context, RingService::class.java))
         }
 
