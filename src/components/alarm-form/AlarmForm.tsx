@@ -84,14 +84,12 @@ export default function AlarmForm({ initialAlarm, onDirtyChange, onSaved }: Alar
     initialAlarm?.customSoundTitle ?? null
   );
   const [saving, setSaving] = useState(false);
-  const [dirty, setDirty] = useState(false);
 
-  /** 标记表单已编辑（供外部「取消时未保存确认」） */
+  /** 标记表单已编辑（供外部「取消时未保存确认」）。
+   * 注意：不能在 setDirty 的 updater 里调用 onDirtyChange，
+   * updater 属于渲染阶段，会触发「render 期间更新其他组件」报错 */
   const markDirty = useCallback(() => {
-    setDirty((prev) => {
-      if (!prev) onDirtyChange?.(true);
-      return true;
-    });
+    onDirtyChange?.(true);
   }, [onDirtyChange]);
 
   // 原初值快照：用于回填、重置 dirty 标记
@@ -197,7 +195,6 @@ export default function AlarmForm({ initialAlarm, onDirtyChange, onSaved }: Alar
           customSoundTitle,
         });
       }
-      setDirty(false);
       onDirtyChange?.(false);
       // 落库成功但通知调度失败时如实提示（数据已在，不报「创建失败」误导重试）
       const failure = useAlarmStore.getState().lastScheduleFailure;
