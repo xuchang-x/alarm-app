@@ -8,3 +8,4 @@
 - [Expo 的两种运行方式：Expo Go 与 Dev Build](./expo-dev-build.md) — 为什么闹钟在 Expo Go 里不响，以及三种启动命令到底差在哪
 - [Android 构建环境笔记](./android-build-env.md) — 本机 NDK / CMake / JDK 的坑与修法，日常构建和查日志的姿势
 - [提醒响铃时长调研与方案](./alarm-ring-duration-research.md) — 为什么纯通知层做不到循环 30 秒，以及原生闹钟模块的架构决策
+- [提示音调研：格式惯例与20个候选](./alarm-sound-research.md) — 内置提示音格式怎么选、版权渠道、候选清单与建议入选的10个
