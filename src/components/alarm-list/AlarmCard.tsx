@@ -54,6 +54,9 @@ export default function AlarmCard({
   const contextX = useSharedValue(0);
 
   const panGesture = Gesture.Pan()
+    // 仅水平激活：垂直方向先动则手势失败，把触摸还给列表滚动
+    .activeOffsetX([-12, 12])
+    .failOffsetY([-12, 12])
     .onBegin(() => {
       contextX.value = translateX.value;
     })
@@ -209,7 +212,6 @@ const styles = StyleSheet.create({
   },
   cardPressed: {
     backgroundColor: '#FBFAFF',
-    transform: [{ scale: 0.99 }],
   },
   cardDisabled: {
     backgroundColor: '#FBFAFD',
