@@ -35,6 +35,19 @@
 - [kit-iteration-start](.ai/skills/kit-iteration-start/SKILL.md): 开迭代，当前 release 分支合并进 master + 从 master 切新 release/x.y.z 分支 bump 版本号（小/中/大粒度）
 - [kit-iteration-item](.ai/skills/kit-iteration-item/SKILL.md): 迭代项处理，单个问题在独立 worktree 中从方案到落地的闭环
 
+### Skill 协作关系与分支模型
+
+两组 skill 覆盖不同输入，不冲突：
+
+- **设计四件套**（requirement-research → design-prototype → design-plan → design-tasks）：处理「整块新功能」。从模糊想法出发，依次产出 spec 目录下的 requirements / HTML 原型 / design / tasks，并开出 `feat/{NNN}-{name}` 分支。
+- **迭代三件套**（item / log / start）：处理迭代内外的日常流转。
+
+迭代三件套内部分工：**item 是干活的单元**（一个具体问题/优化/bug，在独立 worktree 中方案→实施→增量合并回集线分支）；**log 是记账的**（随时维护 `docs/iteration/` 版本日志与周报，不碰分支）；**start 是版本收口的**（release → master 合并 + 切新 release 分支 bump 版本号）。
+
+分支模型：master 只存已收尾版本（版本号永远等于已收尾版本，不承载开发提交）；`release/x.y.z` 是当前迭代的集线分支，bump 只发生在它上面；feat 分支与 item 的 worktree 分支都合入 release 分支。一个迭代期间多次触发 item / log，最后触发一次 start 收口。
+
+两者衔接：item 的输入若关联 spec 编号，直接复用 spec 的 design/tasks 作为方案输入（跳过调研）；若在 item 的问题理解中发现事情大到值得走完整 spec 链路，升级到设计四件套。
+
 ## 铁律
 
 1. Expo SDK 56 — 查阅 https://docs.expo.dev/versions/v56.0.0/ 的文档，不要用废弃 API
