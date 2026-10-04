@@ -9,7 +9,7 @@
 
 ## 技术栈
 
-- **框架**: Expo SDK 56 (Managed Workflow)
+- **框架**: Expo SDK 56（日常 Expo 工作流，通知验证走 Android dev build）
 - **UI 运行时**: React Native 0.85
 - **语言**: TypeScript (strict mode)
 - **平台**: iOS / Android
