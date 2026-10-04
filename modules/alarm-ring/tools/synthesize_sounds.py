@@ -7,6 +7,8 @@
 
 产出：10 个单声道 OGG Vorbis 文件，`ars_` 前缀命名，峰值归一化 -1 dBFS。
 依赖：ffmpeg / ffprobe（用于 OGG 编码与校验），Python 3.8+（仅标准库）。
+    无系统 ffmpeg 时可用 FFMPEG_BIN / FFPROBE_BIN 环境变量指定替代二进制路径
+    （如 npm 包 ffmpeg-static：`FFMPEG_BIN=/tmp/ffmpeg-tool/node_modules/ffmpeg-static/ffmpeg`）。
 
 声音设计一览：
     ars_classic_alarm  经典闹钟   金属双铃连续敲击（不谐和泛音 + 快速指数衰减）
@@ -380,6 +382,8 @@ def main() -> int:
             return 1
 
     with tempfile.TemporaryDirectory(prefix="alarm-sounds-") as tmp:
+        ffmpeg_bin = os.environ.get("FFMPEG_BIN", "ffmpeg")
+        ffprobe_bin = os.environ.get("FFPROBE_BIN", "ffprobe")
         total_bytes = 0
         for name, gen in SOUNDS:
             wav_path = os.path.join(tmp, name + ".wav")
@@ -389,7 +393,7 @@ def main() -> int:
             # 编码：单声道 OGG Vorbis，质量档 q4（WAV 已做 -1dBFS 峰值归一化）
             subprocess.run(
                 [
-                    "ffmpeg", "-y", "-loglevel", "error",
+                    ffmpeg_bin, "-y", "-loglevel", "error",
                     "-i", wav_path,
                     "-ac", "1", "-ar", str(SR),
                     "-c:a", "libvorbis", "-q:a", "4",
@@ -401,7 +405,7 @@ def main() -> int:
             total_bytes += size
             probe = subprocess.run(
                 [
-                    "ffprobe", "-v", "error",
+                    ffprobe_bin, "-v", "error",
                     "-select_streams", "a:0",
                     "-show_entries", "stream=codec_name,channels,sample_rate",
                     "-show_entries", "format=duration",
