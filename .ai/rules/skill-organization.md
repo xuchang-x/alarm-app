@@ -34,7 +34,7 @@ Skill 目录名格式：`kit-{阶段}-{具体动作}`，全部使用小写英文
 | `kit-design-plan` | 设计 | 技术设计，产出 `design.md` |
 | `kit-design-tasks` | 设计 | 任务拆分，产出 `tasks.md` |
 | `kit-iteration-log` | 迭代 | 迭代记录维护，版本日志 + 周迭代日志 |
-| `kit-iteration-start` | 迭代 | 迭代收尾与版本号 bump（小/中/大粒度） |
+| `kit-iteration-start` | 迭代 | 迭代收尾（release → master）与新 release 分支版本号 bump（小/中/大粒度） |
 | `kit-iteration-item` | 迭代 | 单个迭代项在独立 worktree 中的处理闭环 |
 
 ## SKILL.md 格式

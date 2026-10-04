@@ -32,7 +32,7 @@
 - [kit-design-plan](.ai/skills/kit-design-plan/SKILL.md): 技术设计，从需求+原型到 design.md 技术方案
 - [kit-design-tasks](.ai/skills/kit-design-tasks/SKILL.md): 任务拆分，从技术设计到可执行任务清单
 - [kit-iteration-log](.ai/skills/kit-iteration-log/SKILL.md): 迭代记录维护，版本日志 + 周迭代日志按需新建/合并
-- [kit-iteration-start](.ai/skills/kit-iteration-start/SKILL.md): 开迭代，收尾当前迭代并 bump 版本号（小/中/大粒度）
+- [kit-iteration-start](.ai/skills/kit-iteration-start/SKILL.md): 开迭代，当前 release 分支合并进 master + 从 master 切新 release/x.y.z 分支 bump 版本号（小/中/大粒度）
 - [kit-iteration-item](.ai/skills/kit-iteration-item/SKILL.md): 迭代项处理，单个问题在独立 worktree 中从方案到落地的闭环
 
 ## 铁律
