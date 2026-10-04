@@ -1,6 +1,8 @@
 import { StyleSheet, Text, View, TextInput, Pressable } from 'react-native';
 import type { AlarmCategory } from '@/types/alarm';
 import { ALARM_CATEGORIES, COLORS } from '@/constants';
+import SoundPickerField from './SoundPickerField';
+import type { SoundSelection } from './SoundPickerModal';
 
 interface OptionalFieldsProps {
   label: string;
@@ -9,6 +11,10 @@ interface OptionalFieldsProps {
   onCategoryChange: (category: AlarmCategory) => void;
   snoozeMinutes: number;
   onSnoozeChange: (minutes: number) => void;
+  soundId: string | null;
+  customSoundUri: string | null;
+  customSoundTitle: string | null;
+  onSoundChange: (selection: SoundSelection) => void;
 }
 
 const SNOOZE_OPTIONS = [5, 10, 15, 20, 30] as const;
@@ -23,6 +29,10 @@ export default function OptionalFields({
   onCategoryChange,
   snoozeMinutes,
   onSnoozeChange,
+  soundId,
+  customSoundUri,
+  customSoundTitle,
+  onSoundChange,
 }: OptionalFieldsProps) {
   return (
     <View style={styles.container}>
@@ -62,6 +72,13 @@ export default function OptionalFields({
           })}
         </View>
       </View>
+
+      <SoundPickerField
+        soundId={soundId}
+        customSoundUri={customSoundUri}
+        customSoundTitle={customSoundTitle}
+        onChange={onSoundChange}
+      />
 
       <View style={styles.row}>
         <Text style={styles.rowKey}>稍后提醒</Text>

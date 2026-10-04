@@ -1,4 +1,4 @@
-import { NativeModules } from 'react-native';
+import { requireOptionalNativeModule } from 'expo-modules-core';
 
 /**
  * alarm-ring 原生模块的 JS 侧入口。
@@ -15,6 +15,10 @@ interface AlarmRingNativeModule {
     triggers: number[];
     snoozeMinutes: number;
     ringDurationSeconds: number;
+    /** 内置提示音 raw 资源名（如 'ars_classic_alarm'，已从语义 id 映射），null = 系统默认闹钟铃声 */
+    soundId: string | null;
+    /** 本地音乐 content:// URI，优先级高于 soundId */
+    soundUri: string | null;
   }>): Promise<boolean>;
   cancelAlarm(alarmId: number): Promise<void>;
   scheduleSnooze(alarmId: number): Promise<void>;
@@ -22,6 +26,7 @@ interface AlarmRingNativeModule {
   canScheduleExactAlarms(): boolean;
 }
 
-export const AlarmRing = (NativeModules.AlarmRing as AlarmRingNativeModule | undefined) ?? null;
+export const AlarmRing =
+  requireOptionalNativeModule<AlarmRingNativeModule>('AlarmRing') ?? null;
 
 export default AlarmRing;

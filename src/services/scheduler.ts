@@ -23,15 +23,21 @@ export function computeRingDatesInRange(
   rangeEnd: Date,
   adjustments: AlarmAdjustment[] = []
 ): Date[] {
+  // 天级归一：once/cycle 的响铃日期均为当天零时时间戳，若调用方传入含当天
+  // 时刻的 rangeStart（如响铃调度直接传 new Date()），精确时间戳比较会把
+  // 「当天」误判为已过去而丢弃，导致当天的一次性/周期闹钟不响。统一归一
+  // 到当天零时，具体时刻是否已过由调用方（computeTriggerTimestamps 的
+  // > Date.now()）过滤。
+  const start = startOfDay(rangeStart);
   switch (alarm.type) {
     case 'once':
-      return computeOnceDates(alarm, rangeStart, rangeEnd);
+      return computeOnceDates(alarm, start, rangeEnd);
     case 'daily':
-      return computeDailyDates(rangeStart, rangeEnd);
+      return computeDailyDates(start, rangeEnd);
     case 'weekly':
-      return computeWeeklyDates(alarm, rangeStart, rangeEnd);
+      return computeWeeklyDates(alarm, start, rangeEnd);
     case 'cycle':
-      return computeCycleDates(alarm, rangeStart, rangeEnd, adjustments);
+      return computeCycleDates(alarm, start, rangeEnd, adjustments);
     default:
       return [];
   }

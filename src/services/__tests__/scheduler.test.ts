@@ -15,6 +15,9 @@ function makeAlarm(overrides: Partial<Alarm> & { type: AlarmType }): Alarm {
     intervalDays: null,
     startDate: null,
     snoozeMinutes: 10,
+    soundId: null,
+    customSoundUri: null,
+    customSoundTitle: null,
     createdAt: '',
     updatedAt: '',
     ...overrides,
@@ -48,6 +51,16 @@ describe('computeRingDatesInRange — once 类型', () => {
     const end = parseDate('2025-06-30');
     const dates = computeRingDatesInRange(alarm, start, end);
     expect(dates).toEqual([]);
+  });
+
+  it('rangeStart 为当天含时刻时仍包含当天（回归：当天一次性闹钟不响）', () => {
+    const alarm = makeAlarm({ type: 'once', onceDate: '2025-06-20' });
+    const start = parseDate('2025-06-20');
+    start.setHours(20, 38, 0, 0); // 模拟调度层直接传 new Date() 的场景
+    const end = parseDate('2025-06-25');
+    end.setHours(20, 38, 0, 0);
+    const dates = computeRingDatesInRange(alarm, start, end);
+    expect(dates.map(formatDate)).toEqual(['2025-06-20']);
   });
 
   it('onceDate 为 null 时返回空', () => {
@@ -128,6 +141,24 @@ describe('computeRingDatesInRange — cycle 类型', () => {
     const dates = computeRingDatesInRange(alarm, start, end);
     expect(dates.map(formatDate)).toEqual([
       '2025-06-10',
+      '2025-06-13',
+      '2025-06-16',
+      '2025-06-19',
+    ]);
+  });
+
+  it('rangeStart 为周期当天含时刻时仍包含当天（回归：当天周期闹钟被跳过）', () => {
+    const alarm = makeAlarm({
+      type: 'cycle',
+      intervalDays: 3,
+      startDate: '2025-06-10',
+    });
+    const start = parseDate('2025-06-13');
+    start.setHours(20, 38, 0, 0); // 模拟调度层直接传 new Date() 的场景
+    const end = parseDate('2025-06-20');
+    end.setHours(20, 38, 0, 0);
+    const dates = computeRingDatesInRange(alarm, start, end);
+    expect(dates.map(formatDate)).toEqual([
       '2025-06-13',
       '2025-06-16',
       '2025-06-19',

@@ -36,6 +36,8 @@ class AlarmRingModule : Module() {
                         triggers = triggers,
                         snoozeMinutes = (raw["snoozeMinutes"] as? Number)?.toInt() ?: 10,
                         ringDurationSeconds = (raw["ringDurationSeconds"] as? Number)?.toInt() ?: 30,
+                        soundId = raw["soundId"] as? String,
+                        soundUri = raw["soundUri"] as? String,
                     )
                 )
             }
