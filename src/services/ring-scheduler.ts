@@ -5,6 +5,7 @@ import {
   SCHEDULE_DAYS_AHEAD,
   SCHEDULE_MAX_PER_ALARM,
 } from '@/constants';
+import { DEFAULT_SOUND_ID } from '@/constants/sounds';
 import {
   scheduleAlarmNotifications,
   cancelAlarmNotifications,
@@ -85,6 +86,19 @@ function computeTriggerTimestamps(
 }
 
 /**
+ * 铃声字段透传（007）：本地音乐 URI 优先；选了本地音乐时 soundId 置 null
+ * （避免 URI 失效后回退到已不相关的内置音）；否则用 soundId，老数据 NULL 兑底默认音。
+ */
+function computeSoundFields(
+  alarm: Alarm
+): { soundId: string | null; soundUri: string | null } {
+  if (alarm.customSoundUri) {
+    return { soundId: null, soundUri: alarm.customSoundUri };
+  }
+  return { soundId: alarm.soundId ?? DEFAULT_SOUND_ID, soundUri: null };
+}
+
+/**
  * 为闹钟调度响铃（Android 原生 / 其他平台通知，二选一）
  * 语义与原 scheduleAlarmNotifications 一致：先取消旧的再排新的。
  */
@@ -104,6 +118,7 @@ export async function scheduleAlarmRinging(
 
     const triggers = computeTriggerTimestamps(alarm, adjustments);
     const description = getAlarmDescription(alarm);
+    const sound = computeSoundFields(alarm);
 
     try {
       await native.syncAlarms([{
@@ -113,6 +128,8 @@ export async function scheduleAlarmRinging(
         triggers,
         snoozeMinutes: alarm.snoozeMinutes,
         ringDurationSeconds: RING_DURATION_SECONDS,
+        soundId: sound.soundId,
+        soundUri: sound.soundUri,
       }]);
     } catch (error) {
       return { ok: false, reason: 'error', error };
@@ -161,6 +178,7 @@ export async function replenishAlarmRinging(
       const triggers = computeTriggerTimestamps(alarm, adjustments);
       if (triggers.length === 0) continue;
       const description = getAlarmDescription(alarm);
+      const sound = computeSoundFields(alarm);
       plans.push({
         alarmId: alarm.id,
         title: alarm.label || description,
@@ -168,6 +186,8 @@ export async function replenishAlarmRinging(
         triggers,
         snoozeMinutes: alarm.snoozeMinutes,
         ringDurationSeconds: RING_DURATION_SECONDS,
+        soundId: sound.soundId,
+        soundUri: sound.soundUri,
       });
     }
     if (plans.length > 0) {

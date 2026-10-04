@@ -23,6 +23,10 @@ data class RingPlan(
     val triggers: List<Long>,
     val snoozeMinutes: Int,
     val ringDurationSeconds: Int,
+    /** 内置提示音标识（res/raw 资源名，如 'classic-alarm'），null = 系统默认闹钟铃声 */
+    val soundId: String?,
+    /** 本地音乐 content:// URI，优先级高于 soundId；失效时回退到系统默认 */
+    val soundUri: String?,
 )
 
 /**
@@ -66,6 +70,9 @@ object RingStore {
                     triggers = triggers,
                     snoozeMinutes = obj.optInt("snoozeMinutes", 10),
                     ringDurationSeconds = obj.optInt("ringDurationSeconds", 30),
+                    // 0.0.4 及更早的旧持久化数据无铃声字段：optString 缺省空串归一化为 null
+                    soundId = obj.optString("soundId").ifBlank { null },
+                    soundUri = obj.optString("soundUri").ifBlank { null },
                 )
             }
         } catch (_: Exception) {
@@ -86,6 +93,8 @@ object RingStore {
                     .put("triggers", triggers)
                     .put("snoozeMinutes", plan.snoozeMinutes)
                     .put("ringDurationSeconds", plan.ringDurationSeconds)
+                    .put("soundId", plan.soundId ?: JSONObject.NULL)
+                    .put("soundUri", plan.soundUri ?: JSONObject.NULL)
             )
         }
         prefs(context).edit().putString(KEY_PLANS, array.toString()).apply()

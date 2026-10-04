@@ -15,6 +15,10 @@ interface AlarmRingNativeModule {
     triggers: number[];
     snoozeMinutes: number;
     ringDurationSeconds: number;
+    /** 内置提示音标识（如 'classic-alarm'），null = 原生层用系统默认闹钟铃声 */
+    soundId: string | null;
+    /** 本地音乐 content:// URI，优先级高于 soundId */
+    soundUri: string | null;
   }>): Promise<boolean>;
   cancelAlarm(alarmId: number): Promise<void>;
   scheduleSnooze(alarmId: number): Promise<void>;

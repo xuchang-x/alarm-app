@@ -66,6 +66,9 @@ function makeAlarm(overrides: Record<string, unknown>): import('../../types/alar
     intervalDays: null,
     startDate: null,
     snoozeMinutes: 10,
+    soundId: null,
+    customSoundUri: null,
+    customSoundTitle: null,
     createdAt: '',
     updatedAt: '',
     ...overrides,
@@ -138,6 +141,81 @@ describe('scheduleAlarmRinging — Android 原生路径', () => {
     await svc.scheduleAlarmSnooze(alarm);
 
     expect(native.scheduleSnooze).toHaveBeenCalledWith(1);
+  });
+});
+
+describe('scheduleAlarmRinging — 铃声字段透传（007）', () => {
+  function getPlan(native: NativeStub): {
+    soundId: string | null;
+    soundUri: string | null;
+  } {
+    expect(native.syncAlarms).toHaveBeenCalledTimes(1);
+    const plan = native.syncAlarms.mock.calls[0][0][0] as {
+      soundId: string | null;
+      soundUri: string | null;
+    };
+    return { soundId: plan.soundId, soundUri: plan.soundUri };
+  }
+
+  it('本地音乐优先：soundUri 透传 content URI，soundId 置 null', async () => {
+    const native = makeNativeStub();
+    const svc = loadRingScheduler(native);
+    const alarm = makeAlarm({
+      type: 'cycle', intervalDays: 1, startDate: FAKE_TODAY,
+      soundId: 'marimba',
+      customSoundUri: 'content://media/external/audio/media/42',
+    });
+
+    await svc.scheduleAlarmRinging(alarm, []);
+
+    expect(getPlan(native)).toEqual({
+      soundId: null,
+      soundUri: 'content://media/external/audio/media/42',
+    });
+  });
+
+  it('内置音：soundId 透传，soundUri 为 null', async () => {
+    const native = makeNativeStub();
+    const svc = loadRingScheduler(native);
+    const alarm = makeAlarm({
+      type: 'cycle', intervalDays: 1, startDate: FAKE_TODAY,
+      soundId: 'chime',
+    });
+
+    await svc.scheduleAlarmRinging(alarm, []);
+
+    expect(getPlan(native)).toEqual({ soundId: 'chime', soundUri: null });
+  });
+
+  it('老数据（soundId/customSoundUri 均为 NULL）兑底默认音 classic-alarm', async () => {
+    const native = makeNativeStub();
+    const svc = loadRingScheduler(native);
+    const alarm = makeAlarm({ type: 'cycle', intervalDays: 1, startDate: FAKE_TODAY });
+
+    await svc.scheduleAlarmRinging(alarm, []);
+
+    expect(getPlan(native)).toEqual({ soundId: 'classic-alarm', soundUri: null });
+  });
+
+  it('replenishAlarmRinging 批量补排同样透传铃声字段', async () => {
+    const native = makeNativeStub();
+    const svc = loadRingScheduler(native);
+    const alarm = makeAlarm({
+      type: 'cycle', intervalDays: 1, startDate: FAKE_TODAY,
+      customSoundUri: 'content://x',
+    });
+
+    await svc.replenishAlarmRinging([alarm], async () => []);
+
+    expect(native.syncAlarms).toHaveBeenCalledTimes(1);
+    const plan = native.syncAlarms.mock.calls[0][0][0] as {
+      soundId: string | null;
+      soundUri: string | null;
+    };
+    expect({ soundId: plan.soundId, soundUri: plan.soundUri }).toEqual({
+      soundId: null,
+      soundUri: 'content://x',
+    });
   });
 });
 
