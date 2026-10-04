@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import {
-  Alert,
   Modal,
   Platform,
   Pressable,
@@ -8,11 +7,11 @@ import {
   StyleSheet,
   Text,
   View,
-  type AlertButton,
 } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 // SDK 56 起 getAssetsAsync/SortBy 等仅在 legacy 子入口可用（主入口是运行时抛错的弃用 stub）
 import * as MediaLibrary from 'expo-media-library/legacy';
+import { SkinAlert, type SkinAlertButton } from '@/components/common/SkinAlert';
 import { COLORS } from '@/constants';
 import {
   DEFAULT_SOUND_ID,
@@ -99,7 +98,7 @@ export default function SoundPickerModal({
       }
     } catch (error) {
       console.warn('[SoundPicker] 音乐库选歌失败:', error);
-      Alert.alert('提示', '暂时无法访问音乐库，请稍后再试');
+      SkinAlert.alert('提示', '暂时无法访问音乐库，请稍后再试');
     } finally {
       setSearching(false);
     }
@@ -195,18 +194,18 @@ async function pickFromMediaLibrary(): Promise<{ uri: string; title: string } | 
   });
   const audio = assets.assets;
   if (audio.length === 0) {
-    Alert.alert('提示', '音乐库里没有找到音频文件，可以试试「从文件选择」');
+    SkinAlert.alert('提示', '音乐库里没有找到音频文件，可以试试「从文件选择」');
     return null;
   }
   // 取最近的几首用 Alert 选项呈现（简版列表，后续迭代再做完整选择页）
   const shown = audio.slice(0, 6);
   return new Promise((resolve) => {
-    const buttons: AlertButton[] = shown.map((asset) => ({
+    const buttons: SkinAlertButton[] = shown.map((asset) => ({
       text: asset.filename.slice(0, 24),
       onPress: () => resolve({ uri: asset.uri, title: asset.filename }),
     }));
     buttons.push({ text: '取消', onPress: () => resolve(null) });
-    Alert.alert(
+    SkinAlert.alert(
       '选择音乐',
       '最近添加的音频（简版列表，更多歌曲稍后开放）：',
       buttons,
@@ -225,7 +224,7 @@ async function pickByDocumentPicker(): Promise<{ uri: string; title: string } | 
   const asset = result.assets[0];
   if (Platform.OS === 'android' && !asset.uri.startsWith('content://')) {
     // file:// URI 重装后会失效且原生层可能无权读取，提示用户换 content URI 来源
-    Alert.alert('提示', '该文件无法作为铃声（本地路径不可持久），请从音乐库中选择');
+    SkinAlert.alert('提示', '该文件无法作为铃声（本地路径不可持久），请从音乐库中选择');
     return null;
   }
   return { uri: asset.uri, title: asset.name || '本地音乐' };
@@ -251,7 +250,7 @@ const styles = StyleSheet.create({
   list: { flexGrow: 0 },
   group: { marginTop: 12 },
   groupLabel: { marginBottom: 8, color: COLORS.textMuted, fontSize: 11, fontWeight: '700' },
-  itemRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  itemRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
   itemMain: {
     flex: 1,
     flexDirection: 'row',
