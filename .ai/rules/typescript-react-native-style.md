@@ -18,6 +18,13 @@
 - 类型/接口：PascalCase，接口不加 `I` 前缀
 - 常量：UPPER_SNAKE_CASE
 
+## 页面布局规范
+
+- 页面容器统一水平内边距 `paddingHorizontal: 20`，页头（PageHeading）顶部间距统一 `paddingTop: 12`
+- 各 Tab / 页面严禁自定一套边距数值，切换页面时页头左边缘和顶部位置必须完全一致、无跳动
+- 使用 `PageHeading` 时注意：空状态等没有统一容器（如 ScrollView content / FlatList list）包裹的场景，需自行补 `paddingHorizontal: 20`，不能让标题贴屏幕边
+- 不要在页头内层再叠加额外的 `paddingHorizontal`（会与容器边距叠加造成错位）
+
 ## 项目结构
 
 - 路由页面放 `app/`（expo-router 文件系统路由）

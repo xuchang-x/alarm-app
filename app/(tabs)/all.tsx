@@ -178,7 +178,7 @@ export default function AllScreen() {
   if (alarms.length === 0) {
     return (
       <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-        <View style={styles.pageHeader}>
+        <View style={styles.emptyPageHeader}>
           <PageHeading
             eyebrow="ALL REMINDERS"
             title="全部"
@@ -256,8 +256,13 @@ const styles = StyleSheet.create({
     paddingBottom: 6,
   },
   pageHeader: {
-    paddingHorizontal: 2,
-    paddingTop: 10,
+    paddingTop: 12,
+    paddingBottom: 20,
+  },
+  // 空状态没有列表容器的 20px 水平内边距，需自行补齐，与其他 Tab 页头对齐
+  emptyPageHeader: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
     paddingBottom: 20,
   },
   emptyWrap: {

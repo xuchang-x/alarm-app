@@ -182,8 +182,8 @@ export default function PlanScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
-  content: { paddingHorizontal: 16, paddingBottom: 30 },
-  pageHeader: { paddingTop: 10, paddingBottom: 20 },
+  content: { paddingHorizontal: 20, paddingBottom: 30 },
+  pageHeader: { paddingTop: 12, paddingBottom: 20 },
   todayButton: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 12, backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.border },
   todayButtonText: { color: COLORS.primary, fontSize: 12, fontWeight: '700' },
   calHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 4, paddingBottom: 14 },
