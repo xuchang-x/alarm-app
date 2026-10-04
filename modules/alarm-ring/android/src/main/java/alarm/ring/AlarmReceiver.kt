@@ -24,6 +24,8 @@ class AlarmReceiver : BroadcastReceiver() {
             putExtra("title", plan.title)
             putExtra("body", plan.body)
             putExtra("ringDurationSeconds", plan.ringDurationSeconds)
+            putExtra("soundId", plan.soundId)
+            putExtra("soundUri", plan.soundUri)
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             context.startForegroundService(service)

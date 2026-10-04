@@ -105,6 +105,9 @@ export const useAlarmStore = create<AlarmStore>((set, get) => ({
       intervalDays: source.type === 'cycle' ? source.intervalDays ?? undefined : undefined,
       startDate: source.type === 'cycle' ? source.startDate ?? undefined : undefined,
       snoozeMinutes: source.snoozeMinutes,
+      soundId: source.soundId ?? undefined,
+      customSoundUri: source.customSoundUri,
+      customSoundTitle: source.customSoundTitle,
     });
     const adjustments = await repo.getAdjustments(alarm.id);
     get()._applyScheduleResult(

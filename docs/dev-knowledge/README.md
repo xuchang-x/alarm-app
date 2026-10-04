@@ -10,3 +10,4 @@
 - [编辑闹钟后的历史与未来行为边界](./alarm-edit-history.md) — 改周期规则后真实响铃不变、但日历历史显示会跟着重算的取舍
 - [提醒响铃时长调研与方案](./alarm-ring-duration-research.md) — 为什么纯通知层做不到循环 30 秒，以及原生闹钟模块的架构决策
 - [提示音调研：格式惯例与20个候选](./alarm-sound-research.md) — 内置提示音格式怎么选、版权渠道、候选清单与建议入选的10个
+- [FFmpeg 与闹钟铃声格式科普](./ffmpeg-and-alarm-sound-formats.md) — FFmpeg 是什么、各平台铃声格式为什么长这样、提示音从哪下载、版权怎么避坑

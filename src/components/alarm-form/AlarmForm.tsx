@@ -22,6 +22,9 @@ import { formatDate, today } from '@/utils/date';
 import FrequencySelector from './FrequencySelector';
 import CycleFields from './CycleFields';
 import OptionalFields from './OptionalFields';
+import SoundPickerField from './SoundPickerField';
+import type { SoundSelection } from './SoundPickerModal';
+import { DEFAULT_SOUND_ID } from '@/constants/sounds';
 
 function confirmConflicts(labels: string[]): Promise<boolean> {
   return new Promise((resolve) => {
@@ -71,6 +74,15 @@ export default function AlarmForm({ initialAlarm, onDirtyChange, onSaved }: Alar
   const [weekdays, setWeekdays] = useState<Weekday[]>(initialAlarm?.weekdays ?? [1]);
   const [intervalDays, setIntervalDays] = useState(initialAlarm?.intervalDays ?? 2);
   const [startDate, setStartDate] = useState(initialAlarm?.startDate ?? formatDate(today()));
+  const [soundId, setSoundId] = useState<string | null>(
+    initialAlarm?.soundId ?? null
+  );
+  const [customSoundUri, setCustomSoundUri] = useState<string | null>(
+    initialAlarm?.customSoundUri ?? null
+  );
+  const [customSoundTitle, setCustomSoundTitle] = useState<string | null>(
+    initialAlarm?.customSoundTitle ?? null
+  );
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
 
@@ -105,6 +117,13 @@ export default function AlarmForm({ initialAlarm, onDirtyChange, onSaved }: Alar
     }
   };
 
+  const handleSoundChange = (selection: SoundSelection): void => {
+    setSoundId(selection.soundId);
+    setCustomSoundUri(selection.customSoundUri);
+    setCustomSoundTitle(selection.customSoundTitle);
+    markDirty();
+  };
+
   const handleSave = async () => {
     if (type === 'weekly' && weekdays.length === 0) {
       Alert.alert('提示', '请至少选择一个星期');
@@ -124,6 +143,9 @@ export default function AlarmForm({ initialAlarm, onDirtyChange, onSaved }: Alar
       intervalDays: type === 'cycle' ? intervalDays : null,
       startDate: type === 'cycle' ? startDate : null,
       snoozeMinutes,
+      soundId,
+      customSoundUri,
+      customSoundTitle,
       createdAt: initialAlarm?.createdAt ?? '',
       updatedAt: initialAlarm?.updatedAt ?? '',
     };
@@ -153,6 +175,10 @@ export default function AlarmForm({ initialAlarm, onDirtyChange, onSaved }: Alar
           weekdays: type === 'weekly' ? weekdays : undefined,
           intervalDays: type === 'cycle' ? intervalDays : undefined,
           startDate: type === 'cycle' ? startDate : undefined,
+          // 铃声三字段显式传值（支持 null 清空，切回内置音）
+          soundId: soundId ?? undefined,
+          customSoundUri,
+          customSoundTitle,
         });
       } else {
         await createAlarm({
@@ -166,6 +192,9 @@ export default function AlarmForm({ initialAlarm, onDirtyChange, onSaved }: Alar
           weekdays: type === 'weekly' ? weekdays : undefined,
           intervalDays: type === 'cycle' ? intervalDays : undefined,
           startDate: type === 'cycle' ? startDate : undefined,
+          soundId: soundId ?? DEFAULT_SOUND_ID,
+          customSoundUri,
+          customSoundTitle,
         });
       }
       setDirty(false);
@@ -268,6 +297,10 @@ export default function AlarmForm({ initialAlarm, onDirtyChange, onSaved }: Alar
               onCategoryChange={(next) => { setCategory(next); markDirty(); }}
               snoozeMinutes={snoozeMinutes}
               onSnoozeChange={(next) => { setSnoozeMinutes(next); markDirty(); }}
+              soundId={soundId}
+              customSoundUri={customSoundUri}
+              customSoundTitle={customSoundTitle}
+              onSoundChange={handleSoundChange}
             />
           </View>
         </View>

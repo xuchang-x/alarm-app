@@ -35,6 +35,15 @@ export interface Alarm {
   /** 贪睡延迟分钟数 */
   snoozeMinutes: number;
 
+  /** 内置提示音标识（如 'classic-alarm'），NULL = 默认音（由调度/UI 层兑底） */
+  soundId: string | null;
+
+  /** 本地音乐 content:// URI，优先级高于 soundId */
+  customSoundUri: string | null;
+
+  /** 选本地音乐时的歌名快照（展示用，避免响铃时异步查 content URI） */
+  customSoundTitle: string | null;
+
   createdAt: string;
   updatedAt: string;
 }
@@ -61,6 +70,10 @@ export interface CreateAlarmInput {
   intervalDays?: number;
   startDate?: string;
   snoozeMinutes?: number;
+  soundId?: string;
+  /** 显式传 null 表示清除自定义铃声（切回内置音） */
+  customSoundUri?: string | null;
+  customSoundTitle?: string | null;
 }
 
 /** 更新闹钟的输入参数 */
@@ -76,4 +89,8 @@ export interface UpdateAlarmInput {
   intervalDays?: number;
   startDate?: string;
   snoozeMinutes?: number;
+  soundId?: string;
+  /** 显式传 null 表示清除自定义铃声（切回内置音） */
+  customSoundUri?: string | null;
+  customSoundTitle?: string | null;
 }

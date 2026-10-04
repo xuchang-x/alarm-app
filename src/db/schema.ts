@@ -14,6 +14,9 @@ const CREATE_ALARMS_TABLE = `
     interval_days INTEGER,
     start_date    TEXT,
     snooze_minutes INTEGER NOT NULL DEFAULT 10,
+    sound_id        TEXT,
+    custom_sound_uri TEXT,
+    custom_sound_title TEXT,
     created_at    TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at    TEXT NOT NULL DEFAULT (datetime('now'))
   );
@@ -33,6 +36,26 @@ async function migrateRemovedCategories(
   db: Awaited<ReturnType<typeof getDatabase>>
 ): Promise<void> {
   await db.runAsync("UPDATE alarms SET category = 'other' WHERE category = 'medication'");
+}
+
+/**
+ * 007 提示音迁移：alarms 表补 sound_id / custom_sound_uri / custom_sound_title 三列。
+ * 幂等：缺列才 ALTER，老数据 NULL 由读取方（调度/UI 层）兑底默认音，不回填。
+ */
+async function ensureSoundColumns(
+  db: Awaited<ReturnType<typeof getDatabase>>
+): Promise<void> {
+  const columns = await db.getAllAsync<{ name: string }>('PRAGMA table_info(alarms)');
+  const existing = new Set(columns.map((column) => column.name));
+  if (!existing.has('sound_id')) {
+    await db.execAsync('ALTER TABLE alarms ADD COLUMN sound_id TEXT');
+  }
+  if (!existing.has('custom_sound_uri')) {
+    await db.execAsync('ALTER TABLE alarms ADD COLUMN custom_sound_uri TEXT');
+  }
+  if (!existing.has('custom_sound_title')) {
+    await db.execAsync('ALTER TABLE alarms ADD COLUMN custom_sound_title TEXT');
+  }
 }
 
 const CREATE_ADJUSTMENTS_TABLE = `
@@ -58,6 +81,7 @@ export async function initDatabase(): Promise<void> {
   await db.execAsync(CREATE_ALARMS_TABLE);
   await ensureAlarmCategoryColumn(db);
   await migrateRemovedCategories(db);
+  await ensureSoundColumns(db);
   await db.execAsync(CREATE_ADJUSTMENTS_TABLE);
   await db.execAsync(CREATE_APP_SETTINGS_TABLE);
 }

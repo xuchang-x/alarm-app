@@ -13,7 +13,7 @@ import type {
 import { DEFAULT_SNOOZE_MINUTES } from '@/constants';
 
 /** 数据库行类型（蛇形命名） */
-interface AlarmRow {
+export interface AlarmRow {
   id: number;
   type: string;
   hour: number;
@@ -26,6 +26,9 @@ interface AlarmRow {
   interval_days: number | null;
   start_date: string | null;
   snooze_minutes: number;
+  sound_id: string | null;
+  custom_sound_uri: string | null;
+  custom_sound_title: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -53,6 +56,9 @@ function rowToAlarm(row: AlarmRow): Alarm {
     intervalDays: row.interval_days,
     startDate: row.start_date,
     snoozeMinutes: row.snooze_minutes,
+    soundId: row.sound_id,
+    customSoundUri: row.custom_sound_uri,
+    customSoundTitle: row.custom_sound_title,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -92,8 +98,8 @@ export async function getAlarmById(id: number): Promise<Alarm | null> {
 export async function createAlarm(input: CreateAlarmInput): Promise<Alarm> {
   const db = await getDatabase();
   const result = await db.runAsync(
-    `INSERT INTO alarms (type, hour, minute, label, category, once_date, weekdays, interval_days, start_date, snooze_minutes)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO alarms (type, hour, minute, label, category, once_date, weekdays, interval_days, start_date, snooze_minutes, sound_id, custom_sound_uri, custom_sound_title)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     input.type,
     input.hour,
     input.minute,
@@ -103,7 +109,10 @@ export async function createAlarm(input: CreateAlarmInput): Promise<Alarm> {
     input.weekdays ? JSON.stringify(input.weekdays) : null,
     input.intervalDays ?? null,
     input.startDate ?? null,
-    input.snoozeMinutes ?? DEFAULT_SNOOZE_MINUTES
+    input.snoozeMinutes ?? DEFAULT_SNOOZE_MINUTES,
+    input.soundId ?? null,
+    input.customSoundUri ?? null,
+    input.customSoundTitle ?? null
   );
   const alarm = await getAlarmById(result.lastInsertRowId);
   if (!alarm) {
@@ -134,12 +143,21 @@ export async function updateAlarm(
   const intervalDays = input.intervalDays ?? existing.intervalDays;
   const startDate = input.startDate ?? existing.startDate;
   const snoozeMinutes = input.snoozeMinutes ?? existing.snoozeMinutes;
+  // 铃声三字段：显式传 null（切回内置音）与未传（保留）语义不同，用 in 检查区分
+  const soundId = 'soundId' in input ? input.soundId ?? null : existing.soundId;
+  const customSoundUri =
+    'customSoundUri' in input ? input.customSoundUri ?? null : existing.customSoundUri;
+  const customSoundTitle =
+    'customSoundTitle' in input
+      ? input.customSoundTitle ?? null
+      : existing.customSoundTitle;
 
   await db.runAsync(
     `UPDATE alarms SET
       type = ?, hour = ?, minute = ?, label = ?, category = ?, enabled = ?,
       once_date = ?, weekdays = ?, interval_days = ?, start_date = ?,
-      snooze_minutes = ?, updated_at = datetime('now')
+      snooze_minutes = ?, sound_id = ?, custom_sound_uri = ?, custom_sound_title = ?,
+      updated_at = datetime('now')
      WHERE id = ?`,
     type,
     hour,
@@ -152,6 +170,9 @@ export async function updateAlarm(
     intervalDays,
     startDate,
     snoozeMinutes,
+    soundId,
+    customSoundUri,
+    customSoundTitle,
     id
   );
 
