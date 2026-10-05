@@ -7,6 +7,9 @@
   <!-- Android 13+ 闹钟类应用专用精确闹钟权限：系统自动授予，
        免去用户手动开启"闹钟和提醒"（否则新装用户闹钟会延迟数分钟触发） -->
   <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+  <!-- 响铃期间保持 CPU 唤醒：息屏/Doze 下闹钟广播的唤醒锁在 onReceive 返回后即释放，
+       不持锁会导致杀 App 后响铃服务启动/音频初始化被冻结，表现为杀 App 后不闻铃 -->
+  <uses-permission android:name="android.permission.WAKE_LOCK" />
   <!-- 响铃前台服务 -->
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
