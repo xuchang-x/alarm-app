@@ -24,6 +24,10 @@ interface AlarmRingNativeModule {
   scheduleSnooze(alarmId: number): Promise<void>;
   stopRinging(): Promise<void>;
   canScheduleExactAlarms(): boolean;
+  /** 是否已加入电池优化白名单（设置页「后台运行保障」状态） */
+  isIgnoringBatteryOptimizations(): boolean;
+  /** 拉起系统对话框请求加入电池优化白名单；resolve 值 = 是否成功拉起（非用户选择结果） */
+  requestIgnoreBatteryOptimizations(): Promise<boolean>;
   /** 读取主题偏好（同步）：'system' | 'light' | 'dark'，缺省 'system' */
   getSkinTheme(): string;
   /** 写入主题偏好（008 深色模式，运行时切换由 skinStore 响应式驱动，落盘仅供下次冷启动定型） */

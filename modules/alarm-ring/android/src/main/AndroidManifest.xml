@@ -10,6 +10,8 @@
   <!-- 响铃期间保持 CPU 唤醒：息屏/Doze 下闹钟广播的唤醒锁在 onReceive 返回后即释放，
        不持锁会导致杀 App 后响铃服务启动/音频初始化被冻结，表现为杀 App 后不闻铃 -->
   <uses-permission android:name="android.permission.WAKE_LOCK" />
+  <!-- 请求加入电池优化白名单（设置页「后台运行保障」入口），声明后即可拉起系统对话框 -->
+  <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
   <!-- 响铃前台服务 -->
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />

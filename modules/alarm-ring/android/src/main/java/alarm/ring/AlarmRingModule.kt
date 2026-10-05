@@ -1,6 +1,9 @@
 package alarm.ring
 
 import android.content.Intent
+import android.net.Uri
+import android.os.PowerManager
+import android.provider.Settings
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 
@@ -76,6 +79,33 @@ class AlarmRingModule : Module() {
         Function("canScheduleExactAlarms") {
             val context = appContext.reactContext ?: return@Function false
             RingStore.canScheduleExact(context)
+        }
+
+        // ── 电池优化白名单（设置页「后台运行保障」）──
+        // 杀 App 后响铃依赖 AlarmManager 拉起进程，ROM 电池策略可能拦截；
+        // 引导用户把 App 加入电池优化白名单可显著降低被冻概率。
+        Function("isIgnoringBatteryOptimizations") {
+            val context = appContext.reactContext ?: return@Function true
+            val pm = context.getSystemService(PowerManager::class.java)
+                ?: return@Function true
+            pm.isIgnoringBatteryOptimizations(context.packageName)
+        }
+
+        AsyncFunction("requestIgnoreBatteryOptimizations") {
+            val context = appContext.reactContext
+                ?: return@AsyncFunction false
+            try {
+                context.startActivity(
+                    Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                        data = Uri.parse("package:${context.packageName}")
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                )
+                true
+            } catch (e: Exception) {
+                android.util.Log.w("AlarmRing", "拉起电池优化白名单对话框失败", e)
+                false
+            }
         }
 
         // ── 响铃浮层（响铃时 App 内展示关闭/稍后提醒入口）──
