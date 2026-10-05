@@ -1,20 +1,21 @@
-import { StyleSheet, Text, View, Pressable } from 'react-native';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { StyleSheet, Text, View, Pressable } from "react-native";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
-} from 'react-native-reanimated';
-import type { TodayItem } from '@/hooks/useTodayOverview';
-import { ALARM_TYPE_LABELS, COLORS, SKIN, getAlarmCategory } from '@/constants';
-import { formatTime } from '@/utils/date';
+} from "react-native-reanimated";
+import type { TodayItem } from "@/hooks/useTodayOverview";
+import { ALARM_TYPE_LABELS, COLORS, SKIN, getAlarmCategory } from "@/constants";
+import { useSkinStyles } from "@/hooks/useSkinStyles";
+import { formatTime } from "@/utils/date";
 
 /** 左滑操作按钮宽度 */
 const SKIP_BUTTON_WIDTH = 72;
 
 function getMetaText(item: TodayItem): string {
   const { alarm, rhythm } = item;
-  if (alarm.type === 'cycle' && rhythm && alarm.intervalDays) {
+  if (alarm.type === "cycle" && rhythm && alarm.intervalDays) {
     return `每 ${alarm.intervalDays} 天 · 今天第 ${rhythm.dayIndex} 天`;
   }
   return ALARM_TYPE_LABELS[alarm.type];
@@ -28,9 +29,10 @@ type TimelineRowProps = {
 };
 
 function TimelineRow({ item, onPress, onSkip }: TimelineRowProps) {
+  const styles = useSkinStyles(createStyles);
   const { alarm, passed } = item;
   /** 每天/每周/周期均可左滑跳过，一次性无「轮次」语义不开放；已响过禁用避免 skip 错位到下一轮 */
-  const swipeable = alarm.type !== 'once' && !passed;
+  const swipeable = alarm.type !== "once" && !passed;
   const maxSwipe = swipeable ? -SKIP_BUTTON_WIDTH : 0;
   const translateX = useSharedValue(0);
   const contextX = useSharedValue(0);
@@ -51,7 +53,7 @@ function TimelineRow({ item, onPress, onSkip }: TimelineRowProps) {
       if (maxSwipe === 0) return;
       translateX.value = withSpring(
         translateX.value < maxSwipe / 2 ? maxSwipe : 0,
-        { damping: 20 }
+        { damping: 20 },
       );
     });
 
@@ -66,7 +68,7 @@ function TimelineRow({ item, onPress, onSkip }: TimelineRowProps) {
       {swipeable ? (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`跳过 ${alarm.label || '未命名提醒'} 今天一次`}
+          accessibilityLabel={`跳过 ${alarm.label || "未命名提醒"} 今天一次`}
           style={styles.skipButton}
           onPress={() => {
             translateX.value = withSpring(0, { damping: 20 });
@@ -80,16 +82,29 @@ function TimelineRow({ item, onPress, onSkip }: TimelineRowProps) {
         <Animated.View style={animatedStyle}>
           <Pressable
             accessibilityRole="button"
-            style={({ pressed }) => [styles.row, passed && styles.rowDone, pressed && styles.rowPressed]}
+            style={({ pressed }) => [
+              styles.row,
+              passed && styles.rowDone,
+              pressed && styles.rowPressed,
+            ]}
             onPress={() => onPress(alarm.id)}
           >
             <Text style={[styles.time, passed && styles.textMuted]}>
               {formatTime(alarm.hour, alarm.minute)}
             </Text>
-            <View style={[styles.bar, { backgroundColor: category.color }, passed && styles.barMuted]} />
+            <View
+              style={[
+                styles.bar,
+                { backgroundColor: category.color },
+                passed && styles.barMuted,
+              ]}
+            />
             <View style={styles.body}>
-              <Text style={[styles.label, passed && styles.textMuted]} numberOfLines={1}>
-                {alarm.label || '未命名提醒'}
+              <Text
+                style={[styles.label, passed && styles.textMuted]}
+                numberOfLines={1}
+              >
+                {alarm.label || "未命名提醒"}
               </Text>
               <Text style={styles.meta}>{getMetaText(item)}</Text>
             </View>
@@ -110,7 +125,12 @@ type TodayTimelineProps = {
 /**
  * 今日时间轴：今天会响的提醒按时刻升序，已响置灰。
  */
-export default function TodayTimeline({ items, onPress, onSkip }: TodayTimelineProps) {
+export default function TodayTimeline({
+  items,
+  onPress,
+  onSkip,
+}: TodayTimelineProps) {
+  const styles = useSkinStyles(createStyles);
   return (
     <View>
       {items.map((item) => (
@@ -125,85 +145,87 @@ export default function TodayTimeline({ items, onPress, onSkip }: TodayTimelineP
   );
 }
 
-const styles = StyleSheet.create({
-  wrapper: {
-    marginBottom: 8,
-    borderRadius: 16,
-    overflow: 'hidden',
-    position: 'relative',
-  },
-  skipButton: {
-    position: 'absolute',
-    right: 0,
-    top: 0,
-    bottom: 0,
-    width: SKIP_BUTTON_WIDTH,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: COLORS.warning,
-  },
-  skipText: {
-    color: SKIN.brand.onPrimary,
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    borderRadius: 16,
-    backgroundColor: COLORS.card,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 1,
-  },
-  rowDone: {
-    backgroundColor: COLORS.input,
-    borderColor: COLORS.border,
-  },
-  rowPressed: {
-    backgroundColor: COLORS.input,
-  },
-  time: {
-    minWidth: 46,
-    color: COLORS.textPrimary,
-    fontSize: 15,
-    fontWeight: '800',
-  },
-  bar: {
-    width: 4,
-    alignSelf: 'stretch',
-    borderRadius: 2,
-  },
-  barMuted: {
-    opacity: 0.35,
-  },
-  body: {
-    flex: 1,
-  },
-  label: {
-    color: COLORS.textPrimary,
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  meta: {
-    marginTop: 2,
-    color: COLORS.textMuted,
-    fontSize: 11,
-  },
-  tag: {
-    color: COLORS.textMuted,
-    fontSize: 10,
-    fontWeight: '700',
-  },
-  textMuted: {
-    color: COLORS.textMuted,
-    fontWeight: '600',
-  },
-});
+function createStyles() {
+  return StyleSheet.create({
+    wrapper: {
+      marginBottom: 8,
+      borderRadius: 16,
+      overflow: "hidden",
+      position: "relative",
+    },
+    skipButton: {
+      position: "absolute",
+      right: 0,
+      top: 0,
+      bottom: 0,
+      width: SKIP_BUTTON_WIDTH,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: COLORS.warning,
+    },
+    skipText: {
+      color: SKIN.brand.onPrimary,
+      fontSize: 11,
+      fontWeight: "700",
+    },
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      paddingVertical: 12,
+      paddingHorizontal: 14,
+      borderRadius: 16,
+      backgroundColor: COLORS.card,
+      borderWidth: 1,
+      borderColor: COLORS.border,
+      shadowColor: COLORS.shadow,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.05,
+      shadowRadius: 8,
+      elevation: 1,
+    },
+    rowDone: {
+      backgroundColor: COLORS.input,
+      borderColor: COLORS.border,
+    },
+    rowPressed: {
+      backgroundColor: COLORS.input,
+    },
+    time: {
+      minWidth: 46,
+      color: COLORS.textPrimary,
+      fontSize: 15,
+      fontWeight: "800",
+    },
+    bar: {
+      width: 4,
+      alignSelf: "stretch",
+      borderRadius: 2,
+    },
+    barMuted: {
+      opacity: 0.35,
+    },
+    body: {
+      flex: 1,
+    },
+    label: {
+      color: COLORS.textPrimary,
+      fontSize: 13,
+      fontWeight: "700",
+    },
+    meta: {
+      marginTop: 2,
+      color: COLORS.textMuted,
+      fontSize: 11,
+    },
+    tag: {
+      color: COLORS.textMuted,
+      fontSize: 10,
+      fontWeight: "700",
+    },
+    textMuted: {
+      color: COLORS.textMuted,
+      fontWeight: "600",
+    },
+  });
+}

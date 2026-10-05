@@ -6,6 +6,7 @@ import { format } from 'date-fns';
 import { useAlarmStore } from '@/store/alarm-store';
 import * as repo from '@/db/alarm-repository';
 import { COLORS, SKIN } from '@/constants';
+import { useSkinStyles } from '@/hooks/useSkinStyles';
 import { today } from '@/utils/date';
 import { PageHeading } from '@/components/common/PageHeader';
 import {
@@ -31,6 +32,7 @@ const VIEW_OPTIONS: { key: CalendarViewMode; label: string }[] = [
  * （日期范围+翻页 / 视图分段），功能与原日历页完全一致。
  */
 export default function PlanScreen() {
+  const styles = useSkinStyles(createStyles);
   const router = useRouter();
   const alarms = useAlarmStore((state) => state.alarms);
   const loadAlarms = useAlarmStore((state) => state.loadAlarms);
@@ -180,7 +182,8 @@ export default function PlanScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles() {
+  return StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   content: { paddingHorizontal: 20, paddingBottom: 30 },
   pageHeader: { paddingTop: 12, paddingBottom: 20 },
@@ -200,4 +203,6 @@ const styles = StyleSheet.create({
   filterLabel: { color: COLORS.textSecondary, fontSize: 12 },
   loading: { alignItems: 'center', paddingVertical: 70 },
   loadingText: { marginTop: 10, color: COLORS.textSecondary, fontSize: 12 },
-});
+  });
+}
+

@@ -17,9 +17,11 @@ import EmptyState from '@/components/common/EmptyState';
 import FilterBar, { type FilterValues } from '@/components/alarm-list/FilterBar';
 import type { Alarm } from '@/types/alarm';
 import { COLORS } from '@/constants';
+import { useSkinStyles } from '@/hooks/useSkinStyles';
 import { formatDate } from '@/utils/date';
 
 export default function AllScreen() {
+  const styles = useSkinStyles(createStyles);
   const router = useRouter();
   const { alarms, loading, loadAlarms, toggleAlarm, deleteAlarm, duplicateAlarm } =
     useAlarmStore();
@@ -233,7 +235,8 @@ export default function AllScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles() {
+  return StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
@@ -272,4 +275,6 @@ const styles = StyleSheet.create({
   filteredEmpty: { alignItems: 'center', paddingVertical: 42 },
   filteredEmptyTitle: { color: COLORS.textPrimary, fontSize: 15, fontWeight: '800' },
   filteredEmptyText: { marginTop: 6, color: COLORS.textMuted, fontSize: 12 },
-});
+  });
+}
+
