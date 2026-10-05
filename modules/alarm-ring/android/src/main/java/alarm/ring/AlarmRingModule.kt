@@ -60,7 +60,17 @@ class AlarmRingModule : Module() {
         AsyncFunction("stopRinging") {
             val context = appContext.reactContext
                 ?: return@AsyncFunction Unit
-            context.stopService(Intent(context, RingService::class.java))
+            // 先同步清响铃快照：JS 侧响铃浮层每秒轮询 getRingingInfo，
+            // 若等 ACTION_STOP 异步生效，快照残留会让浮层关闭后 1 秒内再次弹出
+            RingService.ringingInfo = null
+            // 走服务内 ACTION_STOP 完整停止流程（清快照/停播放/摘前台通知/stopSelf），
+            // 不用 stopService：后者只触发 onDestroy，历史实现中快照清不掉导致浮层复现。
+            // 调用方在 App 前台（浮层点击），startService 不受后台启动限制；
+            // 也不用 startForegroundService，避免服务已停时触发
+            // ForegroundServiceDidNotStartInTimeException
+            context.startService(
+                Intent(context, RingService::class.java).setAction(RingService.ACTION_STOP)
+            )
         }
 
         Function("canScheduleExactAlarms") {

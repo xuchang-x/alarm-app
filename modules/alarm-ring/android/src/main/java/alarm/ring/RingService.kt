@@ -91,6 +91,9 @@ class RingService : Service() {
     }
 
     override fun onDestroy() {
+        // 防御性清快照：stopService / 系统回收等不经 stopRinging() 的销毁路径
+        // 也要清，否则 JS 响铃浮层轮询会读到残留快照反复弹出
+        ringingInfo = null
         stopHandler.removeCallbacksAndMessages(null)
         stopPlaying()
         super.onDestroy()
