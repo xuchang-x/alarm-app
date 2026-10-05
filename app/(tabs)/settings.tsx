@@ -31,7 +31,7 @@ const PERMISSION_LABELS: Record<NotificationPermissionStatus, string> = {
 };
 
 /** 关于卡片展示的应用名（与 app.json expo.name 保持一致） */
-const APP_DISPLAY_NAME = "闹钟与提醒";
+const APP_DISPLAY_NAME = "钟意";
 
 export default function SettingsScreen() {
   const styles = useSkinStyles(createStyles);
