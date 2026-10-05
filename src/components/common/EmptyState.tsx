@@ -1,6 +1,7 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { useRouter } from 'expo-router';
-import { COLORS, SKIN } from '@/constants';
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useRouter } from "expo-router";
+import { COLORS, SKIN } from "@/constants";
+import { useSkinStyles } from "@/hooks/useSkinStyles";
 
 type EmptyStateProps = {
   title: string;
@@ -18,6 +19,7 @@ export default function EmptyState({
   actionLabel,
 }: EmptyStateProps) {
   const router = useRouter();
+  const styles = useSkinStyles(createStyles);
   return (
     <View style={styles.container}>
       <View style={styles.icon}>
@@ -28,8 +30,11 @@ export default function EmptyState({
       {actionLabel ? (
         <Pressable
           accessibilityRole="button"
-          style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
-          onPress={() => router.push('/create')}
+          style={({ pressed }) => [
+            styles.button,
+            pressed && styles.buttonPressed,
+          ]}
+          onPress={() => router.push("/create")}
         >
           <Text style={styles.buttonText}>{actionLabel}</Text>
         </Pressable>
@@ -38,56 +43,58 @@ export default function EmptyState({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 36,
-    paddingVertical: 42,
-  },
-  icon: {
-    width: 88,
-    height: 88,
-    borderRadius: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLORS.primarySoft,
-  },
-  iconText: {
-    color: COLORS.primary,
-    fontSize: 44,
-  },
-  title: {
-    marginTop: 20,
-    color: COLORS.textPrimary,
-    fontSize: 22,
-    fontWeight: '800',
-  },
-  subtitle: {
-    marginTop: 8,
-    color: COLORS.textSecondary,
-    fontSize: 14,
-    textAlign: 'center',
-  },
-  button: {
-    marginTop: 24,
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    borderRadius: 15,
-    backgroundColor: COLORS.primary,
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.18,
-    shadowRadius: 14,
-    elevation: 4,
-  },
-  buttonPressed: {
-    backgroundColor: COLORS.primaryDark,
-    transform: [{ scale: 0.97 }],
-  },
-  buttonText: {
-    color: SKIN.brand.onPrimary,
-    fontSize: 14,
-    fontWeight: '700',
-  },
-});
+function createStyles() {
+  return StyleSheet.create({
+    container: {
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: 36,
+      paddingVertical: 42,
+    },
+    icon: {
+      width: 88,
+      height: 88,
+      borderRadius: 30,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: COLORS.primarySoft,
+    },
+    iconText: {
+      color: COLORS.primary,
+      fontSize: 44,
+    },
+    title: {
+      marginTop: 20,
+      color: COLORS.textPrimary,
+      fontSize: 22,
+      fontWeight: "800",
+    },
+    subtitle: {
+      marginTop: 8,
+      color: COLORS.textSecondary,
+      fontSize: 14,
+      textAlign: "center",
+    },
+    button: {
+      marginTop: 24,
+      paddingHorizontal: 24,
+      paddingVertical: 14,
+      borderRadius: 15,
+      backgroundColor: COLORS.primary,
+      shadowColor: COLORS.shadow,
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.18,
+      shadowRadius: 14,
+      elevation: 4,
+    },
+    buttonPressed: {
+      backgroundColor: COLORS.primaryDark,
+      transform: [{ scale: 0.97 }],
+    },
+    buttonText: {
+      color: SKIN.brand.onPrimary,
+      fontSize: 14,
+      fontWeight: "700",
+    },
+  });
+}

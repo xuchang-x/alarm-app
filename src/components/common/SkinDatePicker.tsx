@@ -1,12 +1,12 @@
 import DateTimePicker, {
   type AndroidNativeProps,
 } from '@react-native-community/datetimepicker';
-import { NATIVE_DIALOG_LABELS } from '@/constants';
+import { NATIVE_DIALOG_LABELS, getCurrentSkinTheme } from '@/constants';
 
 /**
  * 原生日期弹窗统一封装。
  *
- * 皮肤逻辑（Material 主题、固定中文文案、浅色模式）集中在这里，
+ * 皮肤逻辑（Material 主题、固定中文文案、跟随当前皮肤主题）集中在这里，
  * 业务模块不要直接使用 DateTimePicker，避免各处配置漂移导致样式不一致。
  */
 type SkinDatePickerProps = Omit<
@@ -21,7 +21,7 @@ export default function SkinDatePicker(props: SkinDatePickerProps) {
     <DateTimePicker
       {...props}
       design="material"
-      themeVariant="light"
+      themeVariant={getCurrentSkinTheme()}
       title={labels.title}
       positiveButton={{ label: labels.confirm }}
       negativeButton={{ label: labels.cancel }}
