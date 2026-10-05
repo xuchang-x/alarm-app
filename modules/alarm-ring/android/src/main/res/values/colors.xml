@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  响铃 Activity 皮肤色（浅色兜底值）。
+  app 层 res/values(-night)/colors.xml 定义了同名 skin_* 资源（含深色态），
+  最终 APK 中 app 层值覆盖模块层默认值，运行时自动跟随浅色/深色主题。
+-->
+<resources>
+  <color name="skinPrimary">#6C5CE7</color>
+  <color name="skinOnPrimary">#FFFFFF</color>
+  <color name="skinSurface">#FFFFFF</color>
+  <color name="skinTextPrimary">#25223A</color>
+  <color name="skinTextSecondary">#6D6880</color>
+</resources>
