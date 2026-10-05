@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View, Pressable } from 'react-native';
 import type { Weekday } from '@/types/alarm';
-import { COLORS } from '@/constants';
+import { COLORS, SKIN } from '@/constants';
 
 interface WeekdaySelectorProps {
   selected: Weekday[];
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   chipTextSelected: {
-    color: '#ffffff',
+    color: SKIN.brand.onPrimary,
     fontWeight: '600',
   },
 });

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { AppState, type AppStateStatus } from 'react-native';
+import { AppState, Linking, type AppStateStatus } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -12,11 +12,12 @@ import {
   setupNotificationCategory,
   setupNotificationChannel,
   requestPermissions,
+  getNotificationPermissionStatus,
   addNotificationResponseListener,
 } from '@/services/notification';
 import { replenishAlarmRinging } from '@/services/ring-scheduler';
-import { SkinAlertHost } from '@/components/common/SkinAlert';
-import { COLORS } from '@/constants';
+import { SkinAlert, SkinAlertHost } from '@/components/common/SkinAlert';
+import { COLORS, getCurrentSkinTheme } from '@/constants';
 
 // 在模块加载时立即配置前台通知处理（Expo Go 中安全跳过）
 setupNotificationHandler();
@@ -64,6 +65,25 @@ export default function RootLayout() {
 
         // 5. 加载闹钟列表到 store（过期 once 归位依赖列表先就绪）
         await useAlarmStore.getState().loadAlarms();
+
+        // 5.5 通知权限被拒且存在启用闹钟 → 引导开启。
+        // Android 13+ 无通知权限时响铃前台服务的通知不可见，闹钟响后
+        // 没有任何关闭入口（App 内无响铃页），用户只能杀掉 App。
+        if ((await getNotificationPermissionStatus()) === 'denied') {
+          const hasEnabledAlarm = useAlarmStore
+            .getState()
+            .alarms.some((alarm) => alarm.enabled);
+          if (hasEnabledAlarm) {
+            SkinAlert.alert(
+              '需要开启通知权限',
+              '通知权限被关闭时，闹钟响铃后看不到关闭按钮，只能杀掉应用才能停止响铃。请在系统设置中允许本应用通知。',
+              [
+                { text: '稍后', style: 'cancel' },
+                { text: '去设置', onPress: () => void Linking.openSettings() },
+              ]
+            );
+          }
+        }
 
         // 6. 过期归位 + 补充调度
         await maintainSchedules();
@@ -131,7 +151,7 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <StatusBar style="dark" />
+        <StatusBar style={getCurrentSkinTheme() === 'dark' ? 'light' : 'dark'} />
         <Stack
           screenOptions={{
             headerShown: false,

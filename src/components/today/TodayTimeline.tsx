@@ -6,32 +6,18 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import type { TodayItem } from '@/hooks/useTodayOverview';
-import type { Alarm } from '@/types/alarm';
-import { ALARM_CATEGORIES, COLORS } from '@/constants';
+import { ALARM_TYPE_LABELS, COLORS, SKIN, getAlarmCategory } from '@/constants';
 import { formatTime } from '@/utils/date';
 
 /** 左滑操作按钮宽度 */
 const SKIP_BUTTON_WIDTH = 72;
-
-function getTypeLabel(alarm: Alarm): string {
-  switch (alarm.type) {
-    case 'once':
-      return '一次';
-    case 'daily':
-      return '每天';
-    case 'weekly':
-      return '每周';
-    default:
-      return '';
-  }
-}
 
 function getMetaText(item: TodayItem): string {
   const { alarm, rhythm } = item;
   if (alarm.type === 'cycle' && rhythm && alarm.intervalDays) {
     return `每 ${alarm.intervalDays} 天 · 今天第 ${rhythm.dayIndex} 天`;
   }
-  return getTypeLabel(alarm);
+  return ALARM_TYPE_LABELS[alarm.type];
 }
 
 type TimelineRowProps = {
@@ -43,12 +29,16 @@ type TimelineRowProps = {
 
 function TimelineRow({ item, onPress, onSkip }: TimelineRowProps) {
   const { alarm, passed } = item;
-  const isCycle = alarm.type === 'cycle';
-  const maxSwipe = isCycle ? -SKIP_BUTTON_WIDTH : 0;
+  /** 每天/每周/周期均可左滑跳过，一次性无「轮次」语义不开放；已响过禁用避免 skip 错位到下一轮 */
+  const swipeable = alarm.type !== 'once' && !passed;
+  const maxSwipe = swipeable ? -SKIP_BUTTON_WIDTH : 0;
   const translateX = useSharedValue(0);
   const contextX = useSharedValue(0);
 
   const panGesture = Gesture.Pan()
+    // 仅水平激活：垂直方向先动则手势失败，把触摸还给列表滚动
+    .activeOffsetX([-12, 12])
+    .failOffsetY([-12, 12])
     .onBegin(() => {
       contextX.value = translateX.value;
     })
@@ -69,13 +59,11 @@ function TimelineRow({ item, onPress, onSkip }: TimelineRowProps) {
     transform: [{ translateX: translateX.value }],
   }));
 
-  const category =
-    ALARM_CATEGORIES.find((entry) => entry.key === alarm.category) ??
-    ALARM_CATEGORIES[ALARM_CATEGORIES.length - 1];
+  const category = getAlarmCategory(alarm.category);
 
   return (
     <View style={styles.wrapper}>
-      {isCycle ? (
+      {swipeable ? (
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={`跳过 ${alarm.label || '未命名提醒'} 今天一次`}
@@ -155,7 +143,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.warning,
   },
   skipText: {
-    color: '#FFFFFF',
+    color: SKIN.brand.onPrimary,
     fontSize: 11,
     fontWeight: '700',
   },
@@ -180,7 +168,7 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
   },
   rowPressed: {
-    transform: [{ scale: 0.99 }],
+    backgroundColor: COLORS.input,
   },
   time: {
     minWidth: 46,

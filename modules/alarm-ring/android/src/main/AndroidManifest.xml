@@ -10,6 +10,9 @@
   <!-- 响铃前台服务 -->
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+  <!-- 响铃通知全屏弹窗（Android 10+）：闹钟类 App 标准行为，息屏/锁屏时直接全屏拉起；
+       权限受限时系统自动降级为 heads-up 横幅 -->
+  <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
 
   <application>
     <receiver

@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View, TextInput, Pressable } from 'react-native';
 import type { AlarmCategory } from '@/types/alarm';
-import { ALARM_CATEGORIES, COLORS } from '@/constants';
+import { ALARM_CATEGORIES, COLORS, SNOOZE_OPTIONS } from '@/constants';
 import SoundPickerField from './SoundPickerField';
 import type { SoundSelection } from './SoundPickerModal';
 
@@ -16,8 +16,6 @@ interface OptionalFieldsProps {
   customSoundTitle: string | null;
   onSoundChange: (selection: SoundSelection) => void;
 }
-
-const SNOOZE_OPTIONS = [5, 10, 15, 20, 30] as const;
 
 /**
  * 附加信息：名称、分类、稍后提醒时长（收纳区，非主线）。

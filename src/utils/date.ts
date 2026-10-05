@@ -4,9 +4,9 @@ import {
   startOfDay,
   isBefore,
   isAfter,
-  isEqual,
   differenceInCalendarDays,
 } from 'date-fns';
+import { NOTIFICATION_ID_PREFIX } from '@/constants';
 
 /** 格式化日期为 'YYYY-MM-DD' */
 export function formatDate(date: Date): string {
@@ -33,20 +33,15 @@ export function isDateAfter(a: Date, b: Date): boolean {
   return isAfter(a, b);
 }
 
-/** a 和 b 是同一天 */
-export function isDateEqual(a: Date, b: Date): boolean {
-  return isEqual(startOfDay(a), startOfDay(b));
-}
-
 /** 解析 'YYYY-MM-DD' 字符串为 Date，返回当天零时 */
 export function parseDate(dateStr: string): Date {
   const [year, month, day] = dateStr.split('-').map(Number);
   return new Date(year, month - 1, day);
 }
 
-/** 生成通知 ID */
+/** 生成通知 ID（前缀与 cancelAlarmNotifications 的过滤规则共用一常量） */
 export function makeNotificationId(alarmId: number, date: Date): string {
-  return `alarm-${alarmId}-${format(date, 'yyyyMMdd')}`;
+  return `${NOTIFICATION_ID_PREFIX}-${alarmId}-${format(date, 'yyyyMMdd')}`;
 }
 
 /** 格式化时间为 HH:MM */

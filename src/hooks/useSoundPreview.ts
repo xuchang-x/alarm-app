@@ -26,9 +26,12 @@ export function useSoundPreview() {
   /** 试听（内置音资产源或本地 URI）。已在播则重头再放。 */
   const preview = async (source: AudioSource): Promise<void> => {
     try {
-      // 全局音频模式：试听走媒体流，可被其他 App 打断、遵从静音开关
+      // 全局音频模式：试听是用户主动点击的即时反馈，应始终出声。
+      // 注意 playsInSilentMode 必须为 true：expo-audio 在 Android 上该值为 false 时，
+      // 铃声模式为静音/震动的手机会直接抑制播放（点了没声音，看似按钮失效）。
+      // 闹钟类 App 的试听语义与系统时钟一致：静音/震动下也要响。
       await setAudioModeAsync({
-        playsInSilentMode: false,
+        playsInSilentMode: true,
         interruptionMode: 'doNotMix',
       });
     } catch {

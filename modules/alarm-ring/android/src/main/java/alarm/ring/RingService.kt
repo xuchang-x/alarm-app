@@ -15,6 +15,7 @@ import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 
 /**
  * 响铃前台服务：
@@ -60,6 +61,7 @@ class RingService : Service() {
         val soundUri = intent?.getStringExtra("soundUri")
 
         startForeground(NOTIFICATION_ID, buildNotification(title, body))
+        logNotificationDiagnostics()
         startPlaying(soundId, soundUri)
 
         // 到时自动停（真正的时长控制点，改 30s→50s 只改 JS 常量）
@@ -173,6 +175,12 @@ class RingService : Service() {
         val contentPi = packageManager.getLaunchIntentForPackage(packageName)?.let {
             PendingIntent.getActivity(this, 0, it, flags)
         }
+        // 全屏弹窗意图（Android 10+ 闹钟类 App 标准行为）：息屏/锁屏/App 在后台时
+        // 直接全屏拉起 App；权限受限或不可用时系统自动降级为 heads-up 横幅，
+        // 保证响铃时用户始终能看到带「关闭/稍后提醒」的入口
+        val fullScreenPi = packageManager.getLaunchIntentForPackage(packageName)?.let {
+            PendingIntent.getActivity(this, 1, it, flags)
+        }
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
@@ -182,11 +190,37 @@ class RingService : Service() {
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setOngoing(true)
             .setContentIntent(contentPi)
+            .setFullScreenIntent(fullScreenPi, true)
             .setSound(null) // 声音由 MediaPlayer 承载，避免双声
             .setVibrate(longArrayOf(0, 250, 250, 250))
             .addAction(0, "稍后提醒", snoozePi)
             .addAction(0, "关闭", stopPi)
             .build()
+    }
+
+    /**
+     * 诊断日志：响铃通知不可见时打出原因（权限被拒/渠道被降级），方便 adb logcat 排查。
+     * 对应典型现象：铃声在响但看不到任何通知，无法关闭闹钟。
+     */
+    private fun logNotificationDiagnostics() {
+        if (!NotificationManagerCompat.from(this).areNotificationsEnabled()) {
+            android.util.Log.w(
+                "RingService",
+                "应用通知权限未授予：响铃通知不可见，用户将无法通过通知关闭闹钟，请引导开启通知权限"
+            )
+            return
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = getSystemService(NotificationManager::class.java)
+                .getNotificationChannel(CHANNEL_ID)
+            if (channel != null && channel.importance < NotificationManager.IMPORTANCE_HIGH) {
+                android.util.Log.w(
+                    "RingService",
+                    "通知渠道重要性为 ${channel.importance}（低于 HIGH）：横幅/弹窗可能不展示，" +
+                        "多为系统或用户在设置中关闭了该渠道"
+                )
+            }
+        }
     }
 
     private fun ensureChannel(context: Context) {

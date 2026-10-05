@@ -12,14 +12,14 @@ import * as DocumentPicker from 'expo-document-picker';
 // SDK 56 起 getAssetsAsync/SortBy 等仅在 legacy 子入口可用（主入口是运行时抛错的弃用 stub）
 import * as MediaLibrary from 'expo-media-library/legacy';
 import { SkinAlert, type SkinAlertButton } from '@/components/common/SkinAlert';
-import { COLORS } from '@/constants';
+import { COLORS, SKIN } from '@/constants';
 import {
   DEFAULT_SOUND_ID,
   SOUND_GROUP_LABELS,
   SOUND_PRESETS,
+  getSoundAsset,
   type SoundPreset,
 } from '@/constants/sounds';
-import { getSoundAsset } from '@/constants/sound-assets';
 import { useSoundPreview } from '@/hooks/useSoundPreview';
 
 /** 铃声选择结果（回填给表单） */
@@ -65,15 +65,14 @@ export default function SoundPickerModal({
     onClose();
   };
 
-  /** 内置音试听（资产缺失等异常静默跳过） */
+  /** 内置音试听（资产缺失静默跳过；播放异常弹提示，避免无声失败难排查） */
   const handlePreview = (preset: SoundPreset): void => {
     const asset = getSoundAsset(preset.id);
     if (asset === null) return;
-    try {
-      void preview(asset);
-    } catch (error) {
+    preview(asset).catch((error: unknown) => {
       console.warn('[SoundPicker] 试听失败:', error);
-    }
+      SkinAlert.alert('提示', '试听失败，请稍后再试');
+    });
   };
 
   /** 音乐库选歌：media-library 权限 → 资产列表；拒绝则降级 document-picker */
@@ -190,7 +189,9 @@ async function pickFromMediaLibrary(): Promise<{ uri: string; title: string } | 
   const assets = await MediaLibrary.getAssetsAsync({
     mediaType: 'audio',
     first: 200,
-    sortBy: [MediaLibrary.SortBy.modificationTime, true],
+    // legacy API 的 sortBy 是「排序选项列表」：每项为 key 或 [key, boolean]。
+    // 必须写成外层数组包 pair；false 映射 DESC（最新在前），true 是 ASC
+    sortBy: [[MediaLibrary.SortBy.modificationTime, false]],
   });
   const audio = assets.assets;
   if (audio.length === 0) {
@@ -232,7 +233,7 @@ async function pickByDocumentPicker(): Promise<{ uri: string; title: string } | 
 
 const styles = StyleSheet.create({
   overlay: { flex: 1, justifyContent: 'flex-end' },
-  backdrop: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(37, 34, 58, 0.24)' },
+  backdrop: { ...StyleSheet.absoluteFill, backgroundColor: SKIN.misc.sheetBackdrop },
   sheet: {
     maxHeight: '78%',
     paddingHorizontal: 20,
@@ -285,5 +286,5 @@ const styles = StyleSheet.create({
   },
   libraryButtonPressed: { backgroundColor: COLORS.primaryDark, transform: [{ scale: 0.99 }] },
   libraryButtonDisabled: { opacity: 0.55 },
-  libraryButtonText: { color: '#FFFFFF', fontSize: 14, fontWeight: '800' },
+  libraryButtonText: { color: SKIN.brand.onPrimary, fontSize: 14, fontWeight: '800' },
 });

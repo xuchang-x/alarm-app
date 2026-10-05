@@ -2,16 +2,8 @@ import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { format } from 'date-fns';
 import type { CalendarInstance } from '@/services/calendar';
 import { formatTime } from '@/utils/date';
-import type { AlarmType } from '@/types/alarm';
-import { COLORS } from '@/constants';
+import { ALARM_TYPE_LABELS, COLORS, SKIN } from '@/constants';
 import { getCategoryColor } from './shared';
-
-function getAlarmTypeLabel(type: AlarmType): string {
-  if (type === 'once') return '一次性';
-  if (type === 'daily') return '每天';
-  if (type === 'weekly') return '每周';
-  return '周期';
-}
 
 interface AlarmDetailSheetProps {
   instance: CalendarInstance | null;
@@ -44,7 +36,7 @@ export default function AlarmDetailSheet({ instance, onClose, onEdit }: AlarmDet
             {formatTime(instance.alarm.hour, instance.alarm.minute)}
           </Text>
           <Text style={styles.detailDate}>
-            {format(instance.date, 'M月d日')} · {getAlarmTypeLabel(instance.alarm.type)}
+            {format(instance.date, 'M月d日')} · {ALARM_TYPE_LABELS[instance.alarm.type]}
           </Text>
           <View style={styles.detailStatusRow}>
             <Text style={styles.detailStatusLabel}>状态</Text>
@@ -71,7 +63,7 @@ export default function AlarmDetailSheet({ instance, onClose, onEdit }: AlarmDet
 
 const styles = StyleSheet.create({
   modalOverlay: { flex: 1, justifyContent: 'flex-end' },
-  modalBackdrop: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(37, 34, 58, 0.24)' },
+  modalBackdrop: { ...StyleSheet.absoluteFill, backgroundColor: SKIN.misc.sheetBackdrop },
   detailSheet: { paddingHorizontal: 20, paddingTop: 10, paddingBottom: 28, borderTopLeftRadius: 24, borderTopRightRadius: 24, backgroundColor: COLORS.card },
   detailHandle: { alignSelf: 'center', width: 38, height: 4, marginBottom: 16, borderRadius: 2, backgroundColor: COLORS.border },
   detailHeader: { flexDirection: 'row', alignItems: 'center' },
@@ -88,5 +80,5 @@ const styles = StyleSheet.create({
   detailSecondaryButton: { flex: 1, alignItems: 'center', paddingVertical: 13, borderRadius: 13, backgroundColor: COLORS.input },
   detailSecondaryText: { color: COLORS.textSecondary, fontSize: 14, fontWeight: '700' },
   detailPrimaryButton: { flex: 1, alignItems: 'center', paddingVertical: 13, borderRadius: 13, backgroundColor: COLORS.primary },
-  detailPrimaryText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700' },
+  detailPrimaryText: { color: SKIN.brand.onPrimary, fontSize: 14, fontWeight: '700' },
 });

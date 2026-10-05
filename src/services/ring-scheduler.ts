@@ -1,10 +1,10 @@
 import { Platform } from 'react-native';
 import type { Alarm, AlarmAdjustment } from '@/types/alarm';
-import { computeRingDatesInRange } from '@/services/scheduler';
 import {
-  SCHEDULE_DAYS_AHEAD,
-  SCHEDULE_MAX_PER_ALARM,
-} from '@/constants';
+  computeTriggerTimestamps,
+  getAlarmDescription,
+} from '@/services/scheduler';
+import { SCHEDULE_MAX_PER_ALARM } from '@/constants';
 import { DEFAULT_SOUND_ID, findSoundPreset } from '@/constants/sounds';
 import {
   scheduleAlarmNotifications,
@@ -39,50 +39,6 @@ function getNative(): AlarmRingModule | null {
 
 function isAndroidNative(): boolean {
   return getNative() !== null;
-}
-
-/** 生成闹钟描述文本（与 notification.ts 保持一致的用户可见文案） */
-function getAlarmDescription(alarm: Alarm): string {
-  const time = `${String(alarm.hour).padStart(2, '0')}:${String(alarm.minute).padStart(2, '0')}`;
-  switch (alarm.type) {
-    case 'once':
-      return `一次性闹钟 ${time}`;
-    case 'daily':
-      return `每天 ${time}`;
-    case 'weekly':
-      return `每周 ${time}`;
-    case 'cycle':
-      return `每${alarm.intervalDays}天 ${time}`;
-    default:
-      return `闹钟 ${time}`;
-  }
-}
-
-/**
- * 计算单个闹钟未来 RING_DURATION 内的全部触发时间戳（Android 原生路径用）。
- * daily/weekly 统一按「逐日展开 + 按规则过滤」，替代原通知库的 DAILY/WEEKLY trigger，
- * 保证四类闹钟在原生侧的调度策略一致（触发后原生链式排下一个）。
- */
-function computeTriggerTimestamps(
-  alarm: Alarm,
-  adjustments: AlarmAdjustment[]
-): number[] {
-  const rangeStart = new Date();
-  const rangeEnd = new Date();
-  rangeEnd.setDate(rangeEnd.getDate() + SCHEDULE_DAYS_AHEAD);
-
-  const dates = computeRingDatesInRange(alarm, rangeStart, rangeEnd, adjustments);
-  const timestamps: number[] = [];
-
-  for (const date of dates) {
-    if (timestamps.length >= SCHEDULE_MAX_PER_ALARM) break;
-    const triggerAt = new Date(date);
-    triggerAt.setHours(alarm.hour, alarm.minute, 0, 0);
-    if (triggerAt.getTime() > Date.now()) {
-      timestamps.push(triggerAt.getTime());
-    }
-  }
-  return timestamps;
 }
 
 /**
@@ -120,7 +76,7 @@ export async function scheduleAlarmRinging(
 
     if (!alarm.enabled) return { ok: true, scheduled: 0, truncated: false };
 
-    const triggers = computeTriggerTimestamps(alarm, adjustments);
+    const { timestamps: triggers, truncated } = computeTriggerTimestamps(alarm, adjustments);
     const description = getAlarmDescription(alarm);
     const sound = computeSoundFields(alarm);
 
@@ -142,7 +98,7 @@ export async function scheduleAlarmRinging(
     return {
       ok: true,
       scheduled: triggers.length,
-      truncated: triggers.length >= SCHEDULE_MAX_PER_ALARM,
+      truncated: truncated || triggers.length >= SCHEDULE_MAX_PER_ALARM,
     };
   }
 
@@ -179,7 +135,7 @@ export async function replenishAlarmRinging(
     for (const alarm of alarms) {
       if (!alarm.enabled) continue;
       const adjustments = await getAdjustments(alarm.id);
-      const triggers = computeTriggerTimestamps(alarm, adjustments);
+      const { timestamps: triggers } = computeTriggerTimestamps(alarm, adjustments);
       if (triggers.length === 0) continue;
       const description = getAlarmDescription(alarm);
       const sound = computeSoundFields(alarm);

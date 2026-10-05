@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>008 深色模式 · 5 套配色方案对比原型</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+    background: #101014; color: #E7E5F0; min-height: 100vh; padding: 16px 12px 48px;
+  }
+  h1 { font-size: 18px; margin-bottom: 4px; }
+  .meta { font-size: 12px; color: #8B88A0; margin-bottom: 12px; }
+  .meta a { color: #9F8CFF; }
+
+  /* ── 工具栏 ── */
+  .toolbar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+  .toolbar button {
+    border: 1px solid #33313F; background: #1B1A22; color: #C9C6D8;
+    padding: 6px 12px; border-radius: 999px; font-size: 12px; cursor: pointer;
+  }
+  .toolbar button.active { background: #6C5CE7; border-color: #6C5CE7; color: #fff; font-weight: 600; }
+  .scheme-note { font-size: 12px; color: #8B88A0; margin: 4px 0 14px; min-height: 16px; }
+
+  /* ── 手机外框 ── */
+  .stage { display: flex; justify-content: center; }
+  .phone {
+    width: 375px; height: 760px; border-radius: 44px; padding: 10px;
+    background: #17161D; border: 1px solid #2C2A36; box-shadow: 0 24px 60px rgba(0,0,0,.55);
+  }
+  .screen-wrap {
+    position: relative; width: 100%; height: 100%; border-radius: 35px; overflow: hidden;
+    display: flex; flex-direction: column;
+    background: var(--bg); color: var(--text);
+    transition: background .25s, color .25s;
+  }
+  .statusbar {
+    height: 38px; flex: none; display: flex; align-items: center; justify-content: space-between;
+    padding: 0 22px; font-size: 12px; font-weight: 600; color: var(--text);
+  }
+  .screen-body { flex: 1; overflow-y: auto; padding: 0 20px 20px; scrollbar-width: none; }
+  .screen-body::-webkit-scrollbar { display: none; }
+
+  /* ── 语义组件（全部用 token） ── */
+  .kicker { font-size: 11px; letter-spacing: 2px; color: var(--muted); font-weight: 700; margin-top: 14px; }
+  .page-title { font-size: 26px; font-weight: 800; margin-top: 2px; }
+  .page-sub { font-size: 13px; color: var(--text2); margin: 4px 0 14px; }
+
+  .hero {
+    border-radius: 20px; padding: 18px;
+    background: linear-gradient(135deg, var(--heroFrom), var(--heroTo));
+    color: var(--onHero); box-shadow: 0 10px 24px var(--shadow);
+  }
+  .hero .label { font-size: 12px; opacity: .85; }
+  .hero .time { font-size: 44px; font-weight: 800; line-height: 1.15; letter-spacing: 1px; }
+  .hero .what { font-size: 14px; margin-top: 2px; }
+  .hero .count { font-size: 12px; opacity: .8; margin-top: 6px; }
+  .dots { display: flex; gap: 5px; margin-top: 12px; }
+  .dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--heroDotOn); }
+  .dots i.off { background: var(--heroDotOff); }
+
+  .section-head { display: flex; justify-content: space-between; align-items: baseline; margin: 18px 0 10px; }
+  .section-head b { font-size: 16px; }
+  .section-head a { font-size: 12px; color: var(--primary); text-decoration: none; }
+
+  .tl { position: relative; padding-left: 14px; }
+  .tl::before { content: ""; position: absolute; left: 3px; top: 8px; bottom: 8px; width: 3px; border-radius: 2px; background: var(--border); }
+  .tl-row { position: relative; padding: 11px 14px; border-radius: 14px; background: var(--card); margin-bottom: 8px; border: 1px solid var(--border); }
+  .tl-row::before { content: ""; position: absolute; left: -14px; top: 16px; width: 9px; height: 9px; border-radius: 50%; background: var(--dot, var(--primary)); border: 2px solid var(--bg); }
+  .tl-row .t { font-size: 12px; color: var(--muted); font-weight: 600; }
+  .tl-row .n { font-size: 14px; font-weight: 600; margin-top: 1px; }
+  .tl-row .s { font-size: 11px; color: var(--text2); margin-top: 2px; }
+  .tl-row.done { opacity: 1; }
+  .tl-row.done .n { color: var(--muted); text-decoration: line-through; text-decoration-thickness: 1px; }
+  .tl-row.done::before { background: var(--muted); }
+  .tl-row.paused .n { color: var(--muted); }
+  .tl-row.paused::before { background: var(--disabled); }
+  .tl-row.soon::before { background: var(--warning); }
+
+  .cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 12px; }
+  .cal .wd { text-align: center; font-size: 11px; color: var(--muted); padding: 4px 0; }
+  .cal .d { text-align: center; padding: 7px 0 5px; border-radius: 10px; font-size: 13px; color: var(--text2); position: relative; }
+  .cal .d.has::after { content: ""; position: absolute; left: 50%; bottom: 2px; transform: translateX(-50%); width: 4px; height: 4px; border-radius: 50%; background: var(--primary); }
+  .cal .d.today { background: var(--primary); color: var(--onPrimary); font-weight: 700; }
+  .cal .d.today.has::after { background: var(--onPrimary); }
+
+  .filter-row { display: flex; gap: 8px; margin-bottom: 12px; }
+  .pill { flex: 1; text-align: center; padding: 9px 0; border-radius: 999px; background: var(--card); border: 1px solid var(--border); font-size: 12px; color: var(--text2); }
+
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 12px var(--shadow); }
+  .card .info { flex: 1; }
+  .card .time { font-size: 22px; font-weight: 800; letter-spacing: .5px; }
+  .card .name { font-size: 14px; font-weight: 600; margin-top: 1px; }
+  .card .desc { font-size: 11px; color: var(--text2); margin-top: 3px; }
+  .card .tag { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 999px; background: var(--primarySoft); color: var(--selText); margin-right: 4px; }
+  .switch { width: 44px; height: 26px; border-radius: 999px; background: var(--disabled); position: relative; flex: none; transition: background .2s; }
+  .switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: left .2s; }
+  .switch.on { background: var(--primary); }
+  .switch.on::after { left: 21px; }
+  .card.paused .time, .card.paused .name { color: var(--muted); }
+
+  .set-group { background: var(--card); border: 1px solid var(--border); border-radius: 16px; margin-bottom: 14px; overflow: hidden; }
+  .set-row { display: flex; align-items: center; gap: 12px; padding: 14px; border-bottom: 1px solid var(--border); }
+  .set-row:last-child { border-bottom: none; }
+  .set-row .info { flex: 1; }
+  .set-row .n { font-size: 14px; font-weight: 600; }
+  .set-row .d { font-size: 11px; color: var(--text2); margin-top: 2px; }
+  .set-row .v { font-size: 13px; color: var(--text2); }
+  .theme-seg { display: flex; gap: 6px; }
+  .theme-seg span { padding: 6px 12px; border-radius: 999px; font-size: 12px; border: 1px solid var(--border); color: var(--text2); }
+  .theme-seg span.on { background: var(--selBg); border-color: var(--selBorder); color: var(--selText); font-weight: 600; }
+
+  .field { margin-bottom: 16px; }
+  .field > label { display: block; font-size: 12px; color: var(--text2); margin-bottom: 8px; font-weight: 600; }
+  .time-pick { display: flex; align-items: baseline; gap: 6px; background: var(--input); border: 1px solid var(--border); border-radius: 16px; padding: 14px 18px; }
+  .time-pick b { font-size: 40px; font-weight: 800; color: var(--text); }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip { padding: 9px 16px; border-radius: 12px; background: var(--input); border: 1px solid var(--border); font-size: 13px; color: var(--text2); }
+  .chip.on { background: var(--selBg); border-color: var(--selBorder); color: var(--selText); font-weight: 600; }
+  .input-box { background: var(--input); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; font-size: 13px; color: var(--muted); }
+  .row-link { display: flex; align-items: center; gap: 10px; background: var(--input); border: 1px solid var(--border); border-radius: 14px; padding: 13px 14px; font-size: 14px; font-weight: 600; }
+  .row-link .arrow { margin-left: auto; color: var(--muted); }
+  .row-link .badge { font-size: 10px; padding: 2px 8px; border-radius: 999px; background: var(--primarySoft); color: var(--selText); }
+  .btn-primary { width: 100%; padding: 16px 0; border-radius: 16px; background: var(--primary); color: var(--onPrimary); font-size: 15px; font-weight: 700; border: none; box-shadow: 0 8px 20px var(--shadow); }
+  .btn-danger-ghost { width: 100%; padding: 14px 0; border-radius: 16px; background: transparent; border: 1px solid var(--danger); color: var(--danger); font-size: 14px; font-weight: 600; margin-top: 12px; }
+  .form-top { display: flex; align-items: center; justify-content: space-between; padding-top: 14px; margin-bottom: 8px; }
+  .form-top .cancel { color: var(--primary); font-size: 14px; font-weight: 600; }
+  .form-top .title { font-size: 17px; font-weight: 700; }
+
+  .tabbar { flex: none; display: flex; border-top: 1px solid var(--border); background: var(--card); padding: 8px 6px 20px; }
+  .tab { flex: 1; text-align: center; font-size: 11px; color: var(--muted); padding: 6px 0; border-radius: 12px; }
+  .tab .ic { display: block; font-size: 18px; margin-bottom: 2px; }
+  .tab.on { color: var(--primary); font-weight: 700; }
+
+  .empty { text-align: center; padding-top: 120px; }
+  .empty .ring { width: 84px; height: 84px; margin: 0 auto 18px; border-radius: 50%; background: var(--primarySoft); display: flex; align-items: center; justify-content: center; font-size: 38px; }
+  .empty .t { font-size: 17px; font-weight: 700; }
+  .empty .d { font-size: 13px; color: var(--text2); margin: 8px 0 22px; }
+  .empty .btn-primary { width: auto; padding: 12px 34px; }
+
+  /* ── 弹窗 ── */
+  .overlay { position: absolute; inset: 0; display: none; z-index: 30; }
+  .overlay.show { display: block; }
+  .overlay .backdrop { position: absolute; inset: 0; background: var(--backdrop); }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; background: var(--card); border-radius: 24px 24px 0 0; padding: 12px 20px 26px; max-height: 78%; overflow-y: auto; }
+  .sheet .grab { width: 40px; height: 4px; border-radius: 2px; background: var(--border); margin: 0 auto 12px; }
+  .sheet .head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .sheet .head b { font-size: 17px; }
+  .sheet .close { width: 30px; height: 30px; border-radius: 50%; background: var(--input); color: var(--text2); display: flex; align-items: center; justify-content: center; font-size: 14px; }
+  .sound-group > .g { font-size: 11px; color: var(--muted); font-weight: 700; margin: 12px 0 6px; }
+  .sound-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .sound-name { flex: 1; padding: 13px 14px; border-radius: 14px; background: var(--input); border: 1px solid var(--border); font-size: 14px; font-weight: 600; }
+  .sound-row.sel .sound-name { background: var(--selBg); border: 1.5px solid var(--selBorder); color: var(--selText); }
+  .btn-audition { padding: 10px 14px; border-radius: 12px; border: 1px solid var(--border); background: var(--card); color: var(--text2); font-size: 12px; font-weight: 600; flex: none; }
+  .sheet .btn-primary { margin-top: 14px; }
+
+  .dialog { position: absolute; left: 24px; right: 24px; top: 50%; transform: translateY(-50%); background: var(--card); border-radius: 20px; padding: 22px 20px 18px; box-shadow: 0 20px 50px rgba(0,0,0,.5); }
+  .dialog .t { font-size: 17px; font-weight: 800; margin-bottom: 8px; }
+  .dialog .m { font-size: 13px; color: var(--text2); line-height: 1.6; margin-bottom: 18px; }
+  .dialog .btns-col { display: flex; flex-direction: column; gap: 8px; }
+  .dialog .btns-col .dbtn { padding: 13px 0; border-radius: 12px; text-align: center; font-size: 14px; font-weight: 600; background: var(--input); color: var(--text); border: 1px solid var(--border); }
+  .dialog .btns-col .dbtn.primary { background: var(--primary); border-color: var(--primary); color: var(--onPrimary); }
+  .dialog .btns-col .dbtn.destructive { background: transparent; border-color: var(--danger); color: var(--danger); }
+
+  .detail .d-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .detail .d-row .k { color: var(--text2); }
+  .detail .d-row .v { font-weight: 600; }
+  .detail .actions { display: flex; gap: 8px; margin-top: 16px; }
+  .detail .actions .dbtn { flex: 1; padding: 12px 0; border-radius: 12px; text-align: center; font-size: 13px; font-weight: 600; background: var(--input); border: 1px solid var(--border); color: var(--text); }
+  .detail .actions .dbtn.danger { color: var(--danger); border-color: var(--danger); background: transparent; }
+  .detail .actions .dbtn.primary { background: var(--primary); border-color: var(--primary); color: var(--onPrimary); }
+</style>
+</head>
+<body>
+
+<h1>008 深色模式 · 配色方案对比原型</h1>
+<div class="meta">
+  模式 C 基线对照 + 5 套深色方向（自制视觉方向，方法论参考 <a href="https://m3.material.io/styles/color/system/overview" target="_blank">Material Design 3 深色主题</a>）。
+  所有方案渲染同一组页面与示例数据；调研说明见 <a href="../research.md">research.md</a>。
+</div>
+
+<div class="toolbar" role="tablist" aria-label="方案切换">
+  <button data-scheme="light" class="active">0 · 浅色基线（对照）</button>
+  <button data-scheme="s1">1 · 经典紫夜</button>
+  <button data-scheme="s2">2 · 深空靛蓝</button>
+  <button data-scheme="s3">3 · OLED 纯黑</button>
+  <button data-scheme="s4">4 · 暖夜拿铁</button>
+  <button data-scheme="s5">5 · 高对比薰衣草</button>
+</div>
+<div class="toolbar" role="tablist" aria-label="页面切换">
+  <button data-screen="today" class="active">今日</button>
+  <button data-screen="plan">计划</button>
+  <button data-screen="all">全部</button>
+  <button data-screen="settings">设置</button>
+  <button data-screen="create">创建提醒</button>
+  <button data-screen="edit">编辑提醒</button>
+  <button data-screen="empty">空状态</button>
+</div>
+<div class="toolbar" role="tablist" aria-label="弹窗演示">
+  <button data-popup="pp-sound">弹层 · 铃声选择</button>
+  <button data-popup="pp-alert">弹窗 · 删除确认</button>
+  <button data-popup="pp-detail">抽屉 · 响铃详情</button>
+</div>
+<div class="scheme-note" id="schemeNote"></div>
+
+<div class="stage">
+<div class="phone">
+<div class="screen-wrap" id="wrap" data-scheme="light">
+
+  <div class="statusbar"><span>9:41</span><span>5G ▮▮▮</span></div>
+
+  <div class="screen-body" id="body">
+
+    <!-- ═══ 今日 ═══ -->
+    <section data-page="today">
+      <div class="kicker">TODAY</div>
+      <div class="page-title">10月5日·周一</div>
+      <div class="page-sub">今天有 11 个提醒</div>
+      <div class="hero">
+        <div class="label">下一次响铃</div>
+        <div class="time">09:45</div>
+        <div class="what">提交日报</div>
+        <div class="count">还有 11 分钟</div>
+        <div class="dots"><i></i><i></i><i></i><i class="off"></i><i class="off"></i><i class="off"></i><i class="off"></i></div>
+      </div>
+      <div class="section-head"><b>今日时间轴</b><a href="javascript:void(0)">全部 ›</a></div>
+      <div class="tl">
+        <div class="tl-row done"><div class="t">07:00</div><div class="n">晨间唤醒</div><div class="s">已响 · 每天重复</div></div>
+        <div class="tl-row soon"><div class="t">09:45</div><div class="n">提交日报</div><div class="s">还有 11 分钟</div></div>
+        <div class="tl-row"><div class="t">12:30</div><div class="n">午休站会</div><div class="s">每天重复</div></div>
+        <div class="tl-row"><div class="t">18:00</div><div class="n">下班打卡</div><div class="s">每周 · 一至五</div></div>
+        <div class="tl-row paused"><div class="t">22:30</div><div class="n">睡前阅读</div><div class="s">已暂停</div></div>
+      </div>
+    </section>
+
+    <!-- ═══ 计划 ═══ -->
+    <section data-page="plan" style="display:none">
+      <div class="kicker">PLAN</div>
+      <div class="page-title">计划</div>
+      <div class="page-sub">10月 · 点日期查看当天安排</div>
+      <div class="cal">
+        <div class="wd">一</div><div class="wd">二</div><div class="wd">三</div><div class="wd">四</div><div class="wd">五</div><div class="wd">六</div><div class="wd">日</div>
+        <div class="d"></div><div class="d"></div><div class="d has">1</div><div class="d has">2</div><div class="d has">3</div><div class="d">4</div><div class="d has">5</div>
+        <div class="d has">6</div><div class="d has">7</div><div class="d has">8</div><div class="d">9</div><div class="d has">10</div><div class="d">11</div><div class="d">12</div>
+      </div>
+      <div class="section-head"><b>10月5日·周一</b><a href="javascript:void(0)">今天 ›</a></div>
+      <div class="tl">
+        <div class="tl-row done"><div class="t">07:00</div><div class="n">晨间唤醒</div><div class="s">已响</div></div>
+        <div class="tl-row soon"><div class="t">09:45</div><div class="n">提交日报</div><div class="s">即将响铃</div></div>
+        <div class="tl-row"><div class="t">12:30</div><div class="n">午休站会</div><div class="s">每天重复</div></div>
+        <div class="tl-row"><div class="t">18:00</div><div class="n">下班打卡</div><div class="s">每周 · 一至五</div></div>
+      </div>
+    </section>
+
+    <!-- ═══ 全部 ═══ -->
+    <section data-page="all" style="display:none">
+      <div class="kicker">ALL</div>
+      <div class="page-title">全部</div>
+      <div class="page-sub">12 个提醒 · 3 个已暂停</div>
+      <div class="filter-row"><div class="pill">筛选 ▾</div><div class="pill">排序：下次响铃 ↑</div></div>
+      <div class="card">
+        <div class="info"><div class="time">07:00</div><div class="name">晨间唤醒</div><div class="desc"><span class="tag">生活</span>每天 · 经典闹钟</div></div>
+        <div class="switch on"></div>
+      </div>
+      <div class="card">
+        <div class="info"><div class="time">06:30</div><div class="name">赶高铁出差</div><div class="desc"><span class="tag">工作</span>一次 · 明天</div></div>
+        <div class="switch on"></div>
+      </div>
+      <div class="card">
+        <div class="info"><div class="time">12:30</div><div class="name">午休站会</div><div class="desc"><span class="tag">工作</span>每天 · 木琴</div></div>
+        <div class="switch on"></div>
+      </div>
+      <div class="card paused">
+        <div class="info"><div class="time">22:30</div><div class="name">睡前阅读</div><div class="desc"><span class="tag">生活</span>每周 · 一三五 · 八音盒</div></div>
+        <div class="switch"></div>
+      </div>
+      <div class="card paused">
+        <div class="info"><div class="time">05:30</div><div class="name">晨跑</div><div class="desc"><span class="tag">运动</span>每周 · 二四六 · 已暂停</div></div>
+        <div class="switch"></div>
+      </div>
+    </section>
+
+    <!-- ═══ 设置 ═══ -->
+    <section data-page="settings" style="display:none">
+      <div class="kicker">SETTINGS</div>
+      <div class="page-title">设置</div>
+      <div class="page-sub">主题切换即时生效</div>
+      <div class="set-group">
+        <div class="set-row"><div class="info"><div class="n">通知权限</div><div class="d">确保提醒可以按时送达</div></div><div class="v" style="color:var(--success);font-weight:600">已授予</div></div>
+        <div class="set-row"><div class="info"><div class="n">默认稍后提醒</div><div class="d">响铃后一键贪睡的时长</div></div><div class="v">10 分钟 ›</div></div>
+      </div>
+      <div class="set-group">
+        <div class="set-row" style="flex-direction:column;align-items:stretch">
+          <div style="display:flex;justify-content:space-between"><div><div class="n">主题</div><div class="d">深色模式跟随此设置</div></div></div>
+          <div class="theme-seg" style="margin-top:10px"><span>跟随系统</span><span>浅色</span><span class="on">深色</span></div>
+        </div>
+      </div>
+      <div class="set-group">
+        <div class="set-row"><div class="info"><div class="n">关于</div><div class="d">版本 0.1.0 · 闹钟与提醒</div></div></div>
+      </div>
+    </section>
+
+    <!-- ═══ 创建提醒 ═══ -->
+    <section data-page="create" style="display:none">
+      <div class="form-top"><span class="cancel">取消</span><span class="title">新建提醒</span><span style="width:34px"></span></div>
+      <div class="field"><label>响铃时间</label>
+        <div class="time-pick"><b>09:45</b><span style="color:var(--muted);font-size:13px">点按修改</span></div>
+      </div>
+      <div class="field"><label>重复方式</label>
+        <div class="chips"><span class="chip">一次</span><span class="chip">每天</span><span class="chip on">每周</span><span class="chip">周期</span></div>
+      </div>
+      <div class="field"><label>选一周中的几天</label>
+        <div class="chips"><span class="chip on">一</span><span class="chip">二</span><span class="chip on">三</span><span class="chip">四</span><span class="chip on">五</span><span class="chip">六</span><span class="chip">日</span></div>
+      </div>
+      <div class="field"><label>标签</label><div class="input-box">未填写 · 例如：白班闹钟</div></div>
+      <div class="field"><label>分类</label>
+        <div class="chips"><span class="chip">工作</span><span class="chip on">生活</span><span class="chip">运动</span><span class="chip">其他</span></div>
+      </div>
+      <div class="field"><label>铃声</label>
+        <div class="row-link">🎵 经典闹钟 <span class="badge">可试听</span><span class="arrow">›</span></div>
+      </div>
+      <div class="field"><label>稍后提醒</label>
+        <div class="chips"><span class="chip">5 分钟</span><span class="chip on">10 分钟</span><span class="chip">15 分钟</span><span class="chip">20 分钟</span><span class="chip">30 分钟</span></div>
+      </div>
+      <button class="btn-primary">保存提醒</button>
+    </section>
+
+    <!-- ═══ 编辑提醒 ═══ -->
+    <section data-page="edit" style="display:none">
+      <div class="form-top"><span class="cancel">返回</span><span class="title">编辑提醒</span><span style="width:34px"></span></div>
+      <div class="field"><label>响铃时间</label>
+        <div class="time-pick"><b>22:30</b><span style="color:var(--muted);font-size:13px">点按修改</span></div>
+      </div>
+      <div class="field"><label>重复方式</label>
+        <div class="chips"><span class="chip">一次</span><span class="chip">每天</span><span class="chip on">每周</span><span class="chip">周期</span></div>
+      </div>
+      <div class="field"><label>选一周中的几天</label>
+        <div class="chips"><span class="chip on">一</span><span class="chip">二</span><span class="chip on">三</span><span class="chip">四</span><span class="chip on">五</span><span class="chip">六</span><span class="chip">日</span></div>
+      </div>
+      <div class="field"><label>标签</label><div class="input-box">睡前阅读</div></div>
+      <div class="field"><label>分类</label>
+        <div class="chips"><span class="chip">工作</span><span class="chip on">生活</span><span class="chip">运动</span><span class="chip">其他</span></div>
+      </div>
+      <div class="field"><label>铃声</label>
+        <div class="row-link">🎵 八音盒 <span class="badge">可试听</span><span class="arrow">›</span></div>
+      </div>
+      <div class="field"><label>稍后提醒</label>
+        <div class="chips"><span class="chip">5 分钟</span><span class="chip">10 分钟</span><span class="chip on">15 分钟</span><span class="chip">20 分钟</span><span class="chip">30 分钟</span></div>
+      </div>
+      <button class="btn-primary">保存修改</button>
+      <button class="btn-danger-ghost">删除此提醒</button>
+    </section>
+
+    <!-- ═══ 空状态 ═══ -->
+    <section data-page="empty" style="display:none">
+      <div class="empty">
+        <div class="ring">⏰</div>
+        <div class="t">今天没有提醒</div>
+        <div class="d">创建第一个提醒，让节奏从这里开始</div>
+        <button class="btn-primary">＋ 创建提醒</button>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- 底部 Tab（表单/空状态外的页面共用） -->
+  <div class="tabbar" id="tabbar">
+    <div class="tab on"><span class="ic">◉</span>今日</div>
+    <div class="tab"><span class="ic">▦</span>计划</div>
+    <div class="tab"><span class="ic">☰</span>全部</div>
+    <div class="tab"><span class="ic">⚙</span>设置</div>
+  </div>
+
+  <!-- ═══ 弹层：铃声选择 ═══ -->
+  <div class="overlay" id="pp-sound">
+    <div class="backdrop" data-close></div>
+    <div class="sheet">
+      <div class="grab"></div>
+      <div class="head"><b>选择铃声</b><span class="close" data-close>✕</span></div>
+      <div class="sound-group">
+        <div class="g">刺耳</div>
+        <div class="sound-row sel"><div class="sound-name">✓ 经典闹钟</div><button class="btn-audition">试听</button></div>
+        <div class="sound-row"><div class="sound-name">蜂鸣</div><button class="btn-audition">试听</button></div>
+        <div class="sound-row"><div class="sound-name">雷达</div><button class="btn-audition">试听</button></div>
+        <div class="g">温和</div>
+        <div class="sound-row"><div class="sound-name">木琴</div><button class="btn-audition">试听</button></div>
+        <div class="sound-row"><div class="sound-name">钢琴琶音</div><button class="btn-audition">试听</button></div>
+        <div class="sound-row"><div class="sound-name">八音盒</div><button class="btn-audition">试听</button></div>
+        <div class="sound-row"><div class="sound-name">风铃</div><button class="btn-audition">试听</button></div>
+        <div class="g">自然</div>
+        <div class="sound-row"><div class="sound-name">清晨鸟鸣</div><button class="btn-audition">试听</button></div>
+        <div class="sound-row"><div class="sound-name">海浪</div><button class="btn-audition">试听</button></div>
+      </div>
+      <button class="btn-primary">从音乐库选择</button>
+    </div>
+  </div>
+
+  <!-- ═══ 弹窗：删除确认（SkinAlert destructive） ═══ -->
+  <div class="overlay" id="pp-alert">
+    <div class="backdrop" data-close></div>
+    <div class="dialog">
+      <div class="t">删除此提醒？</div>
+      <div class="m">「睡前阅读」将被删除，已有的响铃计划一并取消。此操作无法撤销。</div>
+      <div class="btns-col">
+        <div class="dbtn destructive">删除</div>
+        <div class="dbtn">取消</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ 抽屉：响铃详情 ═══ -->
+  <div class="overlay" id="pp-detail">
+    <div class="backdrop" data-close></div>
+    <div class="sheet detail">
+      <div class="grab"></div>
+      <div class="head"><b>提交日报 · 09:45</b><span class="close" data-close>✕</span></div>
+      <div class="d-row"><span class="k">下次响铃</span><span class="v">今天 09:45</span></div>
+      <div class="d-row"><span class="k">重复</span><span class="v">每周 · 一三五</span></div>
+      <div class="d-row"><span class="k">铃声</span><span class="v">经典闹钟</span></div>
+      <div class="d-row"><span class="k">稍后提醒</span><span class="v">10 分钟</span></div>
+      <div class="actions">
+        <div class="dbtn">跳过一次</div>
+        <div class="dbtn primary">编辑</div>
+        <div class="dbtn danger">删除</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+</div>
+
+<script>
+(function () {
+  /* ═══ 方案 token（与 theme.ts 的 SKIN 语义层一一对应） ═══ */
+  var SCHEMES = {
+    light: {
+      note: '0 · 浅色基线（当前线上风格，对照用）—— 深色实现后此视觉必须零变化',
+      vars: {
+        '--bg': '#F7F5FC', '--card': '#FFFFFF', '--input': '#F3F1F8', '--border': '#E5E1F0',
+        '--text': '#25223A', '--text2': '#6D6880', '--muted': '#9C97AC', '--disabled': '#B9B5C4',
+        '--primary': '#6C5CE7', '--onPrimary': '#FFFFFF', '--primarySoft': '#EAE6FF',
+        '--selBg': '#EAE6FF', '--selBorder': '#6C5CE7', '--selText': '#5545C8',
+        '--success': '#45B89C', '--warning': '#E79A4D', '--danger': '#E85D75',
+        '--shadow': 'rgba(81,70,138,0.18)', '--backdrop': 'rgba(37,34,58,0.38)',
+        '--heroFrom': '#6C5CE7', '--heroTo': '#8B7CF7', '--onHero': '#FFFFFF',
+        '--heroDotOn': 'rgba(255,255,255,0.9)', '--heroDotOff': 'rgba(255,255,255,0.28)'
+      }
+    },
+    s1: {
+      note: '1 · 经典紫夜 Material —— #121212 底，卡片逐级提亮，主色提亮为 #8B7CF7（最稳的通用深色）',
+      vars: {
+        '--bg': '#121212', '--card': '#1E1B2E', '--input': '#232030', '--border': '#2E2A3E',
+        '--text': '#E4E1EF', '--text2': '#9B96AD', '--muted': '#6E6980', '--disabled': '#4A4658',
+        '--primary': '#8B7CF7', '--onPrimary': '#FFFFFF', '--primarySoft': '#2A2542',
+        '--selBg': '#2A2542', '--selBorder': '#8B7CF7', '--selText': '#B7A9FF',
+        '--success': '#5BC9A9', '--warning': '#F0B26B', '--danger': '#F27E93',
+        '--shadow': 'rgba(0,0,0,0.5)', '--backdrop': 'rgba(0,0,0,0.62)',
+        '--heroFrom': '#8B7CF7', '--heroTo': '#6C5CE7', '--onHero': '#FFFFFF',
+        '--heroDotOn': 'rgba(255,255,255,0.9)', '--heroDotOff': 'rgba(255,255,255,0.25)'
+      }
+    },
+    s2: {
+      note: '2 · 深空靛蓝 —— #0F1226 底带靛蓝氛围，与品牌紫同色相，整体更「夜」',
+      vars: {
+        '--bg': '#0F1226', '--card': '#191D36', '--input': '#1E2340', '--border': '#262C4C',
+        '--text': '#DEE1F2', '--text2': '#8F96B8', '--muted': '#5E6688', '--disabled': '#434A6B',
+        '--primary': '#7C6CF0', '--onPrimary': '#FFFFFF', '--primarySoft': '#23284D',
+        '--selBg': '#23284D', '--selBorder': '#7C6CF0', '--selText': '#A9A0FF',
+        '--success': '#52C9A0', '--warning': '#EFB05F', '--danger': '#F07C92',
+        '--shadow': 'rgba(0,0,0,0.55)', '--backdrop': 'rgba(4,6,20,0.66)',
+        '--heroFrom': '#7C6CF0', '--heroTo': '#5A48D8', '--onHero': '#FFFFFF',
+        '--heroDotOn': 'rgba(255,255,255,0.9)', '--heroDotOff': 'rgba(255,255,255,0.22)'
+      }
+    },
+    s3: {
+      note: '3 · OLED 纯黑 —— #000000 底省电，靠色阶分层，品牌紫 #6C5CE7 在纯黑上最鲜明',
+      vars: {
+        '--bg': '#000000', '--card': '#111014', '--input': '#17161C', '--border': '#232230',
+        '--text': '#FFFFFF', '--text2': '#8E8B99', '--muted': '#5C5A66', '--disabled': '#3A3844',
+        '--primary': '#6C5CE7', '--onPrimary': '#FFFFFF', '--primarySoft': '#1E1B2E',
+        '--selBg': '#1E1B2E', '--selBorder': '#6C5CE7', '--selText': '#A79BFF',
+        '--success': '#4FCBA9', '--warning': '#EFAC66', '--danger': '#F07A90',
+        '--shadow': 'rgba(0,0,0,0.6)', '--backdrop': 'rgba(0,0,0,0.7)',
+        '--heroFrom': '#6C5CE7', '--heroTo': '#5545C8', '--onHero': '#FFFFFF',
+        '--heroDotOn': 'rgba(255,255,255,0.9)', '--heroDotOff': 'rgba(255,255,255,0.2)'
+      }
+    },
+    s4: {
+      note: '4 · 暖夜拿铁 —— #1A1714 暖棕底，暖紫主色 #A98BF0，睡前查看最护眼',
+      vars: {
+        '--bg': '#1A1714', '--card': '#262019', '--input': '#2C251E', '--border': '#3A322A',
+        '--text': '#F0EAE0', '--text2': '#A89F92', '--muted': '#756C60', '--disabled': '#554D42',
+        '--primary': '#A98BF0', '--onPrimary': '#201A28', '--primarySoft': '#2E2438',
+        '--selBg': '#2E2438', '--selBorder': '#A98BF0', '--selText': '#C7B2FF',
+        '--success': '#6FC79E', '--warning': '#E0A45C', '--danger': '#E57F8F',
+        '--shadow': 'rgba(0,0,0,0.45)', '--backdrop': 'rgba(10,7,4,0.6)',
+        '--heroFrom': '#A78BDA', '--heroTo': '#8A63C9', '--onHero': '#FFFFFF',
+        '--heroDotOn': 'rgba(255,255,255,0.9)', '--heroDotOff': 'rgba(255,255,255,0.25)'
+      }
+    },
+    s5: {
+      note: '5 · 高对比薰衣草 —— #17141F 底 + 极亮主色 #A78BFA，弱光环境辨识度最高',
+      vars: {
+        '--bg': '#17141F', '--card': '#211D2E', '--input': '#282336', '--border': '#35304A',
+        '--text': '#F2F0FA', '--text2': '#A79FC0', '--muted': '#6F6888', '--disabled': '#4E4863',
+        '--primary': '#A78BFA', '--onPrimary': '#17141F', '--primarySoft': '#2E2450',
+        '--selBg': '#2E2450', '--selBorder': '#A78BFA', '--selText': '#C4B1FF',
+        '--success': '#58D6A8', '--warning': '#F2B366', '--danger': '#F5859B',
+        '--shadow': 'rgba(0,0,0,0.55)', '--backdrop': 'rgba(0,0,0,0.65)',
+        '--heroFrom': '#A78BFA', '--heroTo': '#8B5CF6', '--onHero': '#FFFFFF',
+        '--heroDotOn': 'rgba(255,255,255,0.92)', '--heroDotOff': 'rgba(255,255,255,0.24)'
+      }
+    }
+  };
+
+  var wrap = document.getElementById('wrap');
+  var note = document.getElementById('schemeNote');
+  var tabbar = document.getElementById('tabbar');
+  var schemeBtns = document.querySelectorAll('[data-scheme]');
+  var screenBtns = document.querySelectorAll('[data-screen]');
+
+  function setScheme(id) {
+    var s = SCHEMES[id];
+    Object.keys(s.vars).forEach(function (k) { wrap.style.setProperty(k, s.vars[k]); });
+    note.textContent = s.note;
+    schemeBtns.forEach(function (b) { b.classList.toggle('active', b.dataset.scheme === id); });
+  }
+
+  var TAB_MAP = { today: 0, plan: 1, all: 2, settings: 3 };
+
+  function setScreen(id) {
+    document.querySelectorAll('[data-page]').forEach(function (sec) {
+      sec.style.display = sec.dataset.page === id ? '' : 'none';
+    });
+    tabbar.style.display = TAB_MAP[id] === undefined ? 'none' : '';
+    var tabs = tabbar.querySelectorAll('.tab');
+    tabs.forEach(function (t, i) { t.classList.toggle('on', TAB_MAP[id] === i); });
+    screenBtns.forEach(function (b) { b.classList.toggle('active', b.dataset.screen === id); });
+    document.getElementById('body').scrollTop = 0;
+  }
+
+  schemeBtns.forEach(function (b) {
+    b.addEventListener('click', function () { setScheme(b.dataset.scheme); });
+  });
+  screenBtns.forEach(function (b) {
+    b.addEventListener('click', function () { setScreen(b.dataset.screen); });
+  });
+  document.querySelectorAll('[data-popup]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      document.getElementById(b.dataset.popup).classList.add('show');
+    });
+  });
+  document.querySelectorAll('.overlay [data-close]').forEach(function (el) {
+    el.addEventListener('click', function () {
+      el.closest('.overlay').classList.remove('show');
+    });
+  });
+
+  setScheme('light');
+  setScreen('today');
+})();
+</script>
+</body>
+</html>

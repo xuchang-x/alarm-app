@@ -5,7 +5,7 @@ import { useRouter } from 'expo-router';
 import { format } from 'date-fns';
 import { useAlarmStore } from '@/store/alarm-store';
 import * as repo from '@/db/alarm-repository';
-import { COLORS } from '@/constants';
+import { COLORS, SKIN } from '@/constants';
 import { today } from '@/utils/date';
 import { PageHeading } from '@/components/common/PageHeader';
 import {
@@ -143,7 +143,7 @@ export default function PlanScreen() {
             value={includeDisabled}
             onValueChange={setIncludeDisabled}
             trackColor={{ false: COLORS.border, true: COLORS.primary }}
-            thumbColor="#FFFFFF"
+            thumbColor={SKIN.brand.onPrimary}
           />
         </View>
         {loading ? (

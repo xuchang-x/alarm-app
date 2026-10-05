@@ -128,7 +128,7 @@ git merge --no-ff "$BRANCH_NAME"
 | 分类 | 改动范围 | 实施要求 |
 |------|----------|----------|
 | A. 业务代码 | `src/`、`app/` | 写码前**必须**读取 `.ai/rules/AGENTS.md` 索引并遵守 `typescript-react-native-style.md`；TypeScript strict，不允许 any 类型逃逸；涉及 Expo API 时查阅 https://docs.expo.dev/versions/v56.0.0/ 官方文档，不用废弃 API |
-| B. 工程与平台 | `package.json`、`app.json`、`tsconfig.json`、`jest.config.js`、`assets/` 等 | 涉及本地安卓构建时先读 `docs/dev-knowledge/android-build-env.md`（JAVA_HOME / CMAKE 等本机约定）；注意 `android/`、`ios/` 目录被 gitignore，其中的改动不会进入提交，需向用户说明记录方式 |
+| B. 工程与平台 | `package.json`、`app.json`、`tsconfig.json`、`jest.config.js`、`assets/` 等 | 涉及本地安卓构建时先读 `docs/dev-knowledge/2026-10-3-Android构建环境.md`（JAVA_HOME / CMAKE 等本机约定）；注意 `android/`、`ios/` 目录被 gitignore，其中的改动不会进入提交，需向用户说明记录方式 |
 | C. 文档与规范 | `.ai/`（specs/skills/rules/context）、`docs/`、`AGENTS.md` | 改 skill 必须遵守 `.ai/rules/skill-organization.md`：只编辑 `.ai/skills/` 下的内容，并在 `.claude/.catpaw/.codex/.cursor` 四个平台目录补建软链接，同步更新 `AGENTS.md` 技能索引 |
 | D. 组合 | 以上多类同时涉及 | 需明确各部分的实现顺序与依赖关系 |
 | E. 都不改 | 结论是纯外部文档说明、或"当前不做"并说明理由 | 直接在对话中说明或按用户要求结束流程 |

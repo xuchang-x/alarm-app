@@ -67,5 +67,30 @@ class AlarmRingModule : Module() {
             val context = appContext.reactContext ?: return@Function false
             RingStore.canScheduleExact(context)
         }
+
+        // ── 皮肤主题（008 深色模式）──
+        // JS 侧在 bundle 求值时同步读这里定型 SKIN（模块级 StyleSheet 会冻结色值），
+        // 切换主题 = setSkinTheme + JS 重载，详见 src/constants/theme.ts。
+        // 注：模块级同步函数的 DSL 是 Function（注册到 syncFunctions），
+        // expo-modules-core 未暴露 SyncFunction 标识符。
+        Function("getSkinTheme") {
+            val context = appContext.reactContext ?: return@Function "system"
+            RingStore.getSkinTheme(context)
+        }
+
+        Function("setSkinTheme") { theme: String ->
+            val context = appContext.reactContext ?: return@Function Unit
+            RingStore.setSkinTheme(context, theme)
+        }
+
+        // release 下 DevSettings.reload() 是 no-op，无法重载 JS；
+        // 主题切换后由 JS 侧调这里杀进程重启，重启后 bundle 求值阶段 getSkinTheme 重新定型。
+        Function("restartApp") {
+            val context = appContext.reactContext ?: return@Function Unit
+            val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
+            intent?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+            if (intent != null) context.startActivity(intent)
+            Runtime.getRuntime().exit(0)
+        }
     }
 }

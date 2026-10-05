@@ -4,7 +4,7 @@ import { addDays, format, isSameDay, isSameMonth } from 'date-fns';
 import type { CalendarInstance } from '@/services/calendar';
 import { getCalendarRange } from '@/services/calendar';
 import { formatTime, today } from '@/utils/date';
-import { COLORS } from '@/constants';
+import { ALARM_TYPE_LABELS, COLORS, SKIN } from '@/constants';
 import { WEEKDAY_LABELS, getCategoryColor } from './shared';
 
 function CalendarInstanceCard({
@@ -28,13 +28,7 @@ function CalendarInstanceCard({
           {instance.alarm.label || '未命名提醒'}
         </Text>
         <Text style={styles.instanceType}>
-          {instance.alarm.type === 'once'
-            ? '一次'
-            : instance.alarm.type === 'daily'
-              ? '每天'
-              : instance.alarm.type === 'weekly'
-                ? '每周'
-                : '周期'}
+          {ALARM_TYPE_LABELS[instance.alarm.type]}
         </Text>
       </View>
     </Pressable>
@@ -154,7 +148,7 @@ const styles = StyleSheet.create({
   todayDay: { borderWidth: 1, borderColor: COLORS.primary },
   selectedDay: { backgroundColor: COLORS.primary },
   dayNumberText: { color: COLORS.textPrimary, fontSize: 12, fontWeight: '700' },
-  selectedDayText: { color: '#FFFFFF' },
+  selectedDayText: { color: SKIN.brand.onPrimary },
   outsideDayText: { color: COLORS.textMuted },
   dayMarkers: { flexDirection: 'row', alignItems: 'center', height: 12, gap: 2 },
   dayMarker: { width: 5, height: 5, borderRadius: 3 },

@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import * as repo from '@/db/settings-repository';
-import { DEFAULT_SNOOZE_MINUTES } from '@/constants';
 import type { AppSettings } from '@/types/settings';
 
 interface SettingsStore {
@@ -11,10 +10,7 @@ interface SettingsStore {
 }
 
 export const useSettingsStore = create<SettingsStore>((set) => ({
-  settings: {
-    defaultSnoozeMinutes: DEFAULT_SNOOZE_MINUTES,
-    theme: 'system',
-  },
+  settings: repo.DEFAULT_SETTINGS,
   loading: false,
 
   loadSettings: async () => {

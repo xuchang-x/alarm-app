@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { NextRingInfo } from '@/hooks/useTodayOverview';
-import { ALARM_CATEGORIES, COLORS } from '@/constants';
+import { COLORS, getAlarmCategory } from '@/constants';
 import { formatTime } from '@/utils/date';
 import RhythmDots from './RhythmDots';
 
@@ -38,7 +38,7 @@ export default function NextRingCard({ info, now, onPress }: NextRingCardProps) 
   const { alarm, rhythm } = info;
   const target = new Date(info.date);
   target.setHours(alarm.hour, alarm.minute, 0, 0);
-  const category = ALARM_CATEGORIES.find((item) => item.key === alarm.category);
+  const category = getAlarmCategory(alarm.category);
 
   return (
     <Pressable
@@ -49,7 +49,7 @@ export default function NextRingCard({ info, now, onPress }: NextRingCardProps) 
     >
       <View style={styles.headerRow}>
         <Text style={styles.eyebrow}>下一次响铃</Text>
-        <View style={[styles.categoryDot, { backgroundColor: category?.color ?? COLORS.textMuted }]} />
+        <View style={[styles.categoryDot, { backgroundColor: category.color }]} />
       </View>
       <Text style={styles.time}>{formatTime(alarm.hour, alarm.minute)}</Text>
       <Text style={styles.label} numberOfLines={1}>

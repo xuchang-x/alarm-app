@@ -147,6 +147,19 @@ object RingStore {
         return am.canScheduleExactAlarms()
     }
 
+    // ── 皮肤主题（008 深色模式）──
+    // JS bundle 求值阶段同步读取以定型 SKIN，切换时由设置页写入后重载 JS。
+    private const val KEY_SKIN_THEME = "skin_theme"
+
+    /** 读取主题偏好：system / light / dark，缺省 system */
+    fun getSkinTheme(context: Context): String =
+        prefs(context).getString(KEY_SKIN_THEME, null) ?: "system"
+
+    /** 写入主题偏好（JS 侧已校验取值范围） */
+    fun setSkinTheme(context: Context, theme: String) {
+        prefs(context).edit().putString(KEY_SKIN_THEME, theme).apply()
+    }
+
     private fun triggerPendingIntent(context: Context, alarmId: Int): PendingIntent {
         val intent = Intent(context, AlarmReceiver::class.java).apply {
             action = ACTION_TRIGGER

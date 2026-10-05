@@ -189,15 +189,6 @@ export async function deleteAlarm(id: number): Promise<void> {
   await db.runAsync('DELETE FROM alarms WHERE id = ?', id);
 }
 
-/** 切换闹钟开关（读-改-写语义，保留向后兼容） */
-export async function toggleAlarm(id: number): Promise<Alarm> {
-  const existing = await getAlarmById(id);
-  if (!existing) {
-    throw new Error(`闹钟 #${id} 不存在`);
-  }
-  return setAlarmEnabled(id, !existing.enabled);
-}
-
 /** 按目标值置位开关（原子语义，避免快速连点竞态） */
 export async function setAlarmEnabled(id: number, enabled: boolean): Promise<Alarm> {
   const db = await getDatabase();
@@ -246,15 +237,6 @@ export async function addAdjustment(
     throw new Error('添加调整记录后无法读取');
   }
   return rowToAdjustment(row);
-}
-
-/** 删除指定闹钟的所有调整记录 */
-export async function clearAdjustments(alarmId: number): Promise<void> {
-  const db = await getDatabase();
-  await db.runAsync(
-    'DELETE FROM alarm_adjustments WHERE alarm_id = ?',
-    alarmId
-  );
 }
 
 /**
