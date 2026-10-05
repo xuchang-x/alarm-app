@@ -74,16 +74,23 @@ export default function SettingsScreen() {
     await updateSettings({ theme });
     // 原生侧同步落盘：下次启动 JS bundle 求值时读这里定型皮肤
     AlarmRing?.setSkinTheme(theme);
-    // 组件的模块级 StyleSheet 在 bundle 求值时冻结色值，
-    // 切换主题必须重载 JS 才能生效（页面代码零改动约束下的既定语义）
-    const devSettings = (
-      NativeModules as { DevSettings?: { reload(): void } }
-    ).DevSettings;
-    if (devSettings) {
-      devSettings.reload();
-    } else {
-      SkinAlert.alert('主题已保存', '重启应用后生效。');
+    // 组件的模块级 StyleSheet 在 bundle 求值时冻结色值，切换主题必须重载 JS。
+    // 注意：DevSettings 在 release 包里也存在但 reload() 是 no-op（空实现），
+    // 不能用「模块是否存在」判断环境，必须用 __DEV__。
+    if (__DEV__) {
+      const devSettings = (
+        NativeModules as { DevSettings?: { reload(): void } }
+      ).DevSettings;
+      if (devSettings) {
+        devSettings.reload();
+        return;
+      }
     }
+    // release：提示并提供一键重启（原生杀进程拉起），重启后 bundle 求值重新定型
+    SkinAlert.alert('主题已保存', '重启应用后生效，要现在重启吗？', [
+      { text: '稍后手动重启', style: 'cancel' },
+      { text: '立即重启', onPress: () => AlarmRing?.restartApp() },
+    ]);
   };
 
   if (loading && settings.defaultSnoozeMinutes === DEFAULT_SNOOZE_MINUTES) {
