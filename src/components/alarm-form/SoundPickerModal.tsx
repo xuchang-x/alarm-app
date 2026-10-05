@@ -189,7 +189,9 @@ async function pickFromMediaLibrary(): Promise<{ uri: string; title: string } | 
   const assets = await MediaLibrary.getAssetsAsync({
     mediaType: 'audio',
     first: 200,
-    sortBy: [MediaLibrary.SortBy.modificationTime, true],
+    // legacy API 的 sortBy 是「排序选项列表」：每项为 key 或 [key, boolean]。
+    // 必须写成外层数组包 pair；false 映射 DESC（最新在前），true 是 ASC
+    sortBy: [[MediaLibrary.SortBy.modificationTime, false]],
   });
   const audio = assets.assets;
   if (audio.length === 0) {
