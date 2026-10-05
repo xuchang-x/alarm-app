@@ -228,6 +228,9 @@ export const COLORS = createColors(SKIN);
 /** 当前生效的主题名（applySkinTheme 后更新；StatusBar 等壳层用） */
 let currentTheme: SkinThemeName = 'light';
 
+/** 求值阶段读到的主题偏好（skinStore 初始化用，避免重复读原生） */
+let initialPreference: 'system' | 'light' | 'dark' = 'system';
+
 /** 原地覆写 SKIN/COLORS 为目标主题（对象引用不变，仅切值） */
 export function applySkinTheme(theme: SkinThemeName): void {
   const source = theme === 'dark' ? SKIN_DARK : SKIN_LIGHT;
@@ -243,6 +246,11 @@ export function applySkinTheme(theme: SkinThemeName): void {
 /** 读当前生效主题（StatusBar 等壳层按需取用） */
 export function getCurrentSkinTheme(): SkinThemeName {
   return currentTheme;
+}
+
+/** 读求值阶段定型的主题偏好（skinStore 初始化用） */
+export function getInitialSkinPreference(): 'system' | 'light' | 'dark' {
+  return initialPreference;
 }
 
 /**
@@ -264,7 +272,9 @@ export function resolveSkinTheme(pref: 'system' | 'light' | 'dark'): SkinThemeNa
 function initSkinAtEval(): void {
   try {
     const pref = AlarmRing?.getSkinTheme();
-    applySkinTheme(resolveSkinTheme(pref === 'dark' || pref === 'light' || pref === 'system' ? pref : 'system'));
+    initialPreference =
+      pref === 'dark' || pref === 'light' || pref === 'system' ? pref : 'system';
+    applySkinTheme(resolveSkinTheme(initialPreference));
   } catch {
     // 读不到偏好（Expo Go 等）保持浅色
   }
