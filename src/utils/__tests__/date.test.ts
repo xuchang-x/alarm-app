@@ -5,6 +5,7 @@ import {
   isDateBefore,
   isDateAfter,
   parseDate,
+  dateToUtcMidnight,
   makeNotificationId,
   formatTime,
   getCycleRhythm,
@@ -89,6 +90,29 @@ describe('formatTime', () => {
     expect(formatTime(8, 5)).toBe('08:05');
     expect(formatTime(23, 59)).toBe('23:59');
     expect(formatTime(0, 0)).toBe('00:00');
+  });
+});
+
+describe('dateToUtcMidnight', () => {
+  it('年月日不变，但转为 UTC 零点', () => {
+    const local = new Date(2026, 9, 9, 15, 30); // 2026-10-09 15:30 本地
+    const utc = dateToUtcMidnight(local);
+    expect(formatDate(utc)).toBe('2026-10-09');
+    expect(utc.toISOString()).toBe('2026-10-09T00:00:00.000Z');
+  });
+
+  it('东八区下本地零点不应再被前移一天', () => {
+    // parseDate 得到本地零点；在 UTC+8 下等于前一天 16:00Z，
+    // 转 UTC 零点后应回到同一天
+    const local = parseDate('2026-10-09');
+    expect(formatDate(dateToUtcMidnight(local))).toBe('2026-10-09');
+  });
+
+  it('跨年边界', () => {
+    const local = new Date(2026, 0, 1, 23, 59);
+    expect(dateToUtcMidnight(local).toISOString()).toBe(
+      '2026-01-01T00:00:00.000Z',
+    );
   });
 });
 
