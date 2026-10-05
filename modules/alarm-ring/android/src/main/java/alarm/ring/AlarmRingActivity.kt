@@ -6,6 +6,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
@@ -24,12 +25,34 @@ import android.widget.TextView
  * 关闭 → RingService ACTION_STOP；稍后提醒 → ACTION_SNOOZE；操作后自身 finish。
  * 服务侧停止响铃（含 30 秒自动停）会广播 ACTION_RING_STOPPED，本页收到后自动退出，
  * 避免铃声已停而响铃界面残留。
+ *
+ * 皮肤：原生 skin_* 资源色（app 层同名资源覆盖含深色态）；主题跟随 App 内
+ * 皮肤选择（RingStore 持久化的 light/dark/system），在 attachBaseContext 里
+ * 强制 uiMode，手动选浅/深色时响铃页与 JS 侧皮肤保持一致。
  */
 class AlarmRingActivity : Activity() {
 
   private val ringStoppedReceiver = object : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
       finish()
+    }
+  }
+
+  /**
+   * 在 attachBaseContext（早于资源解析）里按 App 内皮肤选择强制 uiMode：
+   * light/dark 直接指定夜间模式开关，system 跟随系统，保证响铃页取到的
+   * values/values-night 资源与 JS 侧 SKIN 主题一致。
+   */
+  override fun attachBaseContext(newBase: Context) {
+    val theme = RingStore.getSkinTheme(newBase)
+    if (theme == "light" || theme == "dark") {
+      val nightMode =
+        if (theme == "dark") Configuration.UI_MODE_NIGHT_YES else Configuration.UI_MODE_NIGHT_NO
+      val config = Configuration(newBase.resources.configuration)
+      config.uiMode = nightMode or (config.uiMode and Configuration.UI_MODE_NIGHT_MASK.inv())
+      super.attachBaseContext(newBase.createConfigurationContext(config))
+    } else {
+      super.attachBaseContext(newBase)
     }
   }
 
