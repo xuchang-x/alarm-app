@@ -1,6 +1,6 @@
 import { Appearance } from 'react-native';
 import { create } from 'zustand';
-import { AlarmRing } from 'modules/alarm-ring/src/index';
+import { AlarmRing } from '../../modules/alarm-ring/src/index';
 import {
   applySkinTheme,
   getInitialSkinPreference,
