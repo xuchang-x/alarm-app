@@ -80,7 +80,7 @@ class RingService : Service() {
         val soundUri = intent?.getStringExtra("soundUri")
 
         ringingInfo = RingingSnapshot(alarmId, title, body, snoozeMinutes)
-        startForeground(NOTIFICATION_ID, buildNotification(title, body))
+        startForeground(NOTIFICATION_ID, buildNotification(title, body, snoozeMinutes))
         logNotificationDiagnostics()
         startPlaying(soundId, soundUri)
 
@@ -192,7 +192,7 @@ class RingService : Service() {
         stopSelf()
     }
 
-    private fun buildNotification(title: String, body: String): android.app.Notification {
+    private fun buildNotification(title: String, body: String, snoozeMinutes: Int): android.app.Notification {
         ensureChannel(this)
 
         val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
