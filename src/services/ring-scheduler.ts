@@ -173,3 +173,24 @@ export async function stopRinging(): Promise<void> {
   if (!isAndroidNative()) return;
   await getNative()!.stopRinging();
 }
+
+/** 原生响铃模块是否可用（设置页「后台运行保障」行的展示条件） */
+export function isNativeRingAvailable(): boolean {
+  return isAndroidNative();
+}
+
+/** 是否已加入电池优化白名单；原生模块不可用时返回 null */
+export function isIgnoringBatteryOptimizations(): boolean | null {
+  if (!isAndroidNative()) return null;
+  try {
+    return getNative()!.isIgnoringBatteryOptimizations();
+  } catch {
+    return null;
+  }
+}
+
+/** 拉起系统对话框请求加入电池优化白名单；resolve 值 = 是否成功拉起（非用户选择结果） */
+export async function requestIgnoreBatteryOptimizations(): Promise<boolean> {
+  if (!isAndroidNative()) return false;
+  return getNative()!.requestIgnoreBatteryOptimizations();
+}
