@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router';
 import { StyleSheet, Text } from 'react-native';
 import { COLORS } from '@/constants';
+import { useSkinStyles } from '@/hooks/useSkinStyles';
 
 type TabIconProps = {
   glyph: string;
@@ -8,6 +9,7 @@ type TabIconProps = {
 };
 
 function TabIcon({ glyph, focused }: TabIconProps) {
+  const styles = useSkinStyles(createStyles);
   return (
     <Text style={[styles.tabIcon, focused ? styles.tabIconActive : styles.tabIconInactive]}>
       {glyph}
@@ -16,6 +18,7 @@ function TabIcon({ glyph, focused }: TabIconProps) {
 }
 
 export default function TabsLayout() {
+  const styles = useSkinStyles(createStyles);
   return (
     <Tabs
       initialRouteName="today"
@@ -64,7 +67,8 @@ export default function TabsLayout() {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles() {
+  return StyleSheet.create({
   tabBar: {
     minHeight: 64,
     paddingTop: 7,
@@ -95,4 +99,6 @@ const styles = StyleSheet.create({
   tabIconInactive: {
     color: COLORS.textMuted,
   },
-});
+  });
+}
+

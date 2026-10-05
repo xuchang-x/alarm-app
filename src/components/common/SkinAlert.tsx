@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Alert, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SKIN } from '@/constants';
+import { useSkinStyles } from '@/hooks/useSkinStyles';
 
 /**
  * 皮肤化系统弹窗：与 RN Alert.alert 同签名的命令式 API。
@@ -49,6 +50,7 @@ export const SkinAlert = {
 
 export function SkinAlertHost() {
   const [request, setRequest] = useState<AlertRequest | null>(null);
+  const styles = useSkinStyles(createStyles);
 
   useEffect(() => {
     emitAlert = setRequest;
@@ -88,14 +90,14 @@ export function SkinAlertHost() {
                   key={button.text}
                   style={({ pressed }) => [
                     vertical ? styles.buttonColumn : styles.buttonRow,
-                    buttonStyles(button.style),
+                    buttonStyles(styles, button.style),
                     pressed && styles.buttonPressed,
                   ]}
                   onPress={() => handleButtonPress(button)}
                   accessibilityRole="button"
                   accessibilityLabel={button.text}
                 >
-                  <Text numberOfLines={1} style={[styles.buttonText, buttonTextStyles(button.style)]}>
+                  <Text numberOfLines={1} style={[styles.buttonText, buttonTextStyles(styles, button.style)]}>
                     {button.text}
                   </Text>
                 </Pressable>
@@ -108,18 +110,27 @@ export function SkinAlertHost() {
   );
 }
 
-function buttonStyles(style?: SkinAlertButton['style']) {
+function buttonStyles(
+  styles: AlertStyles,
+  style?: SkinAlertButton['style'],
+) {
   if (style === 'cancel') return styles.buttonCancel;
   if (style === 'destructive') return styles.buttonDestructive;
   return styles.buttonPrimary;
 }
 
-function buttonTextStyles(style?: SkinAlertButton['style']) {
+function buttonTextStyles(
+  styles: AlertStyles,
+  style?: SkinAlertButton['style'],
+) {
   if (style === 'cancel') return styles.buttonTextCancel;
   return styles.buttonTextPrimary;
 }
 
-const styles = StyleSheet.create({
+type AlertStyles = ReturnType<typeof createStyles>;
+
+function createStyles() {
+  return StyleSheet.create({
   root: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 },
   backdrop: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, backgroundColor: SKIN.misc.backdrop },
   card: {
@@ -149,4 +160,5 @@ const styles = StyleSheet.create({
   buttonText: { fontSize: 14, fontWeight: '800' },
   buttonTextPrimary: { color: SKIN.brand.onPrimary },
   buttonTextCancel: { color: SKIN.text.secondary },
-});
+  });
+}

@@ -26,10 +26,8 @@ interface AlarmRingNativeModule {
   canScheduleExactAlarms(): boolean;
   /** 读取主题偏好（同步）：'system' | 'light' | 'dark'，缺省 'system' */
   getSkinTheme(): string;
-  /** 写入主题偏好（008 深色模式，切换后需重载 JS 生效） */
+  /** 写入主题偏好（008 深色模式，运行时切换由 skinStore 响应式驱动，落盘仅供下次冷启动定型） */
   setSkinTheme(theme: string): void;
-  /** 杀进程重启应用（release 下 DevSettings.reload 是 no-op，主题切换用） */
-  restartApp(): void;
 }
 
 export const AlarmRing =

@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { COLORS } from '@/constants';
+import { useSkinStyles } from '@/hooks/useSkinStyles';
 
 export type HeaderAction = {
   label: string;
@@ -19,21 +20,22 @@ type NavBarProps = {
  * 页面顶部导航栏：左动作 + 居中标题，各页面统一使用。
  */
 export function NavBar({ title, leftAction }: NavBarProps) {
+  const styles = useSkinStyles(createNavBarStyles);
   return (
-    <View style={navBarStyles.bar}>
-      <View style={navBarStyles.leftSlot}>
+    <View style={styles.bar}>
+      <View style={styles.leftSlot}>
         {leftAction ? (
           <Pressable
             accessibilityRole="button"
-            style={navBarStyles.action}
+            style={styles.action}
             onPress={leftAction.onPress}
           >
-            <Text style={navBarStyles.actionText}>{leftAction.label}</Text>
+            <Text style={styles.actionText}>{leftAction.label}</Text>
           </Pressable>
         ) : null}
       </View>
-      <Text style={navBarStyles.title}>{title}</Text>
-      <View style={navBarStyles.rightSlot} />
+      <Text style={styles.title}>{title}</Text>
+      <View style={styles.rightSlot} />
     </View>
   );
 }
@@ -63,25 +65,27 @@ export function PageHeading({
   rightAlign = 'start',
   style,
 }: PageHeadingProps) {
+  const styles = useSkinStyles(createHeadingStyles);
   return (
     <View
       style={[
-        headingStyles.container,
-        rightAlign === 'end' && headingStyles.containerEnd,
+        styles.container,
+        rightAlign === 'end' && styles.containerEnd,
         style,
       ]}
     >
-      <View style={headingStyles.textGroup}>
-        {eyebrow ? <Text style={headingStyles.eyebrow}>{eyebrow}</Text> : null}
-        <Text style={headingStyles.title}>{title}</Text>
-        {subtitle ? <Text style={headingStyles.subtitle}>{subtitle}</Text> : null}
+      <View style={styles.textGroup}>
+        {eyebrow ? <Text style={styles.eyebrow}>{eyebrow}</Text> : null}
+        <Text style={styles.title}>{title}</Text>
+        {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
       </View>
-      {right ? <View style={headingStyles.right}>{right}</View> : null}
+      {right ? <View style={styles.right}>{right}</View> : null}
     </View>
   );
 }
 
-const navBarStyles = StyleSheet.create({
+function createNavBarStyles() {
+  return StyleSheet.create({
   bar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -110,9 +114,11 @@ const navBarStyles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '800',
   },
-});
+  });
+}
 
-const headingStyles = StyleSheet.create({
+function createHeadingStyles() {
+  return StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -145,4 +151,6 @@ const headingStyles = StyleSheet.create({
   right: {
     marginLeft: 12,
   },
-});
+  });
+}
+

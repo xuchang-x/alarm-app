@@ -82,15 +82,5 @@ class AlarmRingModule : Module() {
             val context = appContext.reactContext ?: return@Function Unit
             RingStore.setSkinTheme(context, theme)
         }
-
-        // release 下 DevSettings.reload() 是 no-op，无法重载 JS；
-        // 主题切换后由 JS 侧调这里杀进程重启，重启后 bundle 求值阶段 getSkinTheme 重新定型。
-        Function("restartApp") {
-            val context = appContext.reactContext ?: return@Function Unit
-            val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
-            intent?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-            if (intent != null) context.startActivity(intent)
-            Runtime.getRuntime().exit(0)
-        }
     }
 }
