@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PageHeading } from '@/components/common/PageHeader';
 import { COLORS, DEFAULT_SNOOZE_MINUTES, SKIN, SNOOZE_OPTIONS } from '@/constants';
+import { useSkinStyles } from '@/hooks/useSkinStyles';
 import {
   getNotificationPermissionStatus,
   requestPermissions,
@@ -35,6 +36,7 @@ function getPermissionActionLabel(status: NotificationPermissionStatus): string 
 }
 
 export default function SettingsScreen() {
+  const styles = useSkinStyles(createStyles);
   const { settings, loading, loadSettings, updateSettings } = useSettingsStore();
   const [permission, setPermission] = useState<NotificationPermissionStatus>('undetermined');
   const [permissionLoading, setPermissionLoading] = useState(true);
@@ -188,6 +190,7 @@ function SettingsSection({
   description: string;
   children: ReactNode;
 }) {
+  const styles = useSkinStyles(createStyles);
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>{title}</Text>
@@ -206,6 +209,7 @@ function ThemeOption({
   active: boolean;
   onPress: () => void;
 }) {
+  const styles = useSkinStyles(createStyles);
   return (
     <Pressable
       accessibilityRole="radio"
@@ -218,7 +222,8 @@ function ThemeOption({
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles() {
+  return StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   content: { paddingHorizontal: 20, paddingBottom: 32 },
   pageHeader: { paddingTop: 12, paddingBottom: 22 },
@@ -249,4 +254,6 @@ const styles = StyleSheet.create({
   themeOptionTextActive: { color: COLORS.primaryDark },
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   loadingText: { marginTop: 10, color: COLORS.textSecondary, fontSize: 12 },
-});
+  });
+}
+

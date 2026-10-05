@@ -14,11 +14,13 @@ import EmptyState from '@/components/common/EmptyState';
 import NextRingCard from '@/components/today/NextRingCard';
 import TodayTimeline from '@/components/today/TodayTimeline';
 import { COLORS } from '@/constants';
+import { useSkinStyles } from '@/hooks/useSkinStyles';
 import { formatDate } from '@/utils/date';
 
 const WEEKDAY_LABELS = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
 
 export default function TodayScreen() {
+  const styles = useSkinStyles(createStyles);
   const router = useRouter();
   // 倒计时按分钟精度刷新，与文案粒度一致
   const now = useNow(30_000);
@@ -104,7 +106,8 @@ export default function TodayScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles() {
+  return StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   scroll: { flex: 1 },
   content: { paddingHorizontal: 20, paddingBottom: 112 },
@@ -118,4 +121,6 @@ const styles = StyleSheet.create({
   },
   sectionTitle: { color: COLORS.textPrimary, fontSize: 14, fontWeight: '800' },
   sectionCount: { color: COLORS.textMuted, fontSize: 11 },
-});
+  });
+}
+

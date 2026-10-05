@@ -1,10 +1,11 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { addDays, format, isSameDay } from 'date-fns';
-import type { CalendarInstance } from '@/services/calendar';
-import { getCalendarRange } from '@/services/calendar';
-import { today } from '@/utils/date';
-import { COLORS } from '@/constants';
-import { WEEKDAY_LABELS, getCategoryColor } from './shared';
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { addDays, format, isSameDay } from "date-fns";
+import type { CalendarInstance } from "@/services/calendar";
+import { getCalendarRange } from "@/services/calendar";
+import { today } from "@/utils/date";
+import { COLORS } from "@/constants";
+import { useSkinStyles } from "@/hooks/useSkinStyles";
+import { WEEKDAY_LABELS, getCategoryColor } from "./shared";
 
 const HOUR_HEIGHT = 58;
 const HOUR_LABEL_WIDTH = 34;
@@ -20,7 +21,9 @@ interface TimelineMarkerLayout {
   laneCount: number;
 }
 
-function getTimelineMarkerLayouts(instances: CalendarInstance[]): TimelineMarkerLayout[] {
+function getTimelineMarkerLayouts(
+  instances: CalendarInstance[],
+): TimelineMarkerLayout[] {
   const layouts = [...instances]
     .sort((a, b) => a.date.getTime() - b.date.getTime())
     .map((instance) => {
@@ -34,7 +37,11 @@ function getTimelineMarkerLayouts(instances: CalendarInstance[]): TimelineMarker
   layouts.forEach((layout) => {
     const currentCluster = clusters[clusters.length - 1];
     const clusterBottom = currentCluster
-      ? Math.max(...currentCluster.map((item) => item.top + MARKER_HEIGHT + MARKER_GAP))
+      ? Math.max(
+          ...currentCluster.map(
+            (item) => item.top + MARKER_HEIGHT + MARKER_GAP,
+          ),
+        )
       : -1;
     if (!currentCluster || layout.top > clusterBottom) {
       clusters.push([layout]);
@@ -70,6 +77,7 @@ function CalendarInstanceMarker({
   layout: TimelineMarkerLayout;
   onPress: (instance: CalendarInstance) => void;
 }) {
+  const styles = useSkinStyles(createStyles);
   const color = getCategoryColor(layout.instance);
   return (
     <Pressable
@@ -85,15 +93,19 @@ function CalendarInstanceMarker({
       ]}
       onPress={() => onPress(layout.instance)}
     >
-      <Text style={styles.timelineMarkerLabel} numberOfLines={1} ellipsizeMode="tail">
-        {layout.instance.alarm.label || '未命名提醒'}
+      <Text
+        style={styles.timelineMarkerLabel}
+        numberOfLines={1}
+        ellipsizeMode="tail"
+      >
+        {layout.instance.alarm.label || "未命名提醒"}
       </Text>
     </Pressable>
   );
 }
 
 interface TimelineViewProps {
-  mode: 'week' | 'threeDays' | 'day';
+  mode: "week" | "threeDays" | "day";
   anchor: Date;
   instances: CalendarInstance[];
   onPress: (instance: CalendarInstance) => void;
@@ -102,22 +114,38 @@ interface TimelineViewProps {
 /**
  * 时间轴视图：周 / 3 天 / 单天 24 小时泳道。
  */
-export default function TimelineView({ mode, anchor, instances, onPress }: TimelineViewProps) {
+export default function TimelineView({
+  mode,
+  anchor,
+  instances,
+  onPress,
+}: TimelineViewProps) {
+  const styles = useSkinStyles(createStyles);
   const range = getCalendarRange(anchor, mode);
-  const dayCount = mode === 'week' ? 7 : mode === 'threeDays' ? 3 : 1;
-  const days = Array.from({ length: dayCount }, (_, index) => addDays(range.start, index));
+  const dayCount = mode === "week" ? 7 : mode === "threeDays" ? 3 : 1;
+  const days = Array.from({ length: dayCount }, (_, index) =>
+    addDays(range.start, index),
+  );
   return (
     <View style={styles.timelineCard}>
       <View style={styles.timelineHeader}>
         <View style={styles.timelineHeaderSpacer} />
         <View style={styles.timelineHeaderDays}>
           {days.map((date) => (
-            <View key={format(date, 'yyyy-MM-dd')} style={styles.timelineDayHeader}>
+            <View
+              key={format(date, "yyyy-MM-dd")}
+              style={styles.timelineDayHeader}
+            >
               <Text style={styles.timelineWeekday}>
                 {WEEKDAY_LABELS[(date.getDay() + 6) % 7]}
               </Text>
-              <Text style={[styles.timelineDate, isSameDay(date, today()) && styles.timelineDateToday]}>
-                {format(date, 'M/d')}
+              <Text
+                style={[
+                  styles.timelineDate,
+                  isSameDay(date, today()) && styles.timelineDateToday,
+                ]}
+              >
+                {format(date, "M/d")}
               </Text>
             </View>
           ))}
@@ -127,14 +155,16 @@ export default function TimelineView({ mode, anchor, instances, onPress }: Timel
         <View style={styles.hourLabels}>
           {Array.from({ length: 24 }, (_, hour) => (
             <Text key={hour} style={styles.hourLabel}>
-              {String(hour).padStart(2, '0')}
+              {String(hour).padStart(2, "0")}
             </Text>
           ))}
         </View>
         <View style={styles.timelineColumns}>
           {days.map((date) => {
-            const dateKey = format(date, 'yyyy-MM-dd');
-            const dayInstances = instances.filter((instance) => instance.dateKey === dateKey);
+            const dateKey = format(date, "yyyy-MM-dd");
+            const dayInstances = instances.filter(
+              (instance) => instance.dateKey === dateKey,
+            );
             const markerLayouts = getTimelineMarkerLayouts(dayInstances);
             return (
               <View key={dateKey} style={styles.timelineColumn}>
@@ -159,23 +189,80 @@ export default function TimelineView({ mode, anchor, instances, onPress }: Timel
   );
 }
 
-const styles = StyleSheet.create({
-  timelineCard: { borderRadius: 20, backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.border, overflow: 'hidden' },
-  timelineHeader: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: COLORS.border },
-  timelineHeaderSpacer: { width: HOUR_LABEL_WIDTH },
-  timelineHeaderDays: { flex: 1, flexDirection: 'row', paddingVertical: 10 },
-  timelineDayHeader: { flex: 1, alignItems: 'center' },
-  timelineWeekday: { color: COLORS.textSecondary, fontSize: 11, fontWeight: '700' },
-  timelineDate: { marginTop: 3, color: COLORS.textPrimary, fontSize: 14, fontWeight: '800' },
-  timelineDateToday: { color: COLORS.primary },
-  timelineBody: { flexDirection: 'row' },
-  hourLabels: { width: HOUR_LABEL_WIDTH, paddingTop: 1 },
-  hourLabel: { height: HOUR_HEIGHT, paddingTop: 5, paddingRight: 5, color: COLORS.textMuted, fontSize: 9, textAlign: 'right' },
-  timelineColumns: { flex: 1, height: TIMELINE_HEIGHT, flexDirection: 'row', borderLeftWidth: 1, borderLeftColor: COLORS.border },
-  timelineColumn: { position: 'relative', flex: 1, height: TIMELINE_HEIGHT, borderRightWidth: 1, borderRightColor: COLORS.border },
-  timelineGrid: { height: TIMELINE_HEIGHT },
-  hourCell: { height: HOUR_HEIGHT, borderTopWidth: 1, borderTopColor: COLORS.border },
-  timelineMarker: { position: 'absolute', height: MARKER_HEIGHT, justifyContent: 'center', paddingHorizontal: 5, borderLeftWidth: 3, borderRadius: 8, backgroundColor: COLORS.input, overflow: 'hidden' },
-  timelineMarkerPressed: { opacity: 0.75 },
-  timelineMarkerLabel: { color: COLORS.textPrimary, fontSize: 10, fontWeight: '700' },
-});
+function createStyles() {
+  return StyleSheet.create({
+    timelineCard: {
+      borderRadius: 20,
+      backgroundColor: COLORS.card,
+      borderWidth: 1,
+      borderColor: COLORS.border,
+      overflow: "hidden",
+    },
+    timelineHeader: {
+      flexDirection: "row",
+      borderBottomWidth: 1,
+      borderBottomColor: COLORS.border,
+    },
+    timelineHeaderSpacer: { width: HOUR_LABEL_WIDTH },
+    timelineHeaderDays: { flex: 1, flexDirection: "row", paddingVertical: 10 },
+    timelineDayHeader: { flex: 1, alignItems: "center" },
+    timelineWeekday: {
+      color: COLORS.textSecondary,
+      fontSize: 11,
+      fontWeight: "700",
+    },
+    timelineDate: {
+      marginTop: 3,
+      color: COLORS.textPrimary,
+      fontSize: 14,
+      fontWeight: "800",
+    },
+    timelineDateToday: { color: COLORS.primary },
+    timelineBody: { flexDirection: "row" },
+    hourLabels: { width: HOUR_LABEL_WIDTH, paddingTop: 1 },
+    hourLabel: {
+      height: HOUR_HEIGHT,
+      paddingTop: 5,
+      paddingRight: 5,
+      color: COLORS.textMuted,
+      fontSize: 9,
+      textAlign: "right",
+    },
+    timelineColumns: {
+      flex: 1,
+      height: TIMELINE_HEIGHT,
+      flexDirection: "row",
+      borderLeftWidth: 1,
+      borderLeftColor: COLORS.border,
+    },
+    timelineColumn: {
+      position: "relative",
+      flex: 1,
+      height: TIMELINE_HEIGHT,
+      borderRightWidth: 1,
+      borderRightColor: COLORS.border,
+    },
+    timelineGrid: { height: TIMELINE_HEIGHT },
+    hourCell: {
+      height: HOUR_HEIGHT,
+      borderTopWidth: 1,
+      borderTopColor: COLORS.border,
+    },
+    timelineMarker: {
+      position: "absolute",
+      height: MARKER_HEIGHT,
+      justifyContent: "center",
+      paddingHorizontal: 5,
+      borderLeftWidth: 3,
+      borderRadius: 8,
+      backgroundColor: COLORS.input,
+      overflow: "hidden",
+    },
+    timelineMarkerPressed: { opacity: 0.75 },
+    timelineMarkerLabel: {
+      color: COLORS.textPrimary,
+      fontSize: 10,
+      fontWeight: "700",
+    },
+  });
+}
