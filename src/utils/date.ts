@@ -33,6 +33,13 @@ export function isDateAfter(a: Date, b: Date): boolean {
   return isAfter(a, b);
 }
 
+/** 把本地日期转成「同一天零点」的 UTC Date（年月日与入参相同，时区为 UTC） */
+export function dateToUtcMidnight(date: Date): Date {
+  return new Date(
+    Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()),
+  );
+}
+
 /** 解析 'YYYY-MM-DD' 字符串为 Date，返回当天零时 */
 export function parseDate(dateStr: string): Date {
   const [year, month, day] = dateStr.split('-').map(Number);

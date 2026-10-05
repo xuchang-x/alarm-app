@@ -4,7 +4,7 @@ import SkinDatePicker from "@/components/common/SkinDatePicker";
 import { type DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { COLORS } from "@/constants";
 import { useSkinStyles } from "@/hooks/useSkinStyles";
-import { formatDate, parseDate, today } from "@/utils/date";
+import { addDaysToDate, formatDate, parseDate, today } from "@/utils/date";
 
 interface CycleFieldsProps {
   intervalDays: number;
@@ -36,9 +36,11 @@ export default function CycleFields({
     onIntervalChange(next);
   };
 
+  // 日历日运算，不用毫秒加法（DST 切换日会偏移，且与全项目风格不一致）
+  const tomorrow = addDaysToDate(today(), 1);
+
   const isToday = startDate === formatDate(today());
-  const isTomorrow =
-    startDate === formatDate(new Date(today().getTime() + 86_400_000));
+  const isTomorrow = startDate === formatDate(tomorrow);
 
   const handleDateChange = (
     _event: DateTimePickerEvent,
@@ -98,11 +100,7 @@ export default function CycleFields({
           accessibilityRole="radio"
           accessibilityState={{ selected: isTomorrow }}
           style={[styles.chip, isTomorrow && styles.chipActive]}
-          onPress={() =>
-            onStartDateChange(
-              formatDate(new Date(today().getTime() + 86_400_000)),
-            )
-          }
+          onPress={() => onStartDateChange(formatDate(tomorrow))}
         >
           <Text style={[styles.chipText, isTomorrow && styles.chipTextActive]}>
             明天开始

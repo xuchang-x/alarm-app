@@ -7,6 +7,7 @@ import type {
 } from '@/types/alarm';
 import * as repo from '@/db/alarm-repository';
 import { computeNextRingDate } from '@/services/scheduler';
+import { addDaysToDate, formatDate, today } from '@/utils/date';
 import {
   scheduleAlarmRinging,
   cancelAlarmRinging,
@@ -91,16 +92,16 @@ export const useAlarmStore = create<AlarmStore>((set, get) => ({
     if (!source) {
       throw new Error(`闹钟 #${id} 不存在`);
     }
-    const tomorrow = new Date();
-    tomorrow.setHours(0, 0, 0, 0);
-    tomorrow.setDate(tomorrow.getDate() + 1);
+    // 一次性闹钟副本从明天开始；用本地日历日计算，
+    // 禁用 toISOString().slice(0,10)（UTC 日期在东八区会偏早一天）
+    const tomorrow = addDaysToDate(today(), 1);
     const alarm = await repo.createAlarm({
       type: source.type,
       hour: source.hour,
       minute: source.minute,
       label: source.label ? `${source.label} 副本` : '提醒副本',
       category: source.category,
-      onceDate: source.type === 'once' ? tomorrow.toISOString().slice(0, 10) : undefined,
+      onceDate: source.type === 'once' ? formatDate(tomorrow) : undefined,
       weekdays: source.type === 'weekly' ? source.weekdays ?? undefined : undefined,
       intervalDays: source.type === 'cycle' ? source.intervalDays ?? undefined : undefined,
       startDate: source.type === 'cycle' ? source.startDate ?? undefined : undefined,
