@@ -1,8 +1,9 @@
-import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { COLORS } from '@/constants';
-import { DEFAULT_SOUND_ID, findSoundPreset } from '@/constants/sounds';
-import SoundPickerModal, { type SoundSelection } from './SoundPickerModal';
+import { useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { COLORS } from "@/constants";
+import { useSkinStyles } from "@/hooks/useSkinStyles";
+import { DEFAULT_SOUND_ID, findSoundPreset } from "@/constants/sounds";
+import SoundPickerModal, { type SoundSelection } from "./SoundPickerModal";
 
 interface SoundPickerFieldProps {
   /** 当前内置音 id（null = 默认音） */
@@ -22,12 +23,14 @@ export default function SoundPickerField({
   customSoundTitle,
   onChange,
 }: SoundPickerFieldProps) {
+  const styles = useSkinStyles(createStyles);
   const [pickerVisible, setPickerVisible] = useState(false);
 
   // 显示名：本地音乐优先，其次内置音（未知 id/NULL 兜底默认音）
-  const displayName = customSoundTitle
-    ?? findSoundPreset(soundId)?.name
-    ?? findSoundPreset(DEFAULT_SOUND_ID)!.name;
+  const displayName =
+    customSoundTitle ??
+    findSoundPreset(soundId)?.name ??
+    findSoundPreset(DEFAULT_SOUND_ID)!.name;
   const isCustom = customSoundUri !== null;
 
   return (
@@ -59,29 +62,36 @@ export default function SoundPickerField({
   );
 }
 
-const styles = StyleSheet.create({
-  row: { gap: 8 },
-  rowKey: { color: COLORS.textMuted, fontSize: 11, fontWeight: '700' },
-  button: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 14,
-    paddingVertical: 13,
-    borderRadius: 13,
-    backgroundColor: COLORS.input,
-  },
-  buttonLeft: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 },
-  soundName: { flexShrink: 1, color: COLORS.primaryDark, fontSize: 14, fontWeight: '700' },
-  customBadge: {
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-    borderRadius: 8,
-    backgroundColor: COLORS.primarySoft,
-    color: COLORS.primaryDark,
-    fontSize: 10,
-    fontWeight: '800',
-    overflow: 'hidden',
-  },
-  chevron: { color: COLORS.textMuted, fontSize: 22 },
-});
+function createStyles() {
+  return StyleSheet.create({
+    row: { gap: 8 },
+    rowKey: { color: COLORS.textMuted, fontSize: 11, fontWeight: "700" },
+    button: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 14,
+      paddingVertical: 13,
+      borderRadius: 13,
+      backgroundColor: COLORS.input,
+    },
+    buttonLeft: { flex: 1, flexDirection: "row", alignItems: "center", gap: 8 },
+    soundName: {
+      flexShrink: 1,
+      color: COLORS.primaryDark,
+      fontSize: 14,
+      fontWeight: "700",
+    },
+    customBadge: {
+      paddingHorizontal: 7,
+      paddingVertical: 3,
+      borderRadius: 8,
+      backgroundColor: COLORS.primarySoft,
+      color: COLORS.primaryDark,
+      fontSize: 10,
+      fontWeight: "800",
+      overflow: "hidden",
+    },
+    chevron: { color: COLORS.textMuted, fontSize: 22 },
+  });
+}

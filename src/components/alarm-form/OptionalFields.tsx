@@ -1,8 +1,9 @@
-import { StyleSheet, Text, View, TextInput, Pressable } from 'react-native';
-import type { AlarmCategory } from '@/types/alarm';
-import { ALARM_CATEGORIES, COLORS, SNOOZE_OPTIONS } from '@/constants';
-import SoundPickerField from './SoundPickerField';
-import type { SoundSelection } from './SoundPickerModal';
+import { StyleSheet, Text, View, TextInput, Pressable } from "react-native";
+import type { AlarmCategory } from "@/types/alarm";
+import { ALARM_CATEGORIES, COLORS, SNOOZE_OPTIONS } from "@/constants";
+import { useSkinStyles } from "@/hooks/useSkinStyles";
+import SoundPickerField from "./SoundPickerField";
+import type { SoundSelection } from "./SoundPickerModal";
 
 interface OptionalFieldsProps {
   label: string;
@@ -32,6 +33,7 @@ export default function OptionalFields({
   customSoundTitle,
   onSoundChange,
 }: OptionalFieldsProps) {
+  const styles = useSkinStyles(createStyles);
   return (
     <View style={styles.container}>
       <View style={styles.row}>
@@ -59,11 +61,16 @@ export default function OptionalFields({
                 accessibilityState={{ selected: active }}
                 style={[
                   styles.categoryChip,
-                  active && { borderColor: item.color, backgroundColor: `${item.color}18` },
+                  active && {
+                    borderColor: item.color,
+                    backgroundColor: `${item.color}18`,
+                  },
                 ]}
                 onPress={() => onCategoryChange(item.key)}
               >
-                <View style={[styles.categoryDot, { backgroundColor: item.color }]} />
+                <View
+                  style={[styles.categoryDot, { backgroundColor: item.color }]}
+                />
                 <Text style={styles.categoryText}>{item.label}</Text>
               </Pressable>
             );
@@ -91,7 +98,12 @@ export default function OptionalFields({
                 style={[styles.snoozeChip, active && styles.snoozeChipActive]}
                 onPress={() => onSnoozeChange(minutes)}
               >
-                <Text style={[styles.snoozeChipText, active && styles.snoozeChipTextActive]}>
+                <Text
+                  style={[
+                    styles.snoozeChipText,
+                    active && styles.snoozeChipTextActive,
+                  ]}
+                >
                   {minutes} 分钟
                 </Text>
               </Pressable>
@@ -103,75 +115,77 @@ export default function OptionalFields({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    gap: 14,
-  },
-  row: {
-    gap: 8,
-  },
-  rowKey: {
-    color: COLORS.textMuted,
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  labelInput: {
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderRadius: 13,
-    backgroundColor: COLORS.input,
-    color: COLORS.textPrimary,
-    fontSize: 14,
-  },
-  categoryChips: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  categoryChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 11,
-    paddingVertical: 9,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 12,
-    backgroundColor: COLORS.input,
-  },
-  categoryDot: {
-    width: 8,
-    height: 8,
-    marginRight: 6,
-    borderRadius: 4,
-  },
-  categoryText: {
-    color: COLORS.textSecondary,
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  snoozeChips: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  snoozeChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 9,
-    borderRadius: 11,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    backgroundColor: COLORS.card,
-  },
-  snoozeChipActive: {
-    borderColor: COLORS.primary,
-    backgroundColor: COLORS.primarySoft,
-  },
-  snoozeChipText: {
-    color: COLORS.textSecondary,
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  snoozeChipTextActive: {
-    color: COLORS.primaryDark,
-  },
-});
+function createStyles() {
+  return StyleSheet.create({
+    container: {
+      gap: 14,
+    },
+    row: {
+      gap: 8,
+    },
+    rowKey: {
+      color: COLORS.textMuted,
+      fontSize: 11,
+      fontWeight: "700",
+    },
+    labelInput: {
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+      borderRadius: 13,
+      backgroundColor: COLORS.input,
+      color: COLORS.textPrimary,
+      fontSize: 14,
+    },
+    categoryChips: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 8,
+    },
+    categoryChip: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 11,
+      paddingVertical: 9,
+      borderWidth: 1,
+      borderColor: COLORS.border,
+      borderRadius: 12,
+      backgroundColor: COLORS.input,
+    },
+    categoryDot: {
+      width: 8,
+      height: 8,
+      marginRight: 6,
+      borderRadius: 4,
+    },
+    categoryText: {
+      color: COLORS.textSecondary,
+      fontSize: 12,
+      fontWeight: "700",
+    },
+    snoozeChips: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 8,
+    },
+    snoozeChip: {
+      paddingHorizontal: 12,
+      paddingVertical: 9,
+      borderRadius: 11,
+      borderWidth: 1,
+      borderColor: COLORS.border,
+      backgroundColor: COLORS.card,
+    },
+    snoozeChipActive: {
+      borderColor: COLORS.primary,
+      backgroundColor: COLORS.primarySoft,
+    },
+    snoozeChipText: {
+      color: COLORS.textSecondary,
+      fontSize: 11,
+      fontWeight: "700",
+    },
+    snoozeChipTextActive: {
+      color: COLORS.primaryDark,
+    },
+  });
+}
