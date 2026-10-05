@@ -14,6 +14,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
+import android.os.PowerManager
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 
@@ -53,6 +54,8 @@ class RingService : Service() {
     private var player: MediaPlayer? = null
     private val stopHandler = Handler(Looper.getMainLooper())
     private var alarmId = -1
+    /** 响铃期间持有的唤醒锁：防止息屏/Doze 下 CPU 重新休眠冻结播放 */
+    private var wakeLock: PowerManager.WakeLock? = null
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -82,6 +85,7 @@ class RingService : Service() {
         ringingInfo = RingingSnapshot(alarmId, title, body, snoozeMinutes)
         startForeground(NOTIFICATION_ID, buildNotification(title, body, snoozeMinutes))
         logNotificationDiagnostics()
+        acquireWakeLock(durationSeconds)
         startPlaying(soundId, soundUri)
 
         // 到时自动停（真正的时长控制点，改 30s→50s 只改 JS 常量）
@@ -95,6 +99,7 @@ class RingService : Service() {
         // 也要清，否则 JS 响铃浮层轮询会读到残留快照反复弹出
         ringingInfo = null
         stopHandler.removeCallbacksAndMessages(null)
+        releaseWakeLock()
         stopPlaying()
         super.onDestroy()
     }
@@ -109,6 +114,8 @@ class RingService : Service() {
         try {
             player = MediaPlayer().apply {
                 setDataSource(this@RingService, uri)
+                // 播放期间保持 CPU 唤醒（息屏后仍能播完整个响铃时长）
+                setWakeMode(this@RingService, PowerManager.PARTIAL_WAKE_LOCK)
                 setAudioAttributes(
                     AudioAttributes.Builder()
                         .setUsage(AudioAttributes.USAGE_ALARM)
@@ -167,6 +174,25 @@ class RingService : Service() {
             ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
     }
 
+    /**
+     * 响铃期间持 partial wake lock（闹钟广播的唤醒锁在 onReceive 返回后即释放）。
+     * acquire 带超时兜底：即使停止路径异常未释放，也不会永久持锁耗电。
+     */
+    private fun acquireWakeLock(durationSeconds: Int) {
+        releaseWakeLock()
+        val pm = getSystemService(PowerManager::class.java) ?: return
+        wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "alarm:ring").apply {
+            acquire((durationSeconds + 15) * 1_000L)
+        }
+    }
+
+    private fun releaseWakeLock() {
+        wakeLock?.let {
+            if (it.isHeld) it.release()
+        }
+        wakeLock = null
+    }
+
     private fun stopPlaying() {
         player?.let {
             try {
@@ -185,6 +211,7 @@ class RingService : Service() {
         // 通知响铃 Activity（若已拉起）自动退出，避免铃停后界面残留
         sendBroadcast(Intent(ACTION_RING_STOPPED).setPackage(packageName))
         stopHandler.removeCallbacksAndMessages(null)
+        releaseWakeLock()
         stopPlaying()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             stopForeground(STOP_FOREGROUND_REMOVE)
