@@ -24,6 +24,10 @@ interface AlarmRingNativeModule {
   scheduleSnooze(alarmId: number): Promise<void>;
   stopRinging(): Promise<void>;
   canScheduleExactAlarms(): boolean;
+  /** 读取主题偏好（同步）：'system' | 'light' | 'dark'，缺省 'system' */
+  getSkinTheme(): string;
+  /** 写入主题偏好（008 深色模式，切换后需重载 JS 生效） */
+  setSkinTheme(theme: string): void;
 }
 
 export const AlarmRing =

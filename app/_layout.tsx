@@ -17,7 +17,7 @@ import {
 } from '@/services/notification';
 import { replenishAlarmRinging } from '@/services/ring-scheduler';
 import { SkinAlert, SkinAlertHost } from '@/components/common/SkinAlert';
-import { COLORS } from '@/constants';
+import { COLORS, getCurrentSkinTheme } from '@/constants';
 
 // 在模块加载时立即配置前台通知处理（Expo Go 中安全跳过）
 setupNotificationHandler();
@@ -151,7 +151,7 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <StatusBar style="dark" />
+        <StatusBar style={getCurrentSkinTheme() === 'dark' ? 'light' : 'dark'} />
         <Stack
           screenOptions={{
             headerShown: false,

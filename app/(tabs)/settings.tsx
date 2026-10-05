@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import {
   ActivityIndicator,
   Linking,
+  NativeModules,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -9,6 +10,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { AlarmRing } from '../../modules/alarm-ring/src/index';
 import { PageHeading } from '@/components/common/PageHeader';
 import { SkinAlert } from '@/components/common/SkinAlert';
 import { COLORS, DEFAULT_SNOOZE_MINUTES } from '@/constants';
@@ -72,8 +74,17 @@ export default function SettingsScreen() {
 
   const handleThemeChange = async (theme: ThemePreference) => {
     await updateSettings({ theme });
-    if (theme === 'system') {
-      SkinAlert.alert('主题设置', '已保存为跟随系统。完整深色主题将在视觉规范确定后启用。');
+    // 原生侧同步落盘：下次启动 JS bundle 求值时读这里定型皮肤
+    AlarmRing?.setSkinTheme(theme);
+    // 组件的模块级 StyleSheet 在 bundle 求值时冻结色值，
+    // 切换主题必须重载 JS 才能生效（页面代码零改动约束下的既定语义）
+    const devSettings = (
+      NativeModules as { DevSettings?: { reload(): void } }
+    ).DevSettings;
+    if (devSettings) {
+      devSettings.reload();
+    } else {
+      SkinAlert.alert('主题已保存', '重启应用后生效。');
     }
   };
 
@@ -151,7 +162,7 @@ export default function SettingsScreen() {
 
         <SettingsSection title="外观" description="统一控制各页面的主题偏好">
           <Text style={styles.rowTitle}>主题</Text>
-          <Text style={styles.rowDescription}>当前浅色主题已完整适配</Text>
+          <Text style={styles.rowDescription}>深色为「经典紫夜」配色，切换后立即重载生效</Text>
           <View style={styles.themeOptions}>
             <ThemeOption
               label="跟随系统"
@@ -162,6 +173,11 @@ export default function SettingsScreen() {
               label="浅色"
               active={settings.theme === 'light'}
               onPress={() => void handleThemeChange('light')}
+            />
+            <ThemeOption
+              label="深色"
+              active={settings.theme === 'dark'}
+              onPress={() => void handleThemeChange('dark')}
             />
           </View>
         </SettingsSection>

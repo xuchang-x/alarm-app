@@ -14,7 +14,12 @@ export const NOTIFICATION_ID_PREFIX = 'alarm';
 export const NOTIFICATION_CATEGORY = 'alarm';
 
 /** App 皮肤色与原生弹窗文案统一定义在 theme.ts，这里 re-export 保持兼容 */
-export { COLORS, SKIN, NATIVE_DIALOG_LABELS } from './theme';
+export {
+  COLORS,
+  SKIN,
+  NATIVE_DIALOG_LABELS,
+  getCurrentSkinTheme,
+} from './theme';
 
 import { SKIN } from './theme';
 

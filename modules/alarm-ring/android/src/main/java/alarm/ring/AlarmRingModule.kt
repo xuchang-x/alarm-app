@@ -67,5 +67,18 @@ class AlarmRingModule : Module() {
             val context = appContext.reactContext ?: return@Function false
             RingStore.canScheduleExact(context)
         }
+
+        // ── 皮肤主题（008 深色模式）──
+        // JS 侧在 bundle 求值时同步读这里定型 SKIN（模块级 StyleSheet 会冻结色值），
+        // 切换主题 = setSkinTheme + JS 重载，详见 src/constants/theme.ts。
+        SyncFunction("getSkinTheme") {
+            val context = appContext.reactContext ?: return@SyncFunction "system"
+            RingStore.getSkinTheme(context)
+        }
+
+        Function("setSkinTheme") { theme: String ->
+            val context = appContext.reactContext ?: return@Function Unit
+            RingStore.setSkinTheme(context, theme)
+        }
     }
 }
