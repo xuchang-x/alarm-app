@@ -65,15 +65,14 @@ export default function SoundPickerModal({
     onClose();
   };
 
-  /** 内置音试听（资产缺失等异常静默跳过） */
+  /** 内置音试听（资产缺失静默跳过；播放异常弹提示，避免无声失败难排查） */
   const handlePreview = (preset: SoundPreset): void => {
     const asset = getSoundAsset(preset.id);
     if (asset === null) return;
-    try {
-      void preview(asset);
-    } catch (error) {
+    preview(asset).catch((error: unknown) => {
       console.warn('[SoundPicker] 试听失败:', error);
-    }
+      SkinAlert.alert('提示', '试听失败，请稍后再试');
+    });
   };
 
   /** 音乐库选歌：media-library 权限 → 资产列表；拒绝则降级 document-picker */
