@@ -32,6 +32,13 @@ const paletteLight = {
   gray50: '#F7F5FC',
   gray100: '#F3F1F8',
   gray200: '#E5E1F0',
+  /** 卡片白底（与 onPrimary 的纯白分键：深色下卡片变暗、主色上文字仍纯白） */
+  card: '#FFFFFF',
+  /** 卡片按压态（比白底更灰一丝） */
+  cardPressed: '#FBFAFF',
+  /** 停用卡片的底色与描边（沉底弱化） */
+  cardDisabledBg: '#FBFAFD',
+  cardDisabledBorder: '#ECE9F2',
   white: '#FFFFFF',
   /** 墨色文字系 */
   ink900: '#25223A',
@@ -44,6 +51,9 @@ const paletteLight = {
   red500: '#E85D75',
   /** 卡片投影基色 */
   inkShadow: '#51468A',
+  /** 语义状态色浅底（状态胶囊） */
+  successSoft: '#DDF4ED',
+  dangerSoft: '#FDECEF',
   /** 其它专用色 */
   heroDotOff: '#D9D2F5',
   categoryNeutral: '#8A839C',
@@ -61,6 +71,11 @@ const paletteDark = {
   gray50: '#121212',
   gray100: '#232030',
   gray200: '#2E2A3E',
+  /** 深色卡片：比底色亮一档（方案 1） */
+  card: '#1E1B2E',
+  cardPressed: '#282441',
+  cardDisabledBg: '#1A1728',
+  cardDisabledBorder: '#2A2640',
   white: '#FFFFFF',
   ink900: '#E4E1EF',
   ink600: '#9B96AD',
@@ -70,6 +85,8 @@ const paletteDark = {
   orange500: '#F0B26B',
   red500: '#F27E93',
   inkShadow: '#000000',
+  successSoft: '#1D3A32',
+  dangerSoft: '#3A2530',
   heroDotOff: 'rgba(255, 255, 255, 0.28)',
   categoryNeutral: '#948DA6',
 } as const;
@@ -90,12 +107,18 @@ function createSkin(p: { [K in keyof typeof paletteLight]: string }) {
     /** 容器：页面背景、卡片白底、输入框浅底 */
     surface: {
       background: p.gray50,
-      card: p.white,
+      card: p.card,
       input: p.gray100,
+      /** 卡片按压态 */
+      cardPressed: p.cardPressed,
+      /** 停用卡片底色（配合 line.cardDisabledBorder） */
+      cardDisabledBg: p.cardDisabledBg,
     },
     /** 描边与分隔 */
     line: {
       border: p.gray200,
+      /** 停用卡片描边 */
+      cardDisabledBorder: p.cardDisabledBorder,
       /** hero 卡内部分隔线（primaryDark 低透明度） */
       divider:
         p === paletteLight
@@ -114,6 +137,9 @@ function createSkin(p: { [K in keyof typeof paletteLight]: string }) {
       selectedBg: p.purple100,
       selectedBorder: p.purple500,
       selectedText: p.purple700,
+      /** 状态色浅底（设置页状态胶囊、删除链接按压态） */
+      successSoft: p.successSoft,
+      dangerSoft: p.dangerSoft,
     },
     /** 语义状态色 */
     status: {
@@ -128,6 +154,9 @@ function createSkin(p: { [K in keyof typeof paletteLight]: string }) {
       /** 模态弹窗遮罩（textPrimary 低透明度） */
       backdrop:
         p === paletteLight ? 'rgba(37, 34, 58, 0.38)' : 'rgba(0, 0, 0, 0.62)',
+      /** 底部 Sheet 弹层遮罩（比全屏遮罩更轻） */
+      sheetBackdrop:
+        p === paletteLight ? 'rgba(37, 34, 58, 0.24)' : 'rgba(0, 0, 0, 0.55)',
       /** 今日页节奏点阵未点亮色 */
       heroDotOff: p.heroDotOff,
       /** 分类「其他」的中性灰 */

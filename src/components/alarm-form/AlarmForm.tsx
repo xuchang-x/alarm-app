@@ -18,7 +18,7 @@ import { findConflictingAlarms } from '@/services/conflicts';
 import TimePicker from '@/components/alarm-form/TimePicker';
 import WeekdaySelector from '@/components/alarm-form/WeekdaySelector';
 import type { Alarm, AlarmCategory, AlarmType, Weekday } from '@/types/alarm';
-import { COLORS, DEFAULT_SNOOZE_MINUTES } from '@/constants';
+import { COLORS, DEFAULT_SNOOZE_MINUTES, SKIN } from '@/constants';
 import { formatDate, today } from '@/utils/date';
 import FrequencySelector from './FrequencySelector';
 import CycleFields from './CycleFields';
@@ -390,7 +390,7 @@ const styles = StyleSheet.create({
   },
   saveButtonPressed: { backgroundColor: COLORS.primaryDark, transform: [{ scale: 0.99 }] },
   saveButtonDisabled: { opacity: 0.55 },
-  saveButtonText: { color: '#FFFFFF', fontSize: 15, fontWeight: '800' },
+  saveButtonText: { color: SKIN.brand.onPrimary, fontSize: 15, fontWeight: '800' },
   deleteLink: {
     alignSelf: 'center',
     marginTop: 10,
@@ -398,7 +398,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 8,
   },
-  deleteLinkPressed: { backgroundColor: '#FDECEF' },
+  deleteLinkPressed: { backgroundColor: SKIN.state.dangerSoft },
   deleteLinkText: {
     color: COLORS.danger,
     fontSize: 12,

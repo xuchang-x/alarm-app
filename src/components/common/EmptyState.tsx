@@ -1,34 +1,27 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import type { Href } from 'expo-router';
-import { COLORS } from '@/constants';
+import { COLORS, SKIN } from '@/constants';
 
 type EmptyStateProps = {
-  /** 图标字体符号 */
-  icon?: string;
   title: string;
   subtitle?: string;
-  /** 主行动按钮文案；不传则不显示按钮 */
+  /** 主行动按钮文案；不传则不显示按钮（跳创建页） */
   actionLabel?: string;
-  /** 主行动路由（默认创建页） */
-  route?: Href;
 };
 
 /**
  * 页面空态占位：图标 + 标题 + 副标题 + 可选创建入口。
  */
 export default function EmptyState({
-  icon = '◷',
   title,
   subtitle,
   actionLabel,
-  route = '/create',
 }: EmptyStateProps) {
   const router = useRouter();
   return (
     <View style={styles.container}>
       <View style={styles.icon}>
-        <Text style={styles.iconText}>{icon}</Text>
+        <Text style={styles.iconText}>◷</Text>
       </View>
       <Text style={styles.title}>{title}</Text>
       {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
@@ -36,7 +29,7 @@ export default function EmptyState({
         <Pressable
           accessibilityRole="button"
           style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
-          onPress={() => router.push(route)}
+          onPress={() => router.push('/create')}
         >
           <Text style={styles.buttonText}>{actionLabel}</Text>
         </Pressable>
@@ -93,7 +86,7 @@ const styles = StyleSheet.create({
     transform: [{ scale: 0.97 }],
   },
   buttonText: {
-    color: '#FFFFFF',
+    color: SKIN.brand.onPrimary,
     fontSize: 14,
     fontWeight: '700',
   },

@@ -6,7 +6,13 @@ import {
   isDateBefore,
   isDateAfter,
   formatDate,
+  addDaysToDate,
+  formatTime,
 } from '@/utils/date';
+import {
+  SCHEDULE_DAYS_AHEAD,
+  SCHEDULE_MAX_PER_ALARM,
+} from '@/constants';
 
 /**
  * 计算闹钟在指定范围内的所有响铃日期
@@ -48,6 +54,59 @@ function collectSkipDates(adjustments: AlarmAdjustment[]): Set<string> {
   return new Set(
     adjustments.filter((a) => a.type === 'skip').map((a) => a.date)
   );
+}
+
+/** 闹钟的用户可见描述文案（通知标题/正文与原生响铃通知共用） */
+export function getAlarmDescription(alarm: Alarm): string {
+  const time = formatTime(alarm.hour, alarm.minute);
+  switch (alarm.type) {
+    case 'once':
+      return `一次性闹钟 ${time}`;
+    case 'daily':
+      return `每天 ${time}`;
+    case 'weekly':
+      return `每周 ${time}`;
+    case 'cycle':
+      return `每${alarm.intervalDays}天 ${time}`;
+    default:
+      return `闹钟 ${time}`;
+  }
+}
+
+/** 触发时刻物化结果 */
+export interface TriggerPlan {
+  /** 未来触发时间戳（升序，已按 SCHEDULE_MAX_PER_ALARM 截断） */
+  timestamps: number[];
+  /** 未来触发点是否超过截断上限（供上层续期/提示） */
+  truncated: boolean;
+}
+
+/**
+ * 计算单个闹钟未来 SCHEDULE_DAYS_AHEAD 天内的全部触发时间戳。
+ * 四类闹钟统一逐日物化（不用系统 DAILY/WEEKLY repeating trigger），
+ * 与 computeRingDatesInRange 同源，skip 调整对四类闹钟语义一致。
+ */
+export function computeTriggerTimestamps(
+  alarm: Alarm,
+  adjustments: AlarmAdjustment[] = []
+): TriggerPlan {
+  const rangeStart = today();
+  const rangeEnd = addDaysToDate(rangeStart, SCHEDULE_DAYS_AHEAD);
+  const dates = computeRingDatesInRange(alarm, rangeStart, rangeEnd, adjustments);
+
+  const timestamps: number[] = [];
+  let truncated = false;
+  for (const date of dates) {
+    const triggerAt = new Date(date);
+    triggerAt.setHours(alarm.hour, alarm.minute, 0, 0);
+    if (triggerAt.getTime() <= Date.now()) continue;
+    if (timestamps.length >= SCHEDULE_MAX_PER_ALARM) {
+      truncated = true;
+      break;
+    }
+    timestamps.push(triggerAt.getTime());
+  }
+  return { timestamps, truncated };
 }
 
 /**

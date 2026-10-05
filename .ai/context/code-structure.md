@@ -54,7 +54,7 @@ alarm-app/
 | `today/` | 今日页专属：NextRingCard、RhythmDots、TodayTimeline | — |
 | `plan/` | 计划页专属：MonthView、TimelineView、AlarmDetailSheet、shared | — |
 | `alarm-list/` | 全部页专属：AlarmCard、FilterBar | — |
-| `alarm-form/` | 创建/编辑共用：AlarmForm（门面）+ FrequencySelector、CycleFields、OptionalFields、TimePicker、WeekdaySelector、CycleSettings | — |
+| `alarm-form/` | 创建/编辑共用：AlarmForm（门面）+ FrequencySelector、CycleFields、OptionalFields、TimePicker、WeekdaySelector、SoundPickerField、SoundPickerModal | — |
 
 **新增组件的判断顺序**：多个页面用 → `common/`；单个页面用 → 该页面域目录；随新页面出现就先建域目录。
 
@@ -62,10 +62,10 @@ alarm-app/
 
 | 目录 | 职责 | 关键约定 |
 |---|---|---|
-| `hooks/` | useNow（时间驱动）、useTodayOverview（今日页派生） | 派生逻辑抽纯函数放同文件导出，单测测纯函数（mock expo-sqlite 等原生模块） |
+| `hooks/` | useNow（时间驱动）、useTodayOverview（今日页派生）、useDiscardGuard（创建/编辑放弃确认） | 派生逻辑抽纯函数放同文件导出，单测测纯函数（mock expo-sqlite 等原生模块） |
 | `store/` | alarm-store（闹钟 CRUD + 调度联动）、settings-store | store 方法里完成「repo 写库 + 通知重排 + loadAlarms」三连，组件别拆开调 |
 | `db/` | schema（含用药分类下线迁移）、alarm-repository、settings-repository | 只做 CRUD，不含业务规则 |
-| `services/` | scheduler（响铃日期计算）、calendar（日历实例）、conflicts（冲突检测）、notification（通知调度） | 006 红线：这三个文件逻辑零改动 |
+| `services/` | scheduler（响铃日期计算 + 统一触发物化）、calendar（日历实例）、conflicts（冲突检测）、notification（通知调度）、ring-scheduler（原生调度） | 统一触发物化入口 computeTriggerTimestamps 只在 scheduler |
 | `utils/` | date.ts：formatDate/today/getCycleRhythm/daysUntil 等纯函数 | 新日期规则先来这里 + 补单测 |
 | `types/` | alarm.ts、settings.ts | 数据模型 006 红线：零改动 |
 | `constants/` | COLORS、ALARM_CATEGORIES、DEFAULT_SNOOZE_MINUTES 等 | 视觉 token 仅体系内补位 |

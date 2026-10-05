@@ -1,14 +1,12 @@
 import { Platform } from 'react-native';
 import { addMinutes } from 'date-fns';
 import type { Alarm, AlarmAdjustment } from '@/types/alarm';
-import { computeRingDatesInRange } from '@/services/scheduler';
-import { today, addDaysToDate, makeNotificationId, formatTime, formatDate } from '@/utils/date';
 import {
-  SCHEDULE_DAYS_AHEAD,
-  SCHEDULE_MAX_PER_ALARM,
-  NOTIFICATION_CATEGORY,
-  NOTIFICATION_ID_PREFIX,
-} from '@/constants';
+  getAlarmDescription,
+  computeTriggerTimestamps,
+} from '@/services/scheduler';
+import { makeNotificationId, formatDate } from '@/utils/date';
+import { NOTIFICATION_CATEGORY, NOTIFICATION_ID_PREFIX } from '@/constants';
 
 /**
  * 动态导入 expo-notifications
@@ -95,23 +93,6 @@ export async function requestPermissions(): Promise<boolean> {
   return status === 'granted';
 }
 
-/** 生成闹钟描述文本 */
-function getAlarmDescription(alarm: Alarm): string {
-  const time = formatTime(alarm.hour, alarm.minute);
-  switch (alarm.type) {
-    case 'once':
-      return `一次性闹钟 ${time}`;
-    case 'daily':
-      return `每天 ${time}`;
-    case 'weekly':
-      return `每周 ${time}`;
-    case 'cycle':
-      return `每${alarm.intervalDays}天 ${time}`;
-    default:
-      return `闹钟 ${time}`;
-  }
-}
-
 /** 调度结果：区分「成功」「无通知能力」「调度失败」三类，供上层决策 */
 export type ScheduleResult =
   | { ok: true; scheduled: number; truncated: boolean }
@@ -137,10 +118,11 @@ function buildNotificationContent(
 }
 
 /**
- * 为闹钟调度通知
- * daily/weekly 使用原生 repeat trigger，once/cycle 使用 date trigger。
+ * 为闹钟调度通知。
  *
- * once/cycle 按 SCHEDULE_MAX_PER_ALARM 截断，避免超出系统调度上限
+ * 四类闹钟统一逐日物化（含 daily/weekly，不用系统 DAILY/WEEKLY repeating
+ * trigger）：与原生响铃层 computeTriggerTimestamps 同源，skip 调整对四类
+ * 闹钟语义一致。按 SCHEDULE_MAX_PER_ALARM 截断，避免超出系统调度上限
  * （iOS 最多 64 条，超限会被系统静默丢弃）；截断后依赖回前台补排继续往后续。
  * 单条调度失败不中断整体（保留已调度部分），返回结果供上层提示。
  */
@@ -161,57 +143,29 @@ export async function scheduleAlarmNotifications(
 
   const description = getAlarmDescription(alarm);
   const content = buildNotificationContent(alarm, description);
+  const { timestamps, truncated } = computeTriggerTimestamps(alarm, adjustments);
   let scheduled = 0;
-  let truncated = false;
   let failed = false;
 
-  switch (alarm.type) {
-    case 'once':
-    case 'daily':
-    case 'weekly':
-    case 'cycle': {
-      // 四类闹钟统一逐日物化（daily/weekly 不再用系统 DAILY/WEEKLY repeating
-      // trigger）：与原生响铃层 computeTriggerTimestamps 同源，skip 调整对四类
-      // 闹钟语义一致（对齐 ring-scheduler.ts 的原生调度策略）。
-      const rangeStart = today();
-      const rangeEnd = addDaysToDate(rangeStart, SCHEDULE_DAYS_AHEAD);
-      const dates = computeRingDatesInRange(
-        alarm,
-        rangeStart,
-        rangeEnd,
-        adjustments
+  for (const timestamp of timestamps) {
+    const triggerDate = new Date(timestamp);
+    try {
+      await Notifications!.scheduleNotificationAsync({
+        identifier: makeNotificationId(alarm.id, triggerDate),
+        content,
+        trigger: {
+          type: Notifications!.SchedulableTriggerInputTypes.DATE,
+          channelId: 'alarm-channel',
+          date: triggerDate,
+        },
+      });
+      scheduled += 1;
+    } catch (error) {
+      failed = true;
+      console.warn(
+        `[notification] 调度闹钟 #${alarm.id} ${formatDate(triggerDate)} 失败:`,
+        error
       );
-
-      for (const date of dates) {
-        if (scheduled >= SCHEDULE_MAX_PER_ALARM) {
-          truncated = true;
-          break;
-        }
-        const triggerDate = new Date(date);
-        triggerDate.setHours(alarm.hour, alarm.minute, 0, 0);
-
-        if (triggerDate <= new Date()) continue;
-
-        try {
-          await Notifications!.scheduleNotificationAsync({
-            identifier: makeNotificationId(alarm.id, date),
-            content,
-            trigger: {
-              type: Notifications!.SchedulableTriggerInputTypes.DATE,
-              channelId: 'alarm-channel',
-              date: triggerDate,
-            },
-          });
-          scheduled += 1;
-        } catch (error) {
-          failed = true;
-          console.warn(
-            `[notification] 调度闹钟 #${alarm.id} ${formatDate(date)} 失败:`,
-            error
-          );
-        }
-      }
-      break;
     }
   }
 
@@ -261,7 +215,7 @@ export async function scheduleSnooze(alarm: Alarm): Promise<void> {
   });
 }
 
-/** 检查并补充调度（App 启动时调用） */
+/** 检查并补充调度（App 启动时调用）。四类闹钟统一补排：逐日物化后同样受 60 条截断约束，截断续期依赖本函数在回前台时续上。 */
 export async function replenishNotifications(
   alarms: Alarm[],
   getAdjustments: (alarmId: number) => Promise<AlarmAdjustment[]>
@@ -269,7 +223,6 @@ export async function replenishNotifications(
   if (!isAvailable()) return;
   for (const alarm of alarms) {
     if (!alarm.enabled) continue;
-    if (alarm.type === 'daily' || alarm.type === 'weekly') continue;
 
     const adjustments = await getAdjustments(alarm.id);
     await scheduleAlarmNotifications(alarm, adjustments);

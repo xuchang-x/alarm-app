@@ -2,29 +2,19 @@ import { getDatabase } from './connection';
 import { DEFAULT_SNOOZE_MINUTES } from '@/constants';
 import type { AppSettings, ThemePreference } from '@/types/settings';
 
-const DEFAULT_SETTINGS: AppSettings = {
-  defaultSnoozeMinutes: DEFAULT_SNOOZE_MINUTES,
-  theme: 'system',
-};
-
 interface SettingRow {
   key: string;
   value: string;
 }
 
-async function ensureSettingsTable(): Promise<Awaited<ReturnType<typeof getDatabase>>> {
-  const db = await getDatabase();
-  await db.execAsync(`
-    CREATE TABLE IF NOT EXISTS app_settings (
-      key TEXT PRIMARY KEY NOT NULL,
-      value TEXT NOT NULL
-    );
-  `);
-  return db;
-}
+/** 设置默认值（单一事实源，settings-store 初始态也从这里取） */
+export const DEFAULT_SETTINGS: AppSettings = {
+  defaultSnoozeMinutes: DEFAULT_SNOOZE_MINUTES,
+  theme: 'system',
+};
 
 export async function getAppSettings(): Promise<AppSettings> {
-  const db = await ensureSettingsTable();
+  const db = await getDatabase();
   const rows = await db.getAllAsync<SettingRow>(
     'SELECT key, value FROM app_settings'
   );
@@ -37,14 +27,14 @@ export async function getAppSettings(): Promise<AppSettings> {
       Number.isInteger(parsedSnooze) && parsedSnooze > 0 && parsedSnooze <= 60
         ? parsedSnooze
         : DEFAULT_SETTINGS.defaultSnoozeMinutes,
-    theme: theme === 'light' ? 'light' : DEFAULT_SETTINGS.theme,
+    theme: isThemePreference(theme) ? theme : DEFAULT_SETTINGS.theme,
   };
 }
 
 export async function updateAppSettings(
   settings: Partial<AppSettings>
 ): Promise<AppSettings> {
-  const db = await ensureSettingsTable();
+  const db = await getDatabase();
 
   if (settings.defaultSnoozeMinutes !== undefined) {
     await db.runAsync(
@@ -67,6 +57,7 @@ export async function updateAppSettings(
   return getAppSettings();
 }
 
-export function isThemePreference(value: string): value is ThemePreference {
-  return value === 'system' || value === 'light';
+/** 主题偏好守卫：'system' | 'light' | 'dark'（含 008 新增的深色档） */
+export function isThemePreference(value: string | undefined | null): value is ThemePreference {
+  return value === 'system' || value === 'light' || value === 'dark';
 }

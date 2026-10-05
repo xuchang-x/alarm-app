@@ -268,5 +268,5 @@ const styles = StyleSheet.create({
   cancelButton: { flex: 1, alignItems: 'center', justifyContent: 'center', minHeight: 48, borderRadius: 14, backgroundColor: COLORS.input },
   cancelText: { color: COLORS.textSecondary, fontSize: 14, fontWeight: '700' },
   confirmButton: { flex: 1.35, alignItems: 'center', justifyContent: 'center', minHeight: 48, borderRadius: 14, backgroundColor: COLORS.primary },
-  confirmText: { color: '#FFFFFF', fontSize: 14, fontWeight: '800' },
+  confirmText: { color: SKIN.brand.onPrimary, fontSize: 14, fontWeight: '800' },
 });

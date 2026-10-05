@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AlarmRing } from '../../modules/alarm-ring/src/index';
 import { PageHeading } from '@/components/common/PageHeader';
 import { SkinAlert } from '@/components/common/SkinAlert';
-import { COLORS, DEFAULT_SNOOZE_MINUTES } from '@/constants';
+import { COLORS, DEFAULT_SNOOZE_MINUTES, SKIN, SNOOZE_OPTIONS } from '@/constants';
 import {
   getNotificationPermissionStatus,
   requestPermissions,
@@ -21,8 +21,6 @@ import {
 } from '@/services/notification';
 import { useSettingsStore } from '@/store/settings-store';
 import type { ThemePreference } from '@/types/settings';
-
-const SNOOZE_OPTIONS = [5, 10, 15, 20, 30] as const;
 
 const PERMISSION_LABELS: Record<NotificationPermissionStatus, string> = {
   granted: '已允许',
@@ -238,7 +236,7 @@ const styles = StyleSheet.create({
   rowTitle: { color: COLORS.textPrimary, fontSize: 13, fontWeight: '800' },
   rowDescription: { marginTop: 4, color: COLORS.textSecondary, fontSize: 11, lineHeight: 17 },
   statusPill: { marginLeft: 12, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 99, backgroundColor: COLORS.input },
-  statusPillSuccess: { backgroundColor: '#DDF4ED' },
+  statusPillSuccess: { backgroundColor: SKIN.state.successSoft },
   statusPillText: { color: COLORS.textSecondary, fontSize: 10, fontWeight: '700' },
   statusPillTextSuccess: { color: COLORS.success },
   actionButton: { alignItems: 'center', marginTop: 14, paddingVertical: 11, borderRadius: 12, backgroundColor: COLORS.primarySoft },

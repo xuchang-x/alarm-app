@@ -6,7 +6,12 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import type { Alarm } from '@/types/alarm';
-import { ALARM_CATEGORIES, COLORS } from '@/constants';
+import {
+  ALARM_TYPE_LABELS,
+  COLORS,
+  SKIN,
+  getAlarmCategory,
+} from '@/constants';
 import { formatTime, parseDate, today } from '@/utils/date';
 
 interface AlarmCardProps {
@@ -18,22 +23,6 @@ interface AlarmCardProps {
   onSkip?: (id: number) => void;
   onAddOnce?: (id: number) => void;
   onDuplicate?: (id: number) => void;
-}
-
-function getTypeLabel(alarm: Alarm): string {
-  switch (alarm.type) {
-    case 'once':
-      return '一次';
-    case 'daily':
-      return '每天';
-    case 'weekly': {
-      return '每周';
-    }
-    case 'cycle':
-      return '周期';
-    default:
-      return '';
-  }
 }
 
 const BUTTON_WIDTH = 58;
@@ -75,9 +64,7 @@ export default function AlarmCard({
     transform: [{ translateX: translateX.value }],
   }));
 
-  const category =
-    ALARM_CATEGORIES.find((item) => item.key === alarm.category) ??
-    ALARM_CATEGORIES[ALARM_CATEGORIES.length - 1];
+  const category = getAlarmCategory(alarm.category);
   const isExpiredOnce = alarm.type === 'once' && alarm.onceDate !== null && parseDate(alarm.onceDate) < today();
 
   return (
@@ -141,7 +128,7 @@ export default function AlarmCard({
                   <View style={styles.typePill}>
                     <View style={[styles.categoryDot, { backgroundColor: category.color }]} />
                     <Text style={styles.typeText}>{category.label} · </Text>
-                    <Text style={styles.typeText}>{getTypeLabel(alarm)}</Text>
+                    <Text style={styles.typeText}>{ALARM_TYPE_LABELS[alarm.type]}</Text>
                   </View>
                 </View>
               </View>
@@ -194,7 +181,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
   },
   actionText: {
-    color: '#FFFFFF',
+    color: SKIN.brand.onPrimary,
     fontSize: 11,
     fontWeight: '700',
   },
@@ -211,11 +198,11 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   cardPressed: {
-    backgroundColor: '#FBFAFF',
+    backgroundColor: SKIN.surface.cardPressed,
   },
   cardDisabled: {
-    backgroundColor: '#FBFAFD',
-    borderColor: '#ECE9F2',
+    backgroundColor: SKIN.surface.cardDisabledBg,
+    borderColor: SKIN.line.cardDisabledBorder,
     shadowOpacity: 0.03,
   },
   cardHeader: {

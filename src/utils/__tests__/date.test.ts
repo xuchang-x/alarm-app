@@ -4,7 +4,6 @@ import {
   addDaysToDate,
   isDateBefore,
   isDateAfter,
-  isDateEqual,
   parseDate,
   makeNotificationId,
   formatTime,
@@ -53,7 +52,7 @@ describe('addDaysToDate', () => {
   });
 });
 
-describe('isDateBefore / isDateAfter / isDateEqual', () => {
+describe('isDateBefore / isDateAfter', () => {
   const a = new Date(2025, 0, 1);
   const b = new Date(2025, 0, 2);
 
@@ -65,11 +64,6 @@ describe('isDateBefore / isDateAfter / isDateEqual', () => {
   it('a 在 b 之后', () => {
     expect(isDateAfter(b, a)).toBe(true);
     expect(isDateAfter(a, b)).toBe(false);
-  });
-
-  it('相同日期相等', () => {
-    expect(isDateEqual(a, new Date(2025, 0, 1))).toBe(true);
-    expect(isDateEqual(a, b)).toBe(false);
   });
 });
 

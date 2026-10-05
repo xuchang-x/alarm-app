@@ -27,12 +27,16 @@ jest.mock('expo-document-picker', () => ({
 
 // 试听资产映射依赖真实 .ogg 文件（T1 ffmpeg 产物，jest 环境无该资产），
 // mock 为与 SOUND_PRESETS 同 key 的占位映射，元数据完整性测试针对 key 集合校验
-jest.mock('@/constants/sound-assets', () => {
+jest.mock('@/constants/sounds', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { SOUND_PRESETS } = jest.requireActual('@/constants/sounds') as typeof import('@/constants/sounds');
+  const actual = jest.requireActual('@/constants/sounds') as typeof import('@/constants/sounds');
   const assets: Record<string, number> = {};
-  for (const preset of SOUND_PRESETS) assets[preset.id] = 1;
-  return { SOUND_ASSETS: assets, getSoundAsset: (id: string | null) => assets[id ?? ''] ?? null };
+  for (const preset of actual.SOUND_PRESETS) assets[preset.id] = 1;
+  return {
+    ...actual,
+    SOUND_ASSETS: assets,
+    getSoundAsset: (id: string | null) => assets[id ?? ''] ?? null,
+  };
 });
 
 import type { SoundSelection } from '../SoundPickerModal';
@@ -102,9 +106,10 @@ describe('007 SOUND_PRESETS 元数据完整性', () => {
   const { SOUND_PRESETS, DEFAULT_SOUND_ID } = jest.requireActual(
     '@/constants/sounds'
   ) as typeof import('@/constants/sounds');
-  // 被 mock 的模块（见顶部 jest.mock），key 集合与真实映射一致
+  // 被 mock 的模块（见顶部 jest.mock，实测 requireActual('@/constants/sounds') 的真实导出），
+  // key 集合与真实映射一致
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { SOUND_ASSETS } = require('@/constants/sound-assets') as {
+  const { SOUND_ASSETS } = jest.requireMock('@/constants/sounds') as {
     SOUND_ASSETS: Record<string, number>;
   };
 
