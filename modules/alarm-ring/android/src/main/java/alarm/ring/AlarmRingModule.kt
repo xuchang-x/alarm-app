@@ -71,8 +71,10 @@ class AlarmRingModule : Module() {
         // ── 皮肤主题（008 深色模式）──
         // JS 侧在 bundle 求值时同步读这里定型 SKIN（模块级 StyleSheet 会冻结色值），
         // 切换主题 = setSkinTheme + JS 重载，详见 src/constants/theme.ts。
-        SyncFunction("getSkinTheme") {
-            val context = appContext.reactContext ?: return@SyncFunction "system"
+        // 注：模块级同步函数的 DSL 是 Function（注册到 syncFunctions），
+        // expo-modules-core 未暴露 SyncFunction 标识符。
+        Function("getSkinTheme") {
+            val context = appContext.reactContext ?: return@Function "system"
             RingStore.getSkinTheme(context)
         }
 
