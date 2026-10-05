@@ -1,6 +1,6 @@
 ---
 name: kit-iteration-start
-description: 开迭代助手。收尾当前迭代（补迭代记录 → 提交当前工作区改动 → push 当前分支 → 合并进当前 release/x.y.z 分支 → release 分支合并进 master 并 push），随后从 master 切出新的 release/{新版本号} 分支并按迭代粒度（小/中/大，默认小）bump 版本号（package.json 与 app.json 两处同步修改），bump 只发生在 release 分支上，master 的版本号永远等于已收尾版本。当用户说「开个迭代」「开一个小迭代」「开个中迭代」「开个大迭代」「开新迭代」「开始下一个版本」「版本收尾」时使用。
+description: 开迭代助手。收尾当前迭代（补迭代记录 → 提交当前工作区改动 → push 当前分支 → 合并进当前 release/x.y.z 分支 → release 分支合并进 master 并 push），随后从 master 切出新的 release/{新版本号} 分支并按迭代粒度（小/中/大，默认小）bump 版本号（package.json 与 app.json 两处同步修改，本机有 android/ 时同步 build.gradle 版本号），bump 只发生在 release 分支上，master 的版本号永远等于已收尾版本。当用户说「开个迭代」「开一个小迭代」「开个中迭代」「开个大迭代」「开新迭代」「开始下一个版本」「版本收尾」时使用。
 ---
 
 ## 用户输入
@@ -124,10 +124,11 @@ done
 
 ### 6. 从 master 切新 release 分支并在其上 bump 版本号
 
-本项目的版本号存放在**两处**，必须同步修改，避免 App 构建版本与依赖版本漂移：
+本项目的版本号存放在**两处入库 + 一处本地**，必须同步修改，避免 App 构建版本与依赖版本漂移：
 
 - `package.json` 的 `"version"` 字段
 - `app.json` 的 `expo.version` 字段
+- （仅本机存在 `android/` 目录时）`android/app/build.gradle` 的 `versionName "x.y.z"` 与 `versionCode`（+1）：`android/` 被 gitignore，gradle 打包读的是这里的版本号，不同步会导致 APK 一直用旧版本名；不入库但每次开迭代必须同步
 
 ```bash
 # 确认当前在刚 push 完的 master 上且工作区干净
@@ -138,6 +139,14 @@ git commit -F - <<'EOF'
 chore(构建): 版本号更新至 <新版本号>
 EOF
 git push --set-upstream origin release/<新版本号>
+
+# 本地 android/ 存在时同步（gitignore，不进提交）：versionName 改新版本号，versionCode +1
+if [ -f android/app/build.gradle ]; then
+  sed -i '' \
+    -e "s/versionCode [0-9]*/versionCode <新 versionCode，旧值+1>/" \
+    -e 's/versionName "[^"]*"/versionName "<新版本号>"/' \
+    android/app/build.gradle
+fi
 ```
 
 完成后**停留在新的 `release/<新版本号>` 分支**。后续开发以它为集线：正式需求按 `.ai/specs/` 规范建 `feat/{NNN}-{name}` 分支，完成后合并进 release 分支；零散迭代项用 `kit-iteration-item` 处理（其合并目标自动指向当前活跃 release 分支）。
