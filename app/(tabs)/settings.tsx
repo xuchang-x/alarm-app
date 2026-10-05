@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import {
   ActivityIndicator,
   Linking,
-  NativeModules,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -10,15 +9,14 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { AlarmRing } from '../../modules/alarm-ring/src/index';
 import { PageHeading } from '@/components/common/PageHeader';
-import { SkinAlert } from '@/components/common/SkinAlert';
 import { COLORS, DEFAULT_SNOOZE_MINUTES, SKIN, SNOOZE_OPTIONS } from '@/constants';
 import {
   getNotificationPermissionStatus,
   requestPermissions,
   type NotificationPermissionStatus,
 } from '@/services/notification';
+import { useSkinStore } from '@/store/skin-store';
 import { useSettingsStore } from '@/store/settings-store';
 import type { ThemePreference } from '@/types/settings';
 
@@ -55,6 +53,13 @@ export default function SettingsScreen() {
     void refreshPermission();
   }, [loadSettings, refreshPermission]);
 
+  // 自愈同步：若 DB 偏好与运行时皮肤不一致（如历史版本原生落盘失败），以 DB 为准纠正
+  useEffect(() => {
+    if (!loading && settings.theme !== useSkinStore.getState().preference) {
+      void useSkinStore.getState().setPreference(settings.theme, { persist: false });
+    }
+  }, [loading, settings.theme]);
+
   const handlePermissionPress = async () => {
     if (permission === 'denied') {
       await Linking.openSettings();
@@ -71,26 +76,9 @@ export default function SettingsScreen() {
   };
 
   const handleThemeChange = async (theme: ThemePreference) => {
-    await updateSettings({ theme });
-    // 原生侧同步落盘：下次启动 JS bundle 求值时读这里定型皮肤
-    AlarmRing?.setSkinTheme(theme);
-    // 组件的模块级 StyleSheet 在 bundle 求值时冻结色值，切换主题必须重载 JS。
-    // 注意：DevSettings 在 release 包里也存在但 reload() 是 no-op（空实现），
-    // 不能用「模块是否存在」判断环境，必须用 __DEV__。
-    if (__DEV__) {
-      const devSettings = (
-        NativeModules as { DevSettings?: { reload(): void } }
-      ).DevSettings;
-      if (devSettings) {
-        devSettings.reload();
-        return;
-      }
-    }
-    // release：提示并提供一键重启（原生杀进程拉起），重启后 bundle 求值重新定型
-    SkinAlert.alert('主题已保存', '重启应用后生效，要现在重启吗？', [
-      { text: '稍后手动重启', style: 'cancel' },
-      { text: '立即重启', onPress: () => AlarmRing?.restartApp() },
-    ]);
+    // 皮肤 store 统一处理：DB + 原生双落盘、原地覆写 SKIN/COLORS、版本号驱动全组件重建，
+    // 全程不 reload JS、不重启、不丢页面状态
+    await useSkinStore.getState().setPreference(theme);
   };
 
   if (loading && settings.defaultSnoozeMinutes === DEFAULT_SNOOZE_MINUTES) {
@@ -167,7 +155,7 @@ export default function SettingsScreen() {
 
         <SettingsSection title="外观" description="统一控制各页面的主题偏好">
           <Text style={styles.rowTitle}>主题</Text>
-          <Text style={styles.rowDescription}>深色为「经典紫夜」配色，切换后立即重载生效</Text>
+          <Text style={styles.rowDescription}>深色为「经典紫夜」配色，即时生效，无需重启</Text>
           <View style={styles.themeOptions}>
             <ThemeOption
               label="跟随系统"

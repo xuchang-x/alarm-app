@@ -18,6 +18,7 @@ import {
 import { replenishAlarmRinging } from '@/services/ring-scheduler';
 import { SkinAlert, SkinAlertHost } from '@/components/common/SkinAlert';
 import { COLORS, getCurrentSkinTheme } from '@/constants';
+import { useSkinStore } from '@/store/skin-store';
 
 // 在模块加载时立即配置前台通知处理（Expo Go 中安全跳过）
 setupNotificationHandler();
@@ -42,6 +43,9 @@ export default function RootLayout() {
   const router = useRouter();
   const responseListener = useRef<{ remove: () => void } | null>(null);
   const appState = useRef<AppStateStatus>(AppState.currentState);
+  // 订阅主题版本：切换主题时重渲染以更新 StatusBar 与 Stack 背景色（skinVersion 仅用于触发重渲染）
+  const skinVersion = useSkinStore((state) => state.version);
+  void skinVersion;
 
   // 启动初始化
   useEffect(() => {
