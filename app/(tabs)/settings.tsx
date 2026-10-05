@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Linking,
@@ -7,38 +7,38 @@ import {
   StyleSheet,
   Text,
   View,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { PageHeading } from '@/components/common/PageHeader';
-import { COLORS, DEFAULT_SNOOZE_MINUTES, SKIN, SNOOZE_OPTIONS } from '@/constants';
-import { useSkinStyles } from '@/hooks/useSkinStyles';
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import Constants from "expo-constants";
+import { PageHeading } from "@/components/common/PageHeader";
+import { SkinAlert } from "@/components/common/SkinAlert";
+import { COLORS, SNOOZE_OPTIONS, SKIN } from "@/constants";
+import { useSkinStyles } from "@/hooks/useSkinStyles";
 import {
   getNotificationPermissionStatus,
   requestPermissions,
   type NotificationPermissionStatus,
-} from '@/services/notification';
-import { useSkinStore } from '@/store/skin-store';
-import { useSettingsStore } from '@/store/settings-store';
-import type { ThemePreference } from '@/types/settings';
+} from "@/services/notification";
+import { useSkinStore } from "@/store/skin-store";
+import { useSettingsStore } from "@/store/settings-store";
+import type { ThemePreference } from "@/types/settings";
 
 const PERMISSION_LABELS: Record<NotificationPermissionStatus, string> = {
-  granted: '已允许',
-  denied: '已拒绝',
-  undetermined: '未设置',
-  unavailable: '当前环境不可用',
+  granted: "已允许",
+  denied: "已拒绝",
+  undetermined: "未设置",
+  unavailable: "不可用",
 };
 
-function getPermissionActionLabel(status: NotificationPermissionStatus): string {
-  if (status === 'granted') return '刷新状态';
-  if (status === 'denied') return '前往系统设置';
-  if (status === 'unavailable') return '不可用';
-  return '允许通知';
-}
+/** 关于卡片展示的应用名（与 app.json expo.name 保持一致） */
+const APP_DISPLAY_NAME = "钟意";
 
 export default function SettingsScreen() {
   const styles = useSkinStyles(createStyles);
-  const { settings, loading, loadSettings, updateSettings } = useSettingsStore();
-  const [permission, setPermission] = useState<NotificationPermissionStatus>('undetermined');
+  const { settings, loading, loadSettings, updateSettings } =
+    useSettingsStore();
+  const [permission, setPermission] =
+    useState<NotificationPermissionStatus>("undetermined");
   const [permissionLoading, setPermissionLoading] = useState(true);
 
   const refreshPermission = useCallback(async () => {
@@ -58,16 +58,18 @@ export default function SettingsScreen() {
   // 自愈同步：若 DB 偏好与运行时皮肤不一致（如历史版本原生落盘失败），以 DB 为准纠正
   useEffect(() => {
     if (!loading && settings.theme !== useSkinStore.getState().preference) {
-      void useSkinStore.getState().setPreference(settings.theme, { persist: false });
+      void useSkinStore
+        .getState()
+        .setPreference(settings.theme, { persist: false });
     }
   }, [loading, settings.theme]);
 
   const handlePermissionPress = async () => {
-    if (permission === 'denied') {
+    if (permission === "denied") {
       await Linking.openSettings();
       return;
     }
-    if (permission === 'undetermined') {
+    if (permission === "undetermined") {
       await requestPermissions();
     }
     await refreshPermission();
@@ -77,15 +79,25 @@ export default function SettingsScreen() {
     await updateSettings({ defaultSnoozeMinutes: minutes });
   };
 
+  const handleSnoozePress = () => {
+    SkinAlert.alert("默认稍后提醒", "响铃后一键贪睡的时长", [
+      ...SNOOZE_OPTIONS.map((minutes) => ({
+        text: `${minutes} 分钟`,
+        onPress: () => void handleSnoozeChange(minutes),
+      })),
+      { text: "取消", style: "cancel" as const },
+    ]);
+  };
+
   const handleThemeChange = async (theme: ThemePreference) => {
     // 皮肤 store 统一处理：DB + 原生双落盘、原地覆写 SKIN/COLORS、版本号驱动全组件重建，
     // 全程不 reload JS、不重启、不丢页面状态
     await useSkinStore.getState().setPreference(theme);
   };
 
-  if (loading && settings.defaultSnoozeMinutes === DEFAULT_SNOOZE_MINUTES) {
+  if (loading) {
     return (
-      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+      <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
         <View style={styles.loading}>
           <ActivityIndicator color={COLORS.primary} />
           <Text style={styles.loadingText}>正在加载设置</Text>
@@ -95,108 +107,99 @@ export default function SettingsScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.pageHeader}>
           <PageHeading
-            eyebrow="APP PREFERENCES"
+            eyebrow="SETTINGS"
             title="设置"
-            subtitle="管理通知、默认提醒和外观偏好"
+            subtitle="主题切换即时生效"
           />
         </View>
 
-        <SettingsSection title="通知权限" description="确保提醒可以按时送达">
-          <View style={styles.statusRow}>
-            <View style={styles.statusCopy}>
-              <Text style={styles.rowTitle}>系统通知</Text>
-              <Text style={styles.rowDescription}>
-                {permissionLoading ? '正在检查权限状态' : PERMISSION_LABELS[permission]}
-              </Text>
-            </View>
-            <View style={[styles.statusPill, permission === 'granted' && styles.statusPillSuccess]}>
-              <Text style={[styles.statusPillText, permission === 'granted' && styles.statusPillTextSuccess]}>
-                {permissionLoading ? '检查中' : PERMISSION_LABELS[permission]}
-              </Text>
-            </View>
-          </View>
+        {/* 通知 + 默认稍后提醒 */}
+        <View style={styles.group}>
           <Pressable
             accessibilityRole="button"
-            style={({ pressed }) => [styles.actionButton, pressed && styles.actionButtonPressed]}
-            disabled={permissionLoading || permission === 'unavailable'}
+            style={({ pressed }) => [
+              styles.row,
+              styles.rowDivided,
+              pressed && styles.rowPressed,
+            ]}
             onPress={() => void handlePermissionPress()}
           >
-            <Text style={styles.actionButtonText}>{getPermissionActionLabel(permission)}</Text>
+            <View style={styles.info}>
+              <Text style={styles.rowTitle}>通知权限</Text>
+              <Text style={styles.rowDescription}>确保提醒可以按时送达</Text>
+            </View>
+            <Text
+              style={[
+                styles.rowValue,
+                permission === "granted" && styles.rowValueSuccess,
+              ]}
+            >
+              {permissionLoading ? "检查中" : PERMISSION_LABELS[permission]}
+            </Text>
           </Pressable>
-        </SettingsSection>
+          <Pressable
+            accessibilityRole="button"
+            style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+            onPress={handleSnoozePress}
+          >
+            <View style={styles.info}>
+              <Text style={styles.rowTitle}>默认稍后提醒</Text>
+              <Text style={styles.rowDescription}>响铃后一键贪睡的时长</Text>
+            </View>
+            <Text style={styles.rowValue}>
+              {settings.defaultSnoozeMinutes} 分钟 ›
+            </Text>
+          </Pressable>
+        </View>
 
-        <SettingsSection title="默认提醒" description="只影响之后新建的闹钟">
-          <Text style={styles.rowTitle}>默认稍后提醒时长</Text>
-          <Text style={styles.rowDescription}>通知响起后，延迟再次提醒的默认时间</Text>
-          <View style={styles.optionRow}>
-            {SNOOZE_OPTIONS.map((minutes) => (
-              <Pressable
-                key={minutes}
-                accessibilityRole="radio"
-                accessibilityState={{ selected: settings.defaultSnoozeMinutes === minutes }}
-                style={[
-                  styles.option,
-                  settings.defaultSnoozeMinutes === minutes && styles.optionActive,
-                ]}
-                onPress={() => void handleSnoozeChange(minutes)}
-              >
-                <Text style={[styles.optionText, settings.defaultSnoozeMinutes === minutes && styles.optionTextActive]}>
-                  {minutes} 分钟
-                </Text>
-              </Pressable>
-            ))}
+        {/* 主题 */}
+        <View style={styles.group}>
+          <View style={styles.row}>
+            <View style={styles.info}>
+              <Text style={styles.rowTitle}>主题</Text>
+              <Text style={styles.rowDescription}>深色模式跟随此设置</Text>
+            </View>
           </View>
-        </SettingsSection>
-
-        <SettingsSection title="外观" description="统一控制各页面的主题偏好">
-          <Text style={styles.rowTitle}>主题</Text>
-          <Text style={styles.rowDescription}>深色为「经典紫夜」配色，即时生效，无需重启</Text>
           <View style={styles.themeOptions}>
             <ThemeOption
               label="跟随系统"
-              active={settings.theme === 'system'}
-              onPress={() => void handleThemeChange('system')}
+              active={settings.theme === "system"}
+              onPress={() => void handleThemeChange("system")}
             />
             <ThemeOption
               label="浅色"
-              active={settings.theme === 'light'}
-              onPress={() => void handleThemeChange('light')}
+              active={settings.theme === "light"}
+              onPress={() => void handleThemeChange("light")}
             />
             <ThemeOption
               label="深色"
-              active={settings.theme === 'dark'}
-              onPress={() => void handleThemeChange('dark')}
+              active={settings.theme === "dark"}
+              onPress={() => void handleThemeChange("dark")}
             />
           </View>
-        </SettingsSection>
+        </View>
+
+        {/* 关于 */}
+        <View style={styles.group}>
+          <View style={styles.row}>
+            <View style={styles.info}>
+              <Text style={styles.rowTitle}>关于</Text>
+              <Text style={styles.rowDescription}>
+                版本 {Constants.expoConfig?.version ?? "未知"} ·{" "}
+                {APP_DISPLAY_NAME}
+              </Text>
+            </View>
+          </View>
+        </View>
       </ScrollView>
     </SafeAreaView>
-  );
-}
-
-function SettingsSection({
-  title,
-  description,
-  children,
-}: {
-  title: string;
-  description: string;
-  children: ReactNode;
-}) {
-  const styles = useSkinStyles(createStyles);
-  return (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>{title}</Text>
-      <Text style={styles.sectionDescription}>{description}</Text>
-      <View style={styles.sectionCard}>{children}</View>
-    </View>
   );
 }
 
@@ -217,43 +220,76 @@ function ThemeOption({
       style={[styles.themeOption, active && styles.themeOptionActive]}
       onPress={onPress}
     >
-      <Text style={[styles.themeOptionText, active && styles.themeOptionTextActive]}>{label}</Text>
+      <Text
+        style={[styles.themeOptionText, active && styles.themeOptionTextActive]}
+      >
+        {label}
+      </Text>
     </Pressable>
   );
 }
 
 function createStyles() {
   return StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  content: { paddingHorizontal: 20, paddingBottom: 32 },
-  pageHeader: { paddingTop: 12, paddingBottom: 22 },
-  section: { marginBottom: 20 },
-  sectionTitle: { color: COLORS.textPrimary, fontSize: 16, fontWeight: '800' },
-  sectionDescription: { marginTop: 4, color: COLORS.textSecondary, fontSize: 12 },
-  sectionCard: { marginTop: 10, padding: 16, borderRadius: 18, backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.border },
-  statusRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  statusCopy: { flex: 1 },
-  rowTitle: { color: COLORS.textPrimary, fontSize: 13, fontWeight: '800' },
-  rowDescription: { marginTop: 4, color: COLORS.textSecondary, fontSize: 11, lineHeight: 17 },
-  statusPill: { marginLeft: 12, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 99, backgroundColor: COLORS.input },
-  statusPillSuccess: { backgroundColor: SKIN.state.successSoft },
-  statusPillText: { color: COLORS.textSecondary, fontSize: 10, fontWeight: '700' },
-  statusPillTextSuccess: { color: COLORS.success },
-  actionButton: { alignItems: 'center', marginTop: 14, paddingVertical: 11, borderRadius: 12, backgroundColor: COLORS.primarySoft },
-  actionButtonPressed: { backgroundColor: COLORS.border },
-  actionButtonText: { color: COLORS.primaryDark, fontSize: 12, fontWeight: '800' },
-  optionRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 13 },
-  option: { paddingHorizontal: 12, paddingVertical: 9, borderRadius: 11, borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.card },
-  optionActive: { borderColor: COLORS.primary, backgroundColor: COLORS.primarySoft },
-  optionText: { color: COLORS.textSecondary, fontSize: 11, fontWeight: '700' },
-  optionTextActive: { color: COLORS.primaryDark },
-  themeOptions: { flexDirection: 'row', gap: 8, marginTop: 13 },
-  themeOption: { flex: 1, alignItems: 'center', paddingVertical: 11, borderRadius: 11, borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.card },
-  themeOptionActive: { borderColor: COLORS.primary, backgroundColor: COLORS.primarySoft },
-  themeOptionText: { color: COLORS.textSecondary, fontSize: 11, fontWeight: '700' },
-  themeOptionTextActive: { color: COLORS.primaryDark },
-  loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  loadingText: { marginTop: 10, color: COLORS.textSecondary, fontSize: 12 },
+    container: { flex: 1, backgroundColor: COLORS.background },
+    content: { paddingHorizontal: 20, paddingBottom: 32 },
+    pageHeader: { paddingTop: 12, paddingBottom: 14 },
+    // 分组卡片：圆角 + 内嵌行 + 行分隔线（对照 008 原型 set-group/set-row）
+    group: {
+      backgroundColor: COLORS.card,
+      borderWidth: 1,
+      borderColor: COLORS.border,
+      borderRadius: 16,
+      marginBottom: 14,
+      overflow: "hidden",
+    },
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      padding: 14,
+    },
+    rowDivided: {
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: COLORS.border,
+    },
+    rowPressed: {
+      backgroundColor: SKIN.surface.cardPressed,
+    },
+    info: { flex: 1 },
+    rowTitle: { color: COLORS.textPrimary, fontSize: 14, fontWeight: "600" },
+    rowDescription: {
+      marginTop: 2,
+      color: COLORS.textSecondary,
+      fontSize: 11,
+      lineHeight: 16,
+    },
+    rowValue: { fontSize: 13, color: COLORS.textSecondary },
+    rowValueSuccess: { color: COLORS.success, fontWeight: "600" },
+    themeOptions: {
+      flexDirection: "row",
+      gap: 6,
+      paddingHorizontal: 14,
+      paddingBottom: 14,
+    },
+    themeOption: {
+      alignItems: "center",
+      paddingVertical: 7,
+      paddingHorizontal: 14,
+      borderRadius: 999,
+      borderWidth: 1,
+      borderColor: COLORS.border,
+    },
+    themeOptionActive: {
+      borderColor: SKIN.state.selectedBorder,
+      backgroundColor: SKIN.state.selectedBg,
+    },
+    themeOptionText: { color: COLORS.textSecondary, fontSize: 12 },
+    themeOptionTextActive: {
+      color: SKIN.state.selectedText,
+      fontWeight: "600",
+    },
+    loading: { flex: 1, alignItems: "center", justifyContent: "center" },
+    loadingText: { marginTop: 10, color: COLORS.textSecondary, fontSize: 12 },
   });
 }
-

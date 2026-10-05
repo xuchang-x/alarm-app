@@ -28,6 +28,16 @@ interface AlarmRingNativeModule {
   getSkinTheme(): string;
   /** 写入主题偏好（008 深色模式，运行时切换由 skinStore 响应式驱动，落盘仅供下次冷启动定型） */
   setSkinTheme(theme: string): void;
+  /** 读取当前响铃快照（同步）：null = 未在响铃；供响铃浮层轮询 */
+  getRingingInfo(): RingingInfo | null;
+}
+
+/** 当前响铃快照（RingService.ringingInfo 的 JS 镜像） */
+export interface RingingInfo {
+  alarmId: number;
+  title: string;
+  body: string;
+  snoozeMinutes: number;
 }
 
 export const AlarmRing =
