@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  响铃页专用主题：framework Material 主题（模块无 appcompat 依赖），
+  windowBackground 用皮肤色避免亮屏瞬间闪默认色。
+-->
+<style name="RingActivityTheme" parent="android:Theme.Material.Light.NoActionBar">
+  <item name="android:windowBackground">@color/skinSurface</item>
+  <item name="android:windowNoTitle">true</item>
+</style>

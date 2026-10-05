@@ -29,6 +29,8 @@ class RingService : Service() {
         const val CHANNEL_ID = "alarm-ring-channel"
         const val ACTION_STOP = "alarm.ring.STOP"
         const val ACTION_SNOOZE = "alarm.ring.SNOOZE"
+        /** 响铃停止广播（含关闭/贪睡/30秒自动停）：响铃 Activity 收到后自动退出 */
+        const val ACTION_RING_STOPPED = "alarm.ring.STOPPED"
         private const val NOTIFICATION_ID = 2001
 
         /**
@@ -177,6 +179,8 @@ class RingService : Service() {
 
     private fun stopRinging() {
         ringingInfo = null
+        // 通知响铃 Activity（若已拉起）自动退出，避免铃停后界面残留
+        sendBroadcast(Intent(ACTION_RING_STOPPED).setPackage(packageName))
         stopHandler.removeCallbacksAndMessages(null)
         stopPlaying()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
@@ -204,12 +208,15 @@ class RingService : Service() {
         val contentPi = packageManager.getLaunchIntentForPackage(packageName)?.let {
             PendingIntent.getActivity(this, 0, it, flags)
         }
-        // 全屏弹窗意图（Android 10+ 闹钟类 App 标准行为）：息屏/锁屏/App 在后台时
-        // 直接全屏拉起 App；权限受限或不可用时系统自动降级为 heads-up 横幅，
-        // 保证响铃时用户始终能看到带「关闭/稍后提醒」的入口
-        val fullScreenPi = packageManager.getLaunchIntentForPackage(packageName)?.let {
-            PendingIntent.getActivity(this, 1, it, flags)
-        }
+        // 全屏弹窗意图（Android 10+ 闹钟类 App 标准行为，AOSP/Google 时钟同构）：
+        // 指向专用响铃 Activity（盖锁屏+亮屏，原生 UI 零冷启动延迟），
+        // 息屏/锁屏/App 在后台被杀时都直接全屏展示响铃界面；
+        // 权限受限时系统自动降级为 heads-up 横幅，仍有关闭/稍后提醒入口
+        val fullScreenPi = PendingIntent.getActivity(
+            this, 1,
+            AlarmRingActivity.createIntent(this, title, body, snoozeMinutes),
+            flags
+        )
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)

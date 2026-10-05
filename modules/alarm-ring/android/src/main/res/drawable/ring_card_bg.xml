@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 响铃卡片背景：28dp 圆角白色卡片（对齐 JS 侧 RingOverlay 卡片） -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+  <solid android:color="@color/skinSurface" />
+  <corners android:radius="28dp" />
+</shape>

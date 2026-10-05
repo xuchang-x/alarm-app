@@ -32,5 +32,16 @@
       android:name="alarm.ring.RingService"
       android:exported="false"
       android:foregroundServiceType="mediaPlayback" />
+
+    <!-- 响铃全屏界面：由 RingService 通知的 full-screen intent 拉起，
+         showWhenLocked/turnScreenOn 盖锁屏 + 自动亮屏（低版本在代码里用 window flag 等价实现），
+         excludeFromRecents 不进最近任务，不参与 App 返回栈 -->
+    <activity
+      android:name="alarm.ring.AlarmRingActivity"
+      android:exported="false"
+      android:excludeFromRecents="true"
+      android:showWhenLocked="true"
+      android:turnScreenOn="true"
+      android:theme="@style/RingActivityTheme" />
   </application>
 </manifest>
