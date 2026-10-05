@@ -119,12 +119,11 @@ class AlarmRingActivity : Activity() {
   }
 
   private fun startRingService(action: String) {
-    val intent = Intent(this, RingService::class.java).setAction(action)
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      startForegroundService(intent)
-    } else {
-      startService(intent)
-    }
+    // STOP/SNOOZE 是停止类动作：服务内不会调 startForeground，
+    // 用 startForegroundService 会在服务已自停（如 30 秒到时）的竞态下触发
+    // ForegroundServiceDidNotStartInTimeException。本 Activity 可见时进程
+    // 处于前台，startService 不受后台启动限制。
+    startService(Intent(this, RingService::class.java).setAction(action))
   }
 
   companion object {
