@@ -114,7 +114,7 @@ export default function AlarmCard({
                 value={alarm.enabled}
                 onValueChange={() => onToggle(alarm.id)}
                 trackColor={{ false: COLORS.border, true: COLORS.primary }}
-                thumbColor="#FFFFFF"
+                thumbColor={SKIN.brand.onPrimary}
                 ios_backgroundColor={COLORS.border}
               />
             </View>
