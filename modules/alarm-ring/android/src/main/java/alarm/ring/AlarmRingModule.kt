@@ -68,6 +68,18 @@ class AlarmRingModule : Module() {
             RingStore.canScheduleExact(context)
         }
 
+        // ── 响铃浮层（响铃时 App 内展示关闭/稍后提醒入口）──
+        // 同步读当前响铃快照，null = 未在响铃。JS 侧 RingOverlayHost 轮询。
+        Function("getRingingInfo") {
+            val snap = RingService.ringingInfo ?: return@Function null
+            mapOf(
+                "alarmId" to snap.alarmId,
+                "title" to snap.title,
+                "body" to snap.body,
+                "snoozeMinutes" to snap.snoozeMinutes,
+            )
+        }
+
         // ── 皮肤主题（008 深色模式）──
         // JS 侧在 bundle 求值时同步读这里定型 SKIN（模块级 StyleSheet 会冻结色值），
         // 切换主题 = setSkinTheme + JS 重载，详见 src/constants/theme.ts。

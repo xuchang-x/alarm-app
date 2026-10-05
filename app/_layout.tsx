@@ -17,6 +17,7 @@ import {
 } from '@/services/notification';
 import { replenishAlarmRinging } from '@/services/ring-scheduler';
 import { SkinAlert, SkinAlertHost } from '@/components/common/SkinAlert';
+import { RingOverlayHost } from '@/components/ring/RingOverlay';
 import { COLORS, getCurrentSkinTheme } from '@/constants';
 import { useSkinStore } from '@/store/skin-store';
 
@@ -168,6 +169,8 @@ export default function RootLayout() {
         </Stack>
         {/* 皮肤化系统弹窗宿主，业务代码统一走 SkinAlert.alert */}
         <SkinAlertHost />
+        {/* 响铃浮层宿主：前台检测到响铃时弹出关闭/稍后提醒入口 */}
+        <RingOverlayHost />
       </GestureHandlerRootView>
     </SafeAreaProvider>
   );

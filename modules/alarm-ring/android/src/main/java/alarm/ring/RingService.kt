@@ -30,7 +30,23 @@ class RingService : Service() {
         const val ACTION_STOP = "alarm.ring.STOP"
         const val ACTION_SNOOZE = "alarm.ring.SNOOZE"
         private const val NOTIFICATION_ID = 2001
+
+        /**
+         * 当前响铃快照（响铃浮层）：响铃开始置位，停止/贪睡后清空。
+         * JS 侧 RingOverlayHost 每秒轮询 getRingingInfo，App 在前台时展示
+         * 带「关闭/稍后提醒」的浮层，不再单点依赖通知横幅的可见性。
+         */
+        @Volatile
+        var ringingInfo: RingingSnapshot? = null
     }
+
+    /** 响铃快照：浮层展示与操作所需的最小字段集 */
+    data class RingingSnapshot(
+        val alarmId: Int,
+        val title: String,
+        val body: String,
+        val snoozeMinutes: Int,
+    )
 
     private var player: MediaPlayer? = null
     private val stopHandler = Handler(Looper.getMainLooper())
@@ -56,10 +72,12 @@ class RingService : Service() {
         alarmId = intent?.getIntExtra("alarmId", -1) ?: -1
         val title = intent?.getStringExtra("title") ?: "闹钟"
         val body = intent?.getStringExtra("body") ?: ""
+        val snoozeMinutes = intent?.getIntExtra("snoozeMinutes", 10) ?: 10
         val durationSeconds = intent?.getIntExtra("ringDurationSeconds", 30) ?: 30
         val soundId = intent?.getStringExtra("soundId")
         val soundUri = intent?.getStringExtra("soundUri")
 
+        ringingInfo = RingingSnapshot(alarmId, title, body, snoozeMinutes)
         startForeground(NOTIFICATION_ID, buildNotification(title, body))
         logNotificationDiagnostics()
         startPlaying(soundId, soundUri)
@@ -121,12 +139,22 @@ class RingService : Service() {
         }
 
         // 2. 内置音 raw 资源（模块资源名与 soundId 一致，`ars_` 前缀）
+        //    两级查找：debug/不收缩时命中模块 res/raw/ars_*；
+        //    release 开资源收缩时模块 raw 会被裁掉（getIdentifier 动态引用
+        //    无法被静态分析），但 JS 侧 assets/sounds 经 RN 插件派生的
+        //    raw/assets_sounds_ars_* 始终在包内，用前缀名兜底命中。
         if (!soundId.isNullOrBlank()) {
             val resId = resources.getIdentifier(soundId, "raw", packageName)
-            if (resId != 0) {
+            if (resId == 0) {
+                val assetsResId =
+                    resources.getIdentifier("assets_sounds_$soundId", "raw", packageName)
+                if (assetsResId != 0) {
+                    return Uri.parse("android.resource://$packageName/$assetsResId")
+                }
+                android.util.Log.w("RingService", "内置音资源未命中：$soundId，回退系统默认")
+            } else {
                 return Uri.parse("android.resource://$packageName/$resId")
             }
-            android.util.Log.w("RingService", "内置音资源未命中：$soundId，回退系统默认")
         }
 
         // 3. 系统默认闹钟铃声
@@ -148,6 +176,7 @@ class RingService : Service() {
     }
 
     private fun stopRinging() {
+        ringingInfo = null
         stopHandler.removeCallbacksAndMessages(null)
         stopPlaying()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {

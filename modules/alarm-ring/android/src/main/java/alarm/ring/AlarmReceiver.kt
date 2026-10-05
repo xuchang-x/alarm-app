@@ -23,6 +23,7 @@ class AlarmReceiver : BroadcastReceiver() {
             putExtra("alarmId", plan.alarmId)
             putExtra("title", plan.title)
             putExtra("body", plan.body)
+            putExtra("snoozeMinutes", plan.snoozeMinutes)
             putExtra("ringDurationSeconds", plan.ringDurationSeconds)
             putExtra("soundId", plan.soundId)
             putExtra("soundUri", plan.soundUri)
