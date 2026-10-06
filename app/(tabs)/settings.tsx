@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  AppState,
   Linking,
   Pressable,
   ScrollView,
@@ -19,6 +20,11 @@ import {
   requestPermissions,
   type NotificationPermissionStatus,
 } from "@/services/notification";
+import {
+  isIgnoringBatteryOptimizations,
+  isNativeRingAvailable,
+  requestIgnoreBatteryOptimizations,
+} from "@/services/ring-scheduler";
 import { useSkinStore } from "@/store/skin-store";
 import { useSettingsStore } from "@/store/settings-store";
 import type { ThemePreference } from "@/types/settings";
@@ -40,6 +46,10 @@ export default function SettingsScreen() {
   const [permission, setPermission] =
     useState<NotificationPermissionStatus>("undetermined");
   const [permissionLoading, setPermissionLoading] = useState(true);
+  /** 电池优化白名单状态；null = 原生响铃模块不可用（Expo Go/iOS），不展示保障行 */
+  const [batteryWhitelisted, setBatteryWhitelisted] = useState<
+    boolean | null
+  >(null);
 
   const refreshPermission = useCallback(async () => {
     setPermissionLoading(true);
@@ -50,10 +60,27 @@ export default function SettingsScreen() {
     }
   }, []);
 
+  const refreshBattery = useCallback(() => {
+    if (!isNativeRingAvailable()) return;
+    setBatteryWhitelisted(isIgnoringBatteryOptimizations());
+  }, []);
+
   useEffect(() => {
     void loadSettings();
     void refreshPermission();
-  }, [loadSettings, refreshPermission]);
+    refreshBattery();
+  }, [loadSettings, refreshPermission, refreshBattery]);
+
+  // 从系统设置/电池优化对话框返回时刷新权限与白名单状态
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (state) => {
+      if (state === "active") {
+        void refreshPermission();
+        refreshBattery();
+      }
+    });
+    return () => subscription.remove();
+  }, [refreshPermission, refreshBattery]);
 
   // 自愈同步：若 DB 偏好与运行时皮肤不一致（如历史版本原生落盘失败），以 DB 为准纠正
   useEffect(() => {
@@ -73,6 +100,12 @@ export default function SettingsScreen() {
       await requestPermissions();
     }
     await refreshPermission();
+  };
+
+  const handleBatteryPress = async () => {
+    if (batteryWhitelisted) return;
+    // 用户在系统对话框中的选择以回前台后的 AppState 刷新为准
+    await requestIgnoreBatteryOptimizations();
   };
 
   const handleSnoozeChange = async (minutes: number) => {
@@ -120,7 +153,7 @@ export default function SettingsScreen() {
           />
         </View>
 
-        {/* 通知 + 默认稍后提醒 */}
+        {/* 通知 + 响铃保障 + 默认稍后提醒 */}
         <View style={styles.group}>
           <Pressable
             accessibilityRole="button"
@@ -144,6 +177,51 @@ export default function SettingsScreen() {
               {permissionLoading ? "检查中" : PERMISSION_LABELS[permission]}
             </Text>
           </Pressable>
+          {batteryWhitelisted !== null && (
+            <>
+              <Pressable
+                accessibilityRole="button"
+                style={({ pressed }) => [
+                  styles.row,
+                  styles.rowDivided,
+                  pressed && styles.rowPressed,
+                ]}
+                onPress={() => void handleBatteryPress()}
+              >
+                <View style={styles.info}>
+                  <Text style={styles.rowTitle}>后台运行保障</Text>
+                  <Text style={styles.rowDescription}>
+                    关闭电池优化，杀 App 后闹钟也能准时响铃
+                  </Text>
+                </View>
+                <Text
+                  style={[
+                    styles.rowValue,
+                    batteryWhitelisted && styles.rowValueSuccess,
+                  ]}
+                >
+                  {batteryWhitelisted ? "已开启" : "去开启 ›"}
+                </Text>
+              </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                style={({ pressed }) => [
+                  styles.row,
+                  styles.rowDivided,
+                  pressed && styles.rowPressed,
+                ]}
+                onPress={() => void Linking.openSettings()}
+              >
+                <View style={styles.info}>
+                  <Text style={styles.rowTitle}>自启动与省电策略</Text>
+                  <Text style={styles.rowDescription}>
+                    小米/OPPO/vivo 等机型还需允许自启动，并将省电策略设为「无限制」
+                  </Text>
+                </View>
+                <Text style={styles.rowValue}>去设置 ›</Text>
+              </Pressable>
+            </>
+          )}
           <Pressable
             accessibilityRole="button"
             style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}

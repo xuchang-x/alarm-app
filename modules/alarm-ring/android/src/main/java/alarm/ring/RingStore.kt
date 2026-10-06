@@ -29,11 +29,19 @@ data class RingPlan(
     val soundUri: String?,
 )
 
+/** 触发时间迟到的容忍窗口：超过该窗口的过期触发不再补响 */
+private const val MISSED_GRACE_MS = 15 * 60_000L
+
 /**
  * 计划持久化 + AlarmManager 调度封装。
  *
- * 调度策略：每个闹钟同一时刻只挂一个最近未来触发的精确闹钟，
- * 触发后由 AlarmReceiver 再排下一个（链式），避免 PendingIntent 数量膨胀。
+ * 调度策略（业界标准，同 AOSP DeskClock / Google Clock）：
+ * 全局单槽 setAlarmClock()——系统只保留每个 App 最近一次 alarm clock，
+ * 因此永远只挂「所有计划中最近的未来触发」，触发后全局重选。
+ * 相比 setExactAndAllowWhileIdle 的优势：
+ * 1. Doze 豁免：系统会在触发前主动提前退出低电耗模式（官方文档明确）；
+ * 2. 状态栏 / 锁屏展示闹钟图标与下次响铃时间（用户可感知「已设上」）；
+ * 3. ROM 电池策略对 alarm clock 类闹钟区别对待，杀后台后存活率最高。
  */
 object RingStore {
 
@@ -102,42 +110,49 @@ object RingStore {
         prefs(context).edit().putString(KEY_PLANS, array.toString()).apply()
     }
 
-    /** 全量重排：先取消所有已挂的 PendingIntent，再按各自最近未来触发重挂 */
+    /** 全量重排：清掉旧式逐闹钟挂载后，全局重挂最近的未来触发 */
     fun rescheduleAll(context: Context) {
-        val plans = loadPlans(context)
-        for (plan in plans) {
+        for (plan in loadPlans(context)) {
+            // 兼容清理：0.1.4 及更早版本逐闹钟挂载的 PendingIntent
             cancelPending(context, plan.alarmId)
-            scheduleNext(context, plan)
         }
+        scheduleNext(context)
     }
 
-    /** 为单个计划挂最近的未来触发（无未来触发则不挂） */
-    fun scheduleNext(context: Context, plan: RingPlan) {
-        val now = System.currentTimeMillis()
-        val next = plan.triggers.filter { it > now }.minOrNull() ?: return
+    /** 全局重挂：取所有计划中最近的未来触发，以 alarm clock 身份挂载（无未来触发则取消） */
+    fun scheduleNext(context: Context) {
         val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val pi = triggerPendingIntent(context, plan.alarmId)
+        val now = System.currentTimeMillis()
+        val next = loadPlans(context)
+            .flatMap { plan -> plan.triggers.filter { it > now } }
+            .minOrNull()
+        if (next == null) {
+            am.cancel(triggerPendingIntent(context))
+            return
+        }
+        val pi = triggerPendingIntent(context)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !am.canScheduleExactAlarms()) {
-            // 未授予精确闹钟权限：降级为非精确触发（可能延迟数分钟，但不丢）
+            // 未授予精确闹钟权限：setAlarmClock 会抛 SecurityException，降级为非精确触发
             am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, next, pi)
         } else {
-            am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, next, pi)
+            am.setAlarmClock(
+                AlarmManager.AlarmClockInfo(next, showPendingIntent(context)),
+                pi,
+            )
         }
     }
 
     fun cancelPending(context: Context, alarmId: Int) {
         val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        am.cancel(triggerPendingIntent(context, alarmId))
+        am.cancel(legacyTriggerPendingIntent(context, alarmId))
     }
 
-    /** 追加贪睡触发（now + snoozeMinutes）并立即重挂该闹钟的最近触发 */
+    /** 追加贪睡触发（now + snoozeMinutes）并全局重挂 */
     fun scheduleSnooze(context: Context, alarmId: Int) {
         val plan = loadPlans(context).firstOrNull { it.alarmId == alarmId } ?: return
         val snoozeAt = System.currentTimeMillis() + plan.snoozeMinutes * 60_000L
-        val updated = plan.copy(triggers = plan.triggers + snoozeAt)
-        upsertPlan(context, updated)
-        cancelPending(context, alarmId)
-        scheduleNext(context, updated)
+        upsertPlan(context, plan.copy(triggers = plan.triggers + snoozeAt))
+        scheduleNext(context)
     }
 
     /** 精确闹钟权限是否可用（Android 12 以下恒为 true） */
@@ -160,7 +175,41 @@ object RingStore {
         prefs(context).edit().putString(KEY_SKIN_THEME, theme).apply()
     }
 
-    private fun triggerPendingIntent(context: Context, alarmId: Int): PendingIntent {
+    /** 已到点的计划及其触发时间（含 [MISSED_GRACE_MS] 容忍窗口内的迟到触发） */
+    fun duePlan(context: Context): Pair<RingPlan, Long>? {
+        val now = System.currentTimeMillis()
+        return loadPlans(context)
+            .mapNotNull { plan ->
+                plan.triggers
+                    .filter { it <= now && now - it <= MISSED_GRACE_MS }
+                    .minOrNull()
+                    ?.let { plan to it }
+            }
+            .minByOrNull { it.second }
+    }
+
+    /** 清掉所有计划中已过期的触发时间戳，防止迟到窗口内重复响铃，随后全局重挂 */
+    fun purgePastTriggersAndReschedule(context: Context) {
+        val now = System.currentTimeMillis()
+        val plans = loadPlans(context).map { it.copy(triggers = it.triggers.filter { t -> t > now }) }
+        savePlans(context, plans)
+        scheduleNext(context)
+    }
+
+    private fun triggerPendingIntent(context: Context): PendingIntent {
+        val intent = Intent(context, AlarmReceiver::class.java).apply {
+            action = ACTION_TRIGGER
+        }
+        return PendingIntent.getBroadcast(
+            context,
+            0,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+    }
+
+    /** 旧版逐闹钟挂载的 PendingIntent（仅用于升级后清理） */
+    private fun legacyTriggerPendingIntent(context: Context, alarmId: Int): PendingIntent {
         val intent = Intent(context, AlarmReceiver::class.java).apply {
             action = ACTION_TRIGGER
             putExtra("alarmId", alarmId)
@@ -169,6 +218,18 @@ object RingStore {
             context,
             alarmId,
             intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+    }
+
+    /** 状态栏闹钟图标点击跳转：打开 App 主界面 */
+    private fun showPendingIntent(context: Context): PendingIntent? {
+        val launch = context.packageManager.getLaunchIntentForPackage(context.packageName)
+            ?: return null
+        return PendingIntent.getActivity(
+            context,
+            0,
+            launch,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
     }

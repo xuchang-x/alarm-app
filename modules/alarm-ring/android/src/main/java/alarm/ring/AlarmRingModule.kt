@@ -1,6 +1,9 @@
 package alarm.ring
 
 import android.content.Intent
+import android.net.Uri
+import android.os.PowerManager
+import android.provider.Settings
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 
@@ -60,12 +63,49 @@ class AlarmRingModule : Module() {
         AsyncFunction("stopRinging") {
             val context = appContext.reactContext
                 ?: return@AsyncFunction Unit
-            context.stopService(Intent(context, RingService::class.java))
+            // 先同步清响铃快照：JS 侧响铃浮层每秒轮询 getRingingInfo，
+            // 若等 ACTION_STOP 异步生效，快照残留会让浮层关闭后 1 秒内再次弹出
+            RingService.ringingInfo = null
+            // 走服务内 ACTION_STOP 完整停止流程（清快照/停播放/摘前台通知/stopSelf），
+            // 不用 stopService：后者只触发 onDestroy，历史实现中快照清不掉导致浮层复现。
+            // 调用方在 App 前台（浮层点击），startService 不受后台启动限制；
+            // 也不用 startForegroundService，避免服务已停时触发
+            // ForegroundServiceDidNotStartInTimeException
+            context.startService(
+                Intent(context, RingService::class.java).setAction(RingService.ACTION_STOP)
+            )
         }
 
         Function("canScheduleExactAlarms") {
             val context = appContext.reactContext ?: return@Function false
             RingStore.canScheduleExact(context)
+        }
+
+        // ── 电池优化白名单（设置页「后台运行保障」）──
+        // 杀 App 后响铃依赖 AlarmManager 拉起进程，ROM 电池策略可能拦截；
+        // 引导用户把 App 加入电池优化白名单可显著降低被冻概率。
+        Function("isIgnoringBatteryOptimizations") {
+            val context = appContext.reactContext ?: return@Function true
+            val pm = context.getSystemService(PowerManager::class.java)
+                ?: return@Function true
+            pm.isIgnoringBatteryOptimizations(context.packageName)
+        }
+
+        AsyncFunction("requestIgnoreBatteryOptimizations") {
+            val context = appContext.reactContext
+                ?: return@AsyncFunction false
+            try {
+                context.startActivity(
+                    Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                        data = Uri.parse("package:${context.packageName}")
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                )
+                true
+            } catch (e: Exception) {
+                android.util.Log.w("AlarmRing", "拉起电池优化白名单对话框失败", e)
+                false
+            }
         }
 
         // ── 响铃浮层（响铃时 App 内展示关闭/稍后提醒入口）──
