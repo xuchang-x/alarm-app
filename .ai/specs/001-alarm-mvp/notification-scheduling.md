@@ -55,3 +55,15 @@ expo-notifications 原生支持的 trigger 类型有 date（精确日期）、da
 ### 后续 iOS 适配
 
 iOS 有 64 条限制，届时需升级为方案 C（预调度受限条数 + 打开 App 时补充 + 可选 Background Fetch 兜底）。
+
+---
+
+## 2026-10 更新：调度已迁至原生 alarm-ring 模块（setAlarmClock）
+
+本文档前半部分为 expo-notifications 时代方案，现调度已由 `modules/alarm-ring` 原生模块接管，现状如下：
+
+- **存储**：JS 层用 computeRingDatesInRange 算出触发时间戳，经 AlarmRingModule.syncAlarms 同步到原生，持久化在 SharedPreferences（App 被杀 / 重启不丢）。
+- **调度 API**：`AlarmManager.setAlarmClock()` 全局单槽（同 AOSP DeskClock / Google Clock 业界标准）。相比 `setExactAndAllowWhileIdle`：Doze 下系统主动提前退出低电耗模式、状态栏/锁屏展示系统闹钟图标、ROM 电池策略存活率最高。每次触发/变更后全局重选最近的未来触发。
+- **触发链路**：AlarmReceiver → startForegroundService(RingService)（ALARM_MANAGER_WHILE_IDLE 豁免后台启动限制）→ 前台服务持唤醒锁播放铃声 + 高优先级通知 fullscreenIntent 拉起全屏响铃界面（息屏/锁屏时全屏，亮屏时 heads-up 横幅）。
+- **兜底**：BootReceiver 处理 BOOT_COMPLETED / MY_PACKAGE_REPLACED 重排；JS 侧 replenishAlarmRinging 在 App 启动时补排。
+- **已知边界**：设置里「强行停止」会触发 ACTION_PACKAGE_RESTARTED，系统清除该 App 全部闹钟——系统时钟 App 亦然，业界无解，重新打开 App 即恢复（replenish 兜底）。国产 ROM「划卡片/一键清理」部分版本等同强停，需引导用户开启自启动 + 电池白名单（设置页「后台运行保障」）。
