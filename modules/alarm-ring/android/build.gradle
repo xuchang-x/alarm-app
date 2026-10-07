@@ -15,6 +15,12 @@ applyKotlinExpoModulesCorePlugin()
 useCoreDependencies()
 useExpoPublishing()
 
+dependencies {
+    // AppCompatDelegate.setDefaultNightMode：皮肤偏好同步夜间模式（008 深色模式），
+    // 与 app 壳层 ReactActivity 的 appcompat 版本由 Gradle 取高者对齐
+    implementation "androidx.appcompat:appcompat:1.7.0"
+}
+
 android {
   namespace "alarm.ring"
   compileSdkVersion safeExtGet("compileSdkVersion", 36)

@@ -50,6 +50,13 @@
 3. 全部页面文字对比度达标，禁用/弱化层级仍可区分
 4. jest/tsc 通过，存量浅色视觉零变化
 
+## 机制增补（2026-10-07 迭代项：日期弹窗跟随皮肤）
+
+首版实现遗留一个边界：原生日历弹窗主题 `AppMaterialCalendarTheme` 的 parent 硬编码 `Theme.Material3.Light`（弹窗骨架永远浅色），且 `values-night` 资源限定符只跟随系统深色，感知不到 App 内「深色」强制偏好——「系统浅色 + App 深色」时弹窗为白色。本次修复：
+
+- alarm-ring 模块新增 `syncNightMode()`：按持久化皮肤偏好调 `AppCompatDelegate.setDefaultNightMode`（dark→YES / light→NO / system→FOLLOW_SYSTEM），模块 `OnCreate` 启动同步一次、`setSkinTheme` 就地换肤后同步，Manifest 已声明 `uiMode` configChanges 不重建 Activity。入库于 `modules/alarm-ring/`（含 appcompat 1.7.0 依赖）。
+- 新增 `android/app/src/main/res/values-night/styles.xml`：同名覆写 `AppMaterialCalendarTheme`（parent 改 `Theme.Material3.Dark`，颜色项复用 `@color/skin*` 夜间镜像）。⚠️ 该文件在 gitignore 的 `android/` 下不入库，与 `values/styles.xml` 的弹窗主题定制同属本地资产，prebuild 重新生成后需手工恢复。
+
 ## 后续扩展（不在本 spec 范围）
 
 - 按分类的彩色强调主题、AMOLED 动态取色（Material You）
