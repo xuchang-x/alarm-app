@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.PowerManager
 import android.provider.Settings
+import androidx.appcompat.app.AppCompatDelegate
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 
@@ -19,9 +20,31 @@ import expo.modules.kotlin.modules.ModuleDefinition
  */
 class AlarmRingModule : Module() {
 
+    /**
+     * 把皮肤偏好同步为 AppCompat 夜间模式。
+     *
+     * App 内皮肤偏好（system/light/dark）与系统深色是两个独立状态：资源限定符
+     * values-night 只跟系统，感知不到 App 内强制深浅。这里用 setDefaultNightMode
+     * 把 Activity 资源解析的 uiMode 拉齐到皮肤偏好，让原生日历弹窗（依赖
+     * values-night/styles.xml 与 colors.xml）跟随 App 皮肤。主 Manifest 已声明
+     * uiMode configChanges，切换不会重建 Activity。
+     */
+    private fun syncNightMode() {
+        val context = appContext.reactContext ?: return
+        when (RingStore.getSkinTheme(context)) {
+            "dark" -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+            "light" -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+            else -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+        }
+    }
+
     override fun definition() = ModuleDefinition {
 
         Name("AlarmRing")
+
+        // 模块创建即同步一次：MainActivity 资源解析早于模块初始化，
+        // 不在启动时拉齐的话首帧到弹窗之间 uiMode 停留在系统状态
+        OnCreate { syncNightMode() }
 
         AsyncFunction("syncAlarms") { plans: List<Map<String, Any?>> ->
             val context = appContext.reactContext ?: return@AsyncFunction false
@@ -133,6 +156,8 @@ class AlarmRingModule : Module() {
         Function("setSkinTheme") { theme: String ->
             val context = appContext.reactContext ?: return@Function Unit
             RingStore.setSkinTheme(context, theme)
+            // 就地换肤后立即拉齐夜间模式，原生日历弹窗无需重启即跟随新主题
+            syncNightMode()
         }
     }
 }
